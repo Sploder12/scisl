@@ -4,4 +4,8 @@ PRINT v0
 SET v1 19.376812
 SET v2 69
 MULTE $(num) v2 v1
+LABEL 6
 PRINT $(num)
+ADDE $(num) -1
+CJMP 6 $(num)
+PRINT "We made it"

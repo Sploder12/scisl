@@ -45,8 +45,22 @@ namespace scisl
 		}
 	}
 
+	void program::step()
+	{
+		instructions[curInstr++].run(*this);
+	}
+
+	void program::run()
+	{
+		while (curInstr < instructions.size())
+		{
+			step();
+		}
+	}
+
 	void instruction::run(program& process)
 	{
+		if (func == nullptr) return;
 		func(process, arguments);
 	}
 }

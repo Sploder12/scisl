@@ -19,8 +19,13 @@ namespace scisl
 	{
 		value* memory;
 		std::vector<instruction> instructions;
+		unsigned int curInstr = 0;
 
 		void decompile(const char* filename);
+
+		void step();
+
+		void run();
 	};
 
 	typedef void (*scislFunc)(program&, const args&);

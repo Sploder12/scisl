@@ -170,5 +170,21 @@ namespace scisl
 		}
 		std::cout << '\n';
 	}
+
+	void jmp(program& process, const args& args)
+	{
+		unsigned int line = *(unsigned int*)(args.arguments[0].val);
+		process.curInstr = line;
+	}
+
+	void cjmp(program& process, const args& args)
+	{
+		value cur = args.arguments[1].getValue(process);
+		if (SCISL_CAST_INT(cur.val) > 0)
+		{
+			unsigned int line = *(unsigned int*)(args.arguments[0].val);
+			process.curInstr = line;
+		}
+	}
 }
 #pragma warning(pop)

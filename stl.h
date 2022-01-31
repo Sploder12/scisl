@@ -19,6 +19,10 @@ namespace scisl
 		dive,
 		print,
 
+		label,
+		jmp,
+		cjmp,
+
 		noop,
 		stlFuncCount
 	};
@@ -36,6 +40,9 @@ namespace scisl
 		"DIVE",
 		"PRINT",
 
+		"LABEL",
+		"JMP",
+		"CJMP",
 
 		"NOOP"
 	};
@@ -53,6 +60,10 @@ namespace scisl
 		3,
 		2,
 		0,
+
+		1,
+		1,
+		2,
 
 		0
 	};
@@ -89,6 +100,10 @@ namespace scisl
 	//veriadic args
 	void print(program& process, const args& args);
 
+	void jmp(program& process, const args& args);
+
+	void cjmp(program& process, const args& args);
+
 	constexpr scislFunc stlFuncLUT[(unsigned short)(stlFuncs::stlFuncCount)] =
 	{
 		set,
@@ -101,6 +116,10 @@ namespace scisl
 		div,
 		dive,
 		print,
+
+		nullptr,
+		jmp,
+		cjmp,
 
 		nullptr
 	};

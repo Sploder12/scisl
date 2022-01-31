@@ -20,6 +20,7 @@ namespace scisl
 		case '7':
 		case '8':
 		case '9':
+		case '-':
 			return true;
 		default:
 			return false;
@@ -89,6 +90,14 @@ namespace scisl
 			{
 				std::string& cur = things[i + 1];
 				arg* carg = &opt.arguments.arguments[i];
+
+				if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
+				{
+					carg->argType = argType::constant;
+					carg->type = type::integer;
+					carg->val = new std::string(cur);
+					continue;
+				}
 
 				//constants
 				if (isNumeric(cur[0]))
@@ -166,6 +175,33 @@ namespace scisl
 		return opt;
 	}
 
+	//do this last during compilation since optimizations move things around
+	void resolveLabels(std::vector<instruction>& instructions)
+	{
+		std::map<std::string, unsigned int> labels;
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			instruction& cur = instructions[i]; //check if it's a label instruction
+			if (cur.func == nullptr && cur.arguments.argCount == 1 && cur.arguments.arguments[0].argType == argType::constant)
+			{
+				labels.insert({SCISL_CAST_STRING(cur.arguments.arguments[0].val) , i});
+				delete (std::string*)(cur.arguments.arguments[0].val);
+				cur.arguments.arguments[0].val = new SCISL_INT_PRECISION(i);
+			}
+		}
+
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			instruction& cur = instructions[i];
+			if (cur.func == stlFuncLUT[(unsigned short)(stlFuncs::jmp)] || cur.func == stlFuncLUT[(unsigned short)(stlFuncs::cjmp)])
+			{
+				unsigned int loc = labels[SCISL_CAST_STRING(cur.arguments.arguments[0].val)];
+				delete (std::string*)(cur.arguments.arguments[0].val);
+				cur.arguments.arguments[0].val = new SCISL_INT_PRECISION(loc);
+			}
+		}
+	}
+
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -181,6 +217,8 @@ namespace scisl
 			{
 				opt->instructions.push_back(parseInstr(line, vars));
 			}
+
+			resolveLabels(opt->instructions);
 
 			opt->memory = new value[vars.size()];
 			for (unsigned int i = 0; i < vars.size(); i++)
