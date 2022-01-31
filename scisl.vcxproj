@@ -152,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="args.cpp" />
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="example.cpp" />
     <ClCompile Include="program.cpp" />

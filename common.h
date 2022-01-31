@@ -32,6 +32,31 @@ namespace scisl
 	{
 		type type;
 		void* val;
+		bool isTemporary = false;
+
+		value() :
+			type(type::error), val(nullptr) {}
+
+		value(value& o) = default;
+		value(value&& moved) noexcept;
+
+		value& operator=(value& o) = default;
+		value& operator=(value&& moved) noexcept;
+
+		value& operator=(void* val);
+
+		value& operator+=(value& other);
+		value& operator-=(value& other);
+		value& operator*=(value& other);
+		value& operator/=(value& other);
+		value& operator%=(value& other);
+		value& operator|=(value& other);
+		value& operator&=(value& other);
+		value& operator^=(value& other);
+		value& operator>>=(value& other);
+		value& operator<<=(value& other);
+
+		~value();
 	};
 }
 

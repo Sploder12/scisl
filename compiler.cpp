@@ -200,6 +200,7 @@ namespace scisl
 				}
 			}
 
+			file.close();
 			return opt;
 		}
 		return nullptr;

@@ -40,11 +40,11 @@ namespace scisl
 		}
 	}
 
-	arg::arg(arg&& cmove) noexcept
+	arg::arg(arg&& cmove) noexcept :
+		argType(std::move(cmove.argType)),
+		type(std::move(cmove.type)),
+		val(std::move(cmove.val))
 	{
-		this->argType = cmove.argType;
-		this->type = cmove.type;
-		this->val = cmove.val;
 		cmove.val = nullptr;
 		cmove.type = type::error;
 		cmove.argType = argType::error;
@@ -85,12 +85,9 @@ namespace scisl
 
 	arg& arg::operator=(arg&& cmove) noexcept
 	{
-		this->argType = cmove.argType;
-		this->type = cmove.type;
-		this->val = cmove.val;
-		cmove.val = nullptr;
-		cmove.type = type::error;
-		cmove.argType = argType::error;
+		std::swap(this->argType, cmove.argType);
+		std::swap(this->type, cmove.type);
+		std::swap(this->val, cmove.val);
 
 		return *this;
 	}

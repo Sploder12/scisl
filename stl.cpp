@@ -1,106 +1,33 @@
 #include "stl.h"
 
-//this is horribly lazy of me and very dangerous but makes me waste less time
-#define DO_OP(first, second, op)\
-	switch (first.type)\
-	{\
-		case type::string:\
-			switch (second.type)\
-			{\
-			case type::string:\
-				SCISL_CAST_STRING(first.val) op SCISL_CAST_STRING(second.val);\
-				break;\
-			case type::integer:\
-				SCISL_CAST_STRING(first.val) op std::to_string(SCISL_CAST_INT(second.val));\
-				break;\
-			case type::floating:\
-				SCISL_CAST_STRING(first.val) op std::to_string(SCISL_CAST_FLOAT(second.val));\
-				break;\
-			default:\
-				break;\
-			}\
-			break;\
-		case type::integer:\
-			switch (second.type)\
-			{\
-			case type::string:\
-				SCISL_CAST_INT(first.val) op (SCISL_INT_PRECISION)std::stol(SCISL_CAST_STRING(second.val));\
-				break;\
-			case type::integer:\
-				SCISL_CAST_INT(first.val) op SCISL_CAST_INT(second.val);\
-				break;\
-			case type::floating:\
-				SCISL_CAST_INT(first.val) op SCISL_CAST_FLOAT(second.val);\
-				break;\
-			default:\
-				break;\
-			}\
-			break;\
-		case type::floating:\
-			switch (second.type)\
-			{\
-			case type::string:\
-				SCISL_CAST_FLOAT(first.val) op (SCISL_FLOAT_PRECISION)std::stod(SCISL_CAST_STRING(second.val));\
-				break;\
-			case type::integer:\
-				SCISL_CAST_FLOAT(first.val) op SCISL_CAST_INT(second.val);\
-				break;\
-			case type::floating:\
-				SCISL_CAST_FLOAT(first.val) op SCISL_CAST_FLOAT(second.val);\
-				break;\
-			default:\
-				break;\
-			}\
-			break;\
-		default:\
-			break;\
-	}\
-
-#define DO_OP_NSTR(first, second, op)\
-switch (first.type)\
-{\
-case type::string:\
-	break;\
-case type::integer:\
-		switch (second.type)\
-		{\
-		case type::string:\
-			break; \
-		case type::integer:\
-			SCISL_CAST_INT(first.val) op SCISL_CAST_INT(second.val); \
-			break; \
-		case type::floating:\
-			SCISL_CAST_INT(first.val) op SCISL_CAST_FLOAT(second.val); \
-			break; \
-		default:\
-			break; \
-		}\
-			break; \
-case type::floating:\
-			switch (second.type)\
-			{\
-			case type::string:\
-				break; \
-			case type::integer:\
-				SCISL_CAST_FLOAT(first.val) op SCISL_CAST_INT(second.val); \
-				break; \
-			case type::floating:\
-				SCISL_CAST_FLOAT(first.val) op SCISL_CAST_FLOAT(second.val); \
-				break; \
-			default:\
-				break; \
-			}\
-				break; \
-default:\
-	break; \
-}\
-
 #include <iostream>
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
 namespace scisl
 {
+	inline value createTemporary(type tipe)
+	{
+		value opt;
+		opt.type = tipe;
+		opt.isTemporary = true;
+		switch (tipe)
+		{
+		case (type::string):
+			opt.val = new std::string("");
+			break;
+		case (type::integer):
+			opt.val = new SCISL_INT_PRECISION(0);
+			break;
+		case (type::floating):
+			opt.val = new SCISL_FLOAT_PRECISION(0);
+			break;
+		default:
+			opt.val = nullptr;
+		}
+		return opt;
+	}
+
 	stlFuncs strToFuncID(const std::string& str)
 	{
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
@@ -118,19 +45,22 @@ namespace scisl
 		value cur = args.arguments[0].getValue(process);
 		value to = args.arguments[1].getValue(process);
 		
-		DO_OP(cur, to, =)
+		cur = to.val;
 	}
 
 	//veriadic args
 	void add(program& process, const args& args)
 	{
 		value cur = args.arguments[0].getValue(process);
-		value sum = args.arguments[1].getValue(process);
-		for (unsigned char i = 2; i < args.argCount; i++)
+		value sum = createTemporary(cur.type); //defaults as empty
+
+		for (unsigned char i = 1; i < args.argCount; i++)
 		{
 			value to = args.arguments[i].getValue(process);
-			DO_OP(sum, to, +=)
+			sum += to;
 		}
+		
+		cur = sum.val;
 	}
 
 	//3 args
@@ -140,20 +70,26 @@ namespace scisl
 		value first = args.arguments[1].getValue(process);
 		value second = args.arguments[2].getValue(process);
 
-		DO_OP_NSTR(first, second, -=);
-		DO_OP(cur, first, =);
+		value diff = createTemporary(cur.type);
+		diff = first.val;
+		diff -= second;
+		cur = diff.val;
 	}
 
 	//veriadic args
 	void mult(program& process, const args& args)
 	{
 		value cur = args.arguments[0].getValue(process);
+		value prod = createTemporary(cur.type);
+		prod = args.arguments[1].getValue(process);
 
-		for (unsigned char i = 1; i < args.argCount; i++)
+		for (unsigned char i = 2; i < args.argCount; i++)
 		{
 			value to = args.arguments[i].getValue(process);
-			DO_OP_NSTR(cur, to, *=)
+			prod *= to;
 		}
+
+		cur = prod.val;
 	}
 
 	//3 args
@@ -163,8 +99,10 @@ namespace scisl
 		value first = args.arguments[1].getValue(process);
 		value second = args.arguments[2].getValue(process);
 
-		DO_OP_NSTR(first, second, /=);
-		DO_OP(cur, first, =);
+		value quo = createTemporary(cur.type);
+		quo = first.val;
+		quo /= second;
+		cur = quo.val;
 	}
 
 	//veriadic args
