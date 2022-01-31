@@ -1,0 +1,3 @@
+SET test "Hello"
+ADD test test " " "World" "!"
+PRINT test
