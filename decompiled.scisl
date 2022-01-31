@@ -9,3 +9,4 @@ PRINT $(num)
 ADDE $(num) -1
 CJMP 6 $(num)
 PRINT "We made it"
+ExampleFunc $(num)

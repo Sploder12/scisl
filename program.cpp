@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "stl.h"
+#include "tables.h"
 
 namespace scisl
 {
@@ -16,8 +17,16 @@ namespace scisl
 			}
 		}
 
+		auto& t = getFuncTable();
+		for (auto& i : t)
+		{
+			if (i.second.func = func)
+			{
+				return i.first;
+			}
+		}
+
 		return "";
-		//@TODO registered funcs
 	}
 
 	void program::decompile(const char* filename)

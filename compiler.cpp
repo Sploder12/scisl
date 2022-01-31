@@ -68,6 +68,7 @@ namespace scisl
 		stlFuncs fID = strToFuncID(things[0]);
 
 		instruction opt;
+		scislPeephole peep = nullptr;
 
 		if (fID != stlFuncs::stlFuncCount)
 		{
@@ -78,100 +79,119 @@ namespace scisl
 				if (expectedArgs != argCount)
 				{
 					opt.func = nullptr;
+					opt.arguments.argCount = 0;
 					return opt;
 					//error
 				}
 			}
+		}
+		else
+		{
+			auto& funcs = getFuncTable();
+			registeredFunc& fnc = funcs.at(things[0]);
 
-			opt.arguments.arguments = new arg[argCount];
-			opt.arguments.argCount = argCount;
+			opt.func = fnc.func;
+			opt.arguments.argCount = fnc.argCount;
 
-			for (unsigned char i = 0; i < argCount; i++)
+			if (fnc.argCount != 0)
 			{
-				std::string& cur = things[i + 1];
-				arg* carg = &opt.arguments.arguments[i];
-
-				if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
+				if (fnc.argCount != argCount)
 				{
-					carg->argType = argType::constant;
-					carg->type = type::integer;
-					carg->val = new std::string(cur);
-					continue;
+					opt.func = nullptr;
+					opt.arguments.argCount = 0;
+					return opt;
+					//error
 				}
-
-				//constants
-				if (isNumeric(cur[0]))
-				{
-					carg->argType = argType::constant;
-					if (cur.find('.') != std::string::npos)
-					{
-						carg->type = type::floating;
-						carg->val = new SCISL_FLOAT_PRECISION(std::stod(cur));
-						continue;
-					}
-					else
-					{
-						carg->type = type::integer;
-						carg->val = new SCISL_INT_PRECISION(std::stol(cur));
-						continue;
-					}
-				}
-				else if (cur[0] == '"')
-				{
-					carg->argType = argType::constant;
-					carg->type = type::string;
-					carg->val = new std::string(cur.substr(1, cur.size() - 2));
-					continue;
-				}
-
-				//interoperables
-				if (cur[0] == '$')
-				{
-					auto& vTable = getVarTable();
-					carg->argType = argType::interop;
-					carg->val = new std::string(cur.substr(2, cur.size() - 3));
-					carg->type = vTable.at(*(std::string*)carg->val).type;
-					continue;
-				}
-
-				//normal variables
-				carg->argType = argType::variable;
-				unsigned short loc = findV(vars, cur);
-				if (loc != vars.size())
-				{
-					carg->type = vars[loc].second;
-					carg->val = new unsigned short(loc);
-					continue;
-				}
-
-				std::string& next = things[i + 2];
-				if (isNumeric(next[0]))
-				{
-					if (next.find('.') != std::string::npos)
-					{
-						carg->type = type::floating;
-					}
-					else
-					{
-						carg->type = type::integer;
-					}
-				}
-				else if (next[0] == '"')
-				{
-					carg->type = type::string;
-				}
-
-				carg->val = new unsigned short(loc);
-				vars.push_back({ cur, carg->type });
 			}
-
-			return opt;
+			peep = fnc.optimizer;
 		}
 
-		//@TODO registered functions
-		opt.func = nullptr;
-		opt.arguments.argCount = 0;
-		opt.arguments.arguments = nullptr;
+		opt.arguments.arguments = new arg[argCount];
+		opt.arguments.argCount = argCount;
+
+		for (unsigned char i = 0; i < argCount; i++)
+		{
+			std::string& cur = things[i + 1];
+			arg* carg = &opt.arguments.arguments[i];
+
+			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
+			{
+				carg->argType = argType::constant;
+				carg->type = type::integer;
+				carg->val = new std::string(cur);
+				continue;
+			}
+
+			//constants
+			if (isNumeric(cur[0]))
+			{
+				carg->argType = argType::constant;
+				if (cur.find('.') != std::string::npos)
+				{
+					carg->type = type::floating;
+					carg->val = new SCISL_FLOAT_PRECISION(std::stod(cur));
+					continue;
+				}
+				else
+				{
+					carg->type = type::integer;
+					carg->val = new SCISL_INT_PRECISION(std::stol(cur));
+					continue;
+				}
+			}
+			else if (cur[0] == '"')
+			{
+				carg->argType = argType::constant;
+				carg->type = type::string;
+				carg->val = new std::string(cur.substr(1, cur.size() - 2));
+				continue;
+			}
+
+			//interoperables
+			if (cur[0] == '$')
+			{
+				auto& vTable = getVarTable();
+				carg->argType = argType::interop;
+				carg->val = new std::string(cur.substr(2, cur.size() - 3));
+				carg->type = vTable.at(*(std::string*)carg->val).type;
+				continue;
+			}
+
+			//normal variables
+			carg->argType = argType::variable;
+			unsigned short loc = findV(vars, cur);
+			if (loc != vars.size())
+			{
+				carg->type = vars[loc].second;
+				carg->val = new unsigned short(loc);
+				continue;
+			}
+
+			std::string& next = things[i + 2];
+			if (isNumeric(next[0]))
+			{
+				if (next.find('.') != std::string::npos)
+				{
+					carg->type = type::floating;
+				}
+				else
+				{
+					carg->type = type::integer;
+				}
+			}
+			else if (next[0] == '"')
+			{
+				carg->type = type::string;
+			}
+
+			carg->val = new unsigned short(loc);
+			vars.push_back({ cur, carg->type });
+		}
+
+		if (peep != nullptr)
+		{
+			peep(opt); //peephole optimizer
+		}
 		return opt;
 	}
 
