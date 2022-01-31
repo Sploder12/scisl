@@ -18,6 +18,7 @@ namespace scisl
 	struct program
 	{
 		value* memory;
+		unsigned short memsize;
 		std::vector<instruction> instructions;
 		unsigned int curInstr = 0;
 
@@ -26,6 +27,10 @@ namespace scisl
 		void step();
 
 		void run();
+
+		void dumpMemory();
+		
+		~program();
 	};
 
 	typedef void (*scislFunc)(program&, const args&);

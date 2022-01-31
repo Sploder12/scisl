@@ -241,6 +241,7 @@ namespace scisl
 			resolveLabels(opt->instructions);
 
 			opt->memory = new value[vars.size()];
+			opt->memsize = vars.size();
 			for (unsigned int i = 0; i < vars.size(); i++)
 			{
 				opt->memory[i].type = vars[i].second;

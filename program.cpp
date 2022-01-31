@@ -1,6 +1,7 @@
 #include "program.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "stl.h"
 #include "tables.h"
@@ -64,6 +65,43 @@ namespace scisl
 		while (curInstr < instructions.size())
 		{
 			step();
+		}
+	}
+
+	void program::dumpMemory()
+	{
+		for (unsigned int i = 0; i < memsize; i++)
+		{
+			value& cur = memory[i];
+			switch (cur.type)
+			{
+			case type::string:
+				std::cout << "Type: String\tValue: " << SCISL_CAST_STRING(cur.val) << '\n';
+				break;
+			case type::integer:
+				std::cout << "Type: Int\tValue: " << SCISL_CAST_INT(cur.val) << '\n';
+				break;
+			case type::floating:
+				std::cout << "Type: Float\tValue: " << SCISL_CAST_FLOAT(cur.val) << '\n';
+				break;
+			default:
+				std::cout << "Type: Error\tValue: " << (unsigned long long)(cur.val) << '\n';
+				break;
+			}
+		}
+	}
+
+	program::~program()
+	{
+		for (unsigned int i = 0; i < memsize; i++)
+		{
+			memory[i].isTemporary = true;
+		}
+
+		delete[] memory;
+		for (instruction& i : instructions)
+		{
+			delete[] i.arguments.arguments;
 		}
 	}
 
