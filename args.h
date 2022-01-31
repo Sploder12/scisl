@@ -37,6 +37,8 @@ namespace scisl
 
 		value getValue(program& process);
 
+		std::string toString();
+
 		~arg();
 	};
 }

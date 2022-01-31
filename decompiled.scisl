@@ -1,0 +1,3 @@
+SET v0 "Hello"
+ADD v0 v0 " " "World" "!"
+PRINT v0

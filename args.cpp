@@ -121,6 +121,51 @@ namespace scisl
 		return opt;
 	}
 
+	std::string arg::toString()
+	{
+		std::string opt = "";
+
+		switch (argType)
+		{
+		case argType::constant:
+			switch (type)
+			{
+			case type::string:
+				opt += '"' + SCISL_CAST_STRING(val) + '"';
+				break;
+			case type::floating:
+			{
+				SCISL_FLOAT_PRECISION v = SCISL_CAST_FLOAT(val);
+				if (v == round(v))
+				{
+					opt += std::to_string(v) + ".0";
+				}
+				else
+				{
+					opt += std::to_string(v);
+				}
+				break;
+			}
+			case type::integer:
+				opt += std::to_string(SCISL_CAST_INT(val));
+				break;
+			default:
+				break;
+			}
+			break;
+		case argType::variable:
+			opt += 'v' + std::to_string(*(unsigned short*)(val));
+			break;
+		case argType::interop:
+			opt += "$(" + SCISL_CAST_STRING(val) + ')';
+			break;
+		default:
+			break;
+		}
+
+		return opt;
+	}
+
 	arg::~arg()
 	{
 		switch (argType)

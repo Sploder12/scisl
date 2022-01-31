@@ -7,5 +7,6 @@ int main()
 	{
 		prog->instructions[i].run(*prog);
 	}
+	prog->decompile("decompiled.scisl");
 	return 0;
 }
