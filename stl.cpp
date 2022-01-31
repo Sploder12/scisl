@@ -44,7 +44,7 @@ namespace scisl
 	{
 		value cur = args.arguments[0].getValue(process);
 		value to = args.arguments[1].getValue(process);
-		
+
 		cur = to.val;
 	}
 
@@ -63,6 +63,18 @@ namespace scisl
 		cur = sum.val;
 	}
 
+	//veriadic args
+	void adde(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+
+		for (unsigned char i = 1; i < args.argCount; i++)
+		{
+			value to = args.arguments[i].getValue(process);
+			cur += to;
+		}
+	}
+
 	//3 args
 	void sub(program& process, const args& args)
 	{
@@ -74,6 +86,15 @@ namespace scisl
 		diff = first.val;
 		diff -= second;
 		cur = diff.val;
+	}
+
+	//2 args
+	void sube(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+
+		cur -= first;
 	}
 
 	//veriadic args
@@ -92,6 +113,18 @@ namespace scisl
 		cur = prod.val;
 	}
 
+	//veriadic args
+	void multe(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+
+		for (unsigned char i = 1; i < args.argCount; i++)
+		{
+			value to = args.arguments[i].getValue(process);
+			cur *= to;
+		}
+	}
+
 	//3 args
 	void div(program& process, const args& args)
 	{
@@ -103,6 +136,15 @@ namespace scisl
 		quo = first.val;
 		quo /= second;
 		cur = quo.val;
+	}
+
+	//2 args
+	void dive(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+
+		cur /= first;
 	}
 
 	//veriadic args
@@ -126,6 +168,7 @@ namespace scisl
 				break;
 			}
 		}
+		std::cout << '\n';
 	}
 }
 #pragma warning(pop)

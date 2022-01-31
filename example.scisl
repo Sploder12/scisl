@@ -1,3 +1,7 @@
 SET test "Hello"
-ADD test test " " "World" "!"
+ADDE test " " "World" "!"
 PRINT test
+SET num1 19.3768115942029
+SET num2 69
+MULTE $(num) num2 num1
+PRINT $(num)

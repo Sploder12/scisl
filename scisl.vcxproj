@@ -160,6 +160,7 @@
     <ClCompile Include="tables.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="decompiled.scisl" />
     <None Include="example.scisl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

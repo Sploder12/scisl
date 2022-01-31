@@ -10,9 +10,13 @@ namespace scisl
 	{
 		set,
 		add,
+		adde,
 		sub,
+		sube,
 		mult,
+		multe,
 		div,
+		dive,
 		print,
 
 		noop,
@@ -23,9 +27,13 @@ namespace scisl
 	{
 		"SET",
 		"ADD",
+		"ADDE",
 		"SUB",
+		"SUBE",
 		"MULT",
+		"MULTE",
 		"DIV",
+		"DIVE",
 		"PRINT",
 
 
@@ -37,9 +45,13 @@ namespace scisl
 	{
 		2,
 		0,
-		3,
 		0,
 		3,
+		2,
+		0,
+		0,
+		3,
+		2,
 		0,
 
 		0
@@ -53,14 +65,26 @@ namespace scisl
 	//veriadic args
 	void add(program& process, const args& args);
 
+	//veriadic args
+	void adde(program& process, const args& args);
+
 	//3 args
 	void sub(program& process, const args& args);
+
+	//2 args
+	void sube(program& process, const args& args);
 
 	//veriadic args
 	void mult(program& process, const args& args);
 
+	//veriadic args
+	void multe(program& process, const args& args);
+
 	//3 args
 	void div(program& process, const args& args);
+
+	//2 args
+	void dive(program& process, const args& args);
 
 	//veriadic args
 	void print(program& process, const args& args);
@@ -69,9 +93,13 @@ namespace scisl
 	{
 		set,
 		add,
+		adde,
 		sub,
+		sube,
 		mult,
+		multe,
 		div,
+		dive,
 		print,
 
 		nullptr

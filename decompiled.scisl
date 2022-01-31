@@ -1,3 +1,7 @@
 SET v0 "Hello"
-ADD v0 v0 " " "World" "!"
+ADDE v0 " " "World" "!"
 PRINT v0
+SET v1 19.376812
+SET v2 69
+MULTE $(num) v2 v1
+PRINT $(num)

@@ -138,7 +138,7 @@ namespace scisl
 				std::string& next = things[i + 2];
 				if (isNumeric(next[0]))
 				{
-					if (cur.find('.') != std::string::npos)
+					if (next.find('.') != std::string::npos)
 					{
 						carg->type = type::floating;
 					}
@@ -172,7 +172,7 @@ namespace scisl
 		if (file.is_open())
 		{
 			program* opt = new program();
-			opt->memory = {};
+			opt->memory = nullptr;
 			
 			std::string line;
 			std::vector<std::pair<std::string, type>> vars = {};
@@ -189,13 +189,13 @@ namespace scisl
 				switch (vars[i].second)
 				{
 				case type::integer:
-					opt->memory->val = new SCISL_INT_PRECISION(0);
+					opt->memory[i].val = new SCISL_INT_PRECISION(0);
 					break;
 				case type::floating:
-					opt->memory->val = new SCISL_FLOAT_PRECISION(0);
+					opt->memory[i].val = new SCISL_FLOAT_PRECISION(0);
 					break;
 				case type::string:
-					opt->memory->val = new std::string("");
+					opt->memory[i].val = new std::string("");
 					break;
 				}
 			}
