@@ -61,7 +61,7 @@ namespace scisl
 		return vars.size();
 	}
 
-	instruction parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
+	std::pair<instruction, scislPeephole> parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<std::string> things = splitLine(line);
 		unsigned char argCount = things.size() - 1;
@@ -80,10 +80,11 @@ namespace scisl
 				{
 					opt.func = nullptr;
 					opt.arguments.argCount = 0;
-					return opt;
+					return { opt, nullptr };
 					//error
 				}
 			}
+			peep = stlFuncPeep[(unsigned short)(fID)];
 		}
 		else
 		{
@@ -99,7 +100,7 @@ namespace scisl
 				{
 					opt.func = nullptr;
 					opt.arguments.argCount = 0;
-					return opt;
+					return { opt, nullptr };
 					//error
 				}
 			}
@@ -188,11 +189,76 @@ namespace scisl
 			vars.push_back({ cur, carg->type });
 		}
 
-		if (peep != nullptr)
+		return { opt, peep };
+	}
+
+	//done pretty early, doesn't change any instructions, only changes args to be constants (if they are)
+	std::vector<unsigned short> evaluateConstants(program* process)
+	{
+		std::map<unsigned short, std::pair<unsigned int, void*>> varAccessTable;
+		for (auto& instr : process->instructions) //find if variables are actually constants
 		{
-			peep(opt); //peephole optimizer
+			for (unsigned int i = 0; i < instr.arguments.argCount; i++)
+			{
+				arg& cur = instr.arguments.arguments[i];
+				if (cur.argType == argType::variable)
+				{
+					if (varAccessTable.count(*(unsigned short*)cur.val) == 0)
+					{
+						std::pair tmp = { 0U,  instr.arguments.arguments[i + 1].val };
+						unsigned short v = *(unsigned short*)(cur.val);
+						varAccessTable.insert({ v, tmp });
+					}
+
+					if (!isSTLfunc(instr.func) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::set)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::add)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::adde)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::mult)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::multe)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::sub)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::sube)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::div)] && i == 0) ||
+						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::dive)] && i == 0))
+					{
+						varAccessTable.at(*(unsigned short*)(cur.val)).first += 1;
+					}
+				}
+			}
 		}
-		return opt;
+
+		std::vector<unsigned short> removedVars;
+
+		for (auto& instr : process->instructions) //find if variables are actually constants
+		{
+			for (unsigned int i = 0; i < instr.arguments.argCount; i++)
+			{
+				arg& cur = instr.arguments.arguments[i];
+				if (cur.argType != argType::variable) continue;
+
+				auto& v = varAccessTable.at(*(unsigned short*)(cur.val));
+				if (v.first <= 1)
+				{
+					cur.argType = argType::constant;
+					removedVars.push_back(*(unsigned short*)(cur.val));
+					delete (unsigned short*)(cur.val);
+					switch (cur.type)
+					{
+					case type::string:
+						cur.val = new std::string(SCISL_CAST_STRING(v.second));
+						break;
+					case type::integer:
+						cur.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(v.second));
+						break;
+					case type::floating:
+						cur.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(v.second));
+						break;
+					}
+				}
+			}
+		}
+
+		return removedVars;
 	}
 
 	//do this last during compilation since optimizations move things around
@@ -222,6 +288,20 @@ namespace scisl
 		}
 	}
 
+	void removeNOOP(program* process)
+	{
+		std::vector<instruction> remaining;
+		for (instruction& i : process->instructions)
+		{
+			if (i.func != nullptr ||
+				(i.arguments.argCount == 1 && i.arguments.arguments[0].argType == argType::constant))
+			{
+				remaining.push_back(std::move(i));
+			}
+		}
+		process->instructions = std::move(remaining);
+	}
+
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -233,10 +313,24 @@ namespace scisl
 			std::string line;
 			std::vector<std::pair<std::string, type>> vars = {};
 
+			std::vector<scislPeephole> peeps = {};
+
 			while (std::getline(file, line))
 			{
-				opt->instructions.push_back(parseInstr(line, vars));
+				auto instr = parseInstr(line, vars);
+				opt->instructions.push_back(instr.first);
+				peeps.push_back(instr.second);
 			}
+
+			auto removedVars = evaluateConstants(opt);
+
+			for (unsigned int i = 0; i < peeps.size(); i++)
+			{
+				scislPeephole peep = peeps[i];
+				if (peep != nullptr) peep(opt->instructions[i]);
+			}
+
+			removeNOOP(opt);
 
 			resolveLabels(opt->instructions);
 

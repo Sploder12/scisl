@@ -34,6 +34,7 @@ namespace scisl
 	};
 
 	typedef void (*scislFunc)(program&, const args&);
+	typedef void (*scislPeephole)(instruction&);
 
 	struct instruction
 	{

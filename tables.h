@@ -15,8 +15,6 @@ namespace scisl
 		void* adr;
 	};
 
-	typedef void (*scislPeephole)(instruction&);
-
 	struct registeredFunc
 	{
 		scislFunc func;

@@ -123,6 +123,41 @@ namespace scisl
 
 		nullptr
 	};
+
+	bool isSTLfunc(scislFunc fnc);
+
+	void setPeep(instruction& instruct);
+	void addPeep(instruction& instruct);
+	void addePeep(instruction& instruct);
+	void subPeep(instruction& instruct);
+	void subePeep(instruction& instruct);
+	void multPeep(instruction& instruct);
+	void multePeep(instruction& instruct);
+	void divPeep(instruction& instruct);
+	void divePeep(instruction& instruct);
+	void printPeep(instruction& instruct);
+
+	void cjmpPeep(instruction& instruct);
+
+	constexpr scislPeephole stlFuncPeep[(unsigned short)(stlFuncs::stlFuncCount)] =
+	{
+		setPeep,
+		addPeep,
+		addePeep,
+		subPeep,
+		subePeep,
+		multPeep,
+		multePeep,
+		divPeep,
+		divePeep,
+		printPeep,
+
+		nullptr,
+		nullptr,
+		cjmpPeep,
+
+		nullptr
+	};
 }
 
 #endif

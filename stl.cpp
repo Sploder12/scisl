@@ -186,5 +186,264 @@ namespace scisl
 			process.curInstr = line;
 		}
 	}
+
+
+	 bool isSTLfunc(scislFunc fnc)
+	{
+		for (unsigned int i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
+		{
+			if (fnc == stlFuncLUT[i]) return true;
+		}
+
+		return false;
+	}
+
+	inline void toNOOP(instruction& instruct)
+	{
+		instruct.func = nullptr;
+		delete[] instruct.arguments.arguments;
+		instruct.arguments.arguments = nullptr;
+		instruct.arguments.argCount = 0;
+	}
+
+	inline argType getAType(instruction& instruct, unsigned short argIdx)
+	{
+		return instruct.arguments.arguments[argIdx].argType;
+	}
+
+	inline type getVType(instruction& instruct, unsigned short argIdx)
+	{
+		return instruct.arguments.arguments[argIdx].type;
+	}
+
+	void plusEq(value& first, value& other)
+	{
+		first += other;
+	}
+
+	void minusEq(value& first, value& other)
+	{
+		first -= other;
+	}
+
+	void multEq(value& first, value& other)
+	{
+		first *= other;
+	}
+
+	void divEq(value& first, value& other)
+	{
+		first /= other;
+	}
+
+	void removeErrArgs(instruction& instruct)
+	{
+		std::vector<arg> remaining;
+
+		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		{
+			if (getAType(instruct, i) != argType::error)
+			{
+				remaining.push_back(std::move(instruct.arguments.arguments[i]));
+			}
+		}
+
+		if (remaining.size() != instruct.arguments.argCount)
+		{
+
+			delete[] instruct.arguments.arguments;
+			instruct.arguments.arguments = new arg[remaining.size()];
+			instruct.arguments.argCount = remaining.size();
+		}
+
+		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		{
+			instruct.arguments.arguments[i] = std::move(remaining[i]);
+		}
+	}
+
+	void combineConsts(instruction& instruct, unsigned short startIDX, void (*func)(value&, value&))
+	{
+		value firstStr;
+		firstStr.type = type::string;
+		value firstInt;
+		firstInt.type = type::integer;
+		value firstFloat;
+		firstFloat.type = type::floating;
+		for (unsigned int i = startIDX; i < instruct.arguments.argCount; i++)
+		{
+			if (getAType(instruct, i) == argType::constant)
+			{
+				switch (getVType(instruct, i))
+				{
+				case type::string:
+				{
+					if (firstStr.val == nullptr)
+					{
+						firstStr.val = instruct.arguments.arguments[i].val;
+						break;
+					}
+
+					value tmp = createTemporary(type::string);
+					tmp.val = instruct.arguments.arguments[i].val;
+					func(firstStr, tmp);
+					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					break;
+				}
+				case type::integer:
+				{
+					if (firstInt.val == nullptr)
+					{
+						firstInt.val = instruct.arguments.arguments[i].val;
+						break;
+					}
+
+					value tmp = createTemporary(type::integer);
+					tmp.val = instruct.arguments.arguments[i].val;
+					func(firstInt, tmp);
+					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					break;
+				}
+				case type::floating:
+				{
+					if (firstFloat.val == nullptr)
+					{
+						firstFloat.val = instruct.arguments.arguments[i].val;
+						break;
+					}
+
+					value tmp = createTemporary(type::floating);
+					tmp.val = instruct.arguments.arguments[i].val;
+					func(firstFloat, tmp);
+					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					break;
+				}
+				default:
+					break;
+				}
+			}
+		}
+		removeErrArgs(instruct);
+	}
+
+	void removeIdentity(instruction& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
+	{
+
+		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		{
+			if (getAType(instruct, i) == argType::constant)
+			{
+				switch (getVType(instruct, i))
+				{
+				case type::string:
+					break;
+				case type::floating:
+				{
+					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.arguments.arguments[i].val);
+					if (val == identityVal)
+					{
+						instruct.arguments.arguments[i].argType = argType::error;
+					}
+					break;
+				}
+				case type::integer:
+				{
+					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.arguments.arguments[i].val);
+					if (val == identityVal)
+					{
+						instruct.arguments.arguments[i].argType = argType::error;
+					}
+					break;
+				}
+				}
+			}
+		}
+
+		removeErrArgs(instruct);
+	}
+
+	inline bool settingConst(instruction& instruct)
+	{
+		if (getAType(instruct, 0) == argType::constant)
+		{ //setting a constant
+			toNOOP(instruct);
+			return true;
+		}
+		return false;
+	}
+
+	void setPeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+		
+	}
+
+
+	void addPeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+		combineConsts(instruct, 1, plusEq);
+
+		removeIdentity(instruct, 1, 0);
+	}
+
+	void addePeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+		combineConsts(instruct, 1, plusEq);
+
+		removeIdentity(instruct, 1, 0);
+	}
+
+	void subPeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+	}
+
+	void subePeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void multPeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+		combineConsts(instruct, 1, multEq);
+
+		removeIdentity(instruct, 1, 1);
+	}
+
+	void multePeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+		combineConsts(instruct, 1, multEq);
+
+		removeIdentity(instruct, 1, 1);
+	}
+
+	void divPeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void divePeep(instruction& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void printPeep(instruction& instruct)
+	{
+		combineConsts(instruct, 0, plusEq);
+	}
+
+	void cjmpPeep(instruction& instruct)
+	{
+
+	}
 }
 #pragma warning(pop)

@@ -1,12 +1,10 @@
 SET v0 "Hello"
-ADDE v0 " " "World" "!"
+ADDE v0 " World!"
 PRINT v0
-SET v1 19.376812
-SET v2 69
-MULTE $(num) v2 v1
-LABEL 6
+MULTE $(num) 69 19.376812
+LABEL 4
 PRINT $(num)
 ADDE $(num) -1
-CJMP 6 $(num)
+CJMP 4 $(num)
 PRINT "We made it"
 ExampleFunc $(num)

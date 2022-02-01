@@ -24,11 +24,11 @@ int main()
 	scisl::registerFunc("ExampleFunc", exampleFunc, 1);
 
 	scisl::program* prog = scisl::compile("example.scisl");
-
+	prog->decompile("decompiled.scisl");
 	prog->run();
 
 	prog->dumpMemory();
 
-	prog->decompile("decompiled.scisl");
+	
 	return 0;
 }
