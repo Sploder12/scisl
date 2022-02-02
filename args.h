@@ -21,6 +21,7 @@ namespace scisl
 		argType argType;
 		type type;
 		void* val;
+		bool finalized = false;
 		//val is either a pointer to a constant OR a pointer to string name of var
 		//variables are resolved at compile time, interops at runtime
 		//variables are resolved to a program memory location as unsigned short

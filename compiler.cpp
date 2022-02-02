@@ -1,8 +1,11 @@
 #include "compiler.h"
 
+#include "common.h"
 #include "tables.h"
+#include "stl.h"
 
 #include <fstream>
+#include <iostream>
 
 namespace scisl
 {
@@ -61,59 +64,64 @@ namespace scisl
 		return vars.size();
 	}
 
-	std::pair<instruction, scislPeephole> parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
+	constexpr bool isRightType(const char c, type tipe)
+	{
+		switch (c)
+		{
+		case 'a':
+			return true;
+		case 'n':
+			return (tipe == type::integer || tipe == type::floating);
+		case 's':
+			return tipe == type::string;
+		case 'i':
+			return tipe == type::integer;
+		case 'f':
+			return tipe == type::floating;
+		default:
+			return false;
+		}
+	}
+
+	size_t lineNum = 0;
+	precompInstr parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<std::string> things = splitLine(line);
 		unsigned char argCount = things.size() - 1;
 		stlFuncs fID = strToFuncID(things[0]);
 
-		instruction opt;
-		scislPeephole peep = nullptr;
+		precompInstr opt;
 
 		if (fID != stlFuncs::stlFuncCount)
 		{
-			opt.func = stlFuncLUT[(unsigned short)(fID)];
-			unsigned char expectedArgs = stlArgExpect[(unsigned short)(fID)];
-			if (expectedArgs != 0)
-			{
-				if (expectedArgs != argCount)
-				{
-					opt.func = nullptr;
-					opt.arguments.argCount = 0;
-					return { opt, nullptr };
-					//error
-				}
-			}
-			peep = stlFuncPeep[(unsigned short)(fID)];
+			opt.meta = stlFuncMeta[(unsigned short)(fID)];
 		}
 		else
 		{
 			auto& funcs = getFuncTable();
-			registeredFunc& fnc = funcs.at(things[0]);
+			scislfuncMeta& mta = funcs.at(things[0]);
 
-			opt.func = fnc.func;
-			opt.arguments.argCount = fnc.argCount;
-
-			if (fnc.argCount != 0)
-			{
-				if (fnc.argCount != argCount)
-				{
-					opt.func = nullptr;
-					opt.arguments.argCount = 0;
-					return { opt, nullptr };
-					//error
-				}
-			}
-			peep = fnc.optimizer;
+			opt.meta = mta;
 		}
 
-		opt.arguments.arguments = new arg[argCount];
-		opt.arguments.argCount = argCount;
+		if (opt.meta.expectedArgs != 0)
+		{
+			if (opt.meta.expectedArgs != argCount)
+			{
+				opt.instr.func = nullptr;
+				opt.instr.arguments.argCount = 0;
+				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << argCount << ".\n";
+				return opt; //error
+			}
+		}
+
+		opt.instr.arguments.arguments = new arg[argCount];
+		opt.instr.arguments.argCount = argCount;
 
 		for (unsigned char i = 0; i < argCount; i++)
 		{
 			std::string& cur = things[i + 1];
-			arg* carg = &opt.arguments.arguments[i];
+			arg* carg = &opt.instr.arguments.arguments[i];
 
 			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
 			{
@@ -164,7 +172,7 @@ namespace scisl
 			if (loc != vars.size())
 			{
 				carg->type = vars[loc].second;
-				carg->val = new unsigned short(loc);
+				carg->val = new std::string(vars[loc].first);
 				continue;
 			}
 
@@ -185,121 +193,416 @@ namespace scisl
 				carg->type = type::string;
 			}
 
-			carg->val = new unsigned short(loc);
+			carg->val = new std::string(cur);
 			vars.push_back({ cur, carg->type });
 		}
 
-		return { opt, peep };
+		opt.instr.func = opt.meta.fnc;
+		return opt;
 	}
 
-	//done pretty early, doesn't change any instructions, only changes args to be constants (if they are)
-	std::vector<unsigned short> evaluateConstants(program* process)
+	void finalize(std::vector<precompInstr>& instructions, std::vector<std::pair<std::string, type>>& vars)
 	{
-		std::map<unsigned short, std::pair<unsigned int, void*>> varAccessTable;
-		for (auto& instr : process->instructions) //find if variables are actually constants
-		{
-			for (unsigned int i = 0; i < instr.arguments.argCount; i++)
-			{
-				arg& cur = instr.arguments.arguments[i];
-				if (cur.argType == argType::variable)
-				{
-					if (varAccessTable.count(*(unsigned short*)cur.val) == 0)
-					{
-						std::pair tmp = { 0U,  instr.arguments.arguments[i + 1].val };
-						unsigned short v = *(unsigned short*)(cur.val);
-						varAccessTable.insert({ v, tmp });
-					}
-
-					if (!isSTLfunc(instr.func) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::set)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::add)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::adde)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::mult)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::multe)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::sub)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::sube)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::div)] && i == 0) ||
-						(instr.func == stlFuncLUT[(unsigned short)(stlFuncs::dive)] && i == 0))
-					{
-						varAccessTable.at(*(unsigned short*)(cur.val)).first += 1;
-					}
-				}
-			}
-		}
-
-		std::vector<unsigned short> removedVars;
-
-		for (auto& instr : process->instructions) //find if variables are actually constants
-		{
-			for (unsigned int i = 0; i < instr.arguments.argCount; i++)
-			{
-				arg& cur = instr.arguments.arguments[i];
-				if (cur.argType != argType::variable) continue;
-
-				auto& v = varAccessTable.at(*(unsigned short*)(cur.val));
-				if (v.first <= 1)
-				{
-					cur.argType = argType::constant;
-					removedVars.push_back(*(unsigned short*)(cur.val));
-					delete (unsigned short*)(cur.val);
-					switch (cur.type)
-					{
-					case type::string:
-						cur.val = new std::string(SCISL_CAST_STRING(v.second));
-						break;
-					case type::integer:
-						cur.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(v.second));
-						break;
-					case type::floating:
-						cur.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(v.second));
-						break;
-					}
-				}
-			}
-		}
-
-		return removedVars;
-	}
-
-	//do this last during compilation since optimizations move things around
-	void resolveLabels(std::vector<instruction>& instructions)
-	{
+		std::vector<std::pair<std::string, type>> remainingVars;
 		std::map<std::string, unsigned int> labels;
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			instruction& cur = instructions[i]; //check if it's a label instruction
-			if (cur.func == nullptr && cur.arguments.argCount == 1 && cur.arguments.arguments[0].argType == argType::constant)
+			precompInstr& cur = instructions[i];
+			
+			scislPeephole peep = cur.meta.peep;
+			if (peep != nullptr) peep(cur);
+
+			if (isFunc(cur.meta, stlFuncs::label))
 			{
-				labels.insert({SCISL_CAST_STRING(cur.arguments.arguments[0].val) , i});
-				delete (std::string*)(cur.arguments.arguments[0].val);
-				cur.arguments.arguments[0].val = new SCISL_INT_PRECISION(i);
+				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val) , i });
+				delete (std::string*)(cur.instr.arguments.arguments[0].val);
+				cur.instr.arguments.arguments[0].val = new SCISL_INT_PRECISION(i);
+				continue;
+			}
+
+			for (unsigned int j = 0; j < instructions[i].instr.arguments.argCount; j++)
+			{
+				arg& cur = instructions[i].instr.arguments.arguments[j];
+				if (cur.argType == argType::variable)
+				{
+					if (findV(remainingVars, SCISL_CAST_STRING(cur.val)) == remainingVars.size())
+					{
+						remainingVars.push_back({ SCISL_CAST_STRING(cur.val), cur.type });
+					}
+
+					unsigned short loc = findV(vars, SCISL_CAST_STRING(cur.val));
+					delete (std::string*)(cur.val);
+					cur.val = new unsigned short(loc);
+					cur.finalized = true;
+				}
 			}
 		}
 
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			instruction& cur = instructions[i];
-			if (cur.func == stlFuncLUT[(unsigned short)(stlFuncs::jmp)] || cur.func == stlFuncLUT[(unsigned short)(stlFuncs::cjmp)])
+			precompInstr& cur = instructions[i];
+			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
 			{
-				unsigned int loc = labels[SCISL_CAST_STRING(cur.arguments.arguments[0].val)];
-				delete (std::string*)(cur.arguments.arguments[0].val);
-				cur.arguments.arguments[0].val = new SCISL_INT_PRECISION(loc);
+				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val)];
+				delete (std::string*)(cur.instr.arguments.arguments[0].val);
+				cur.instr.arguments.arguments[0].val = new SCISL_INT_PRECISION(loc);
 			}
 		}
+		vars = remainingVars;
 	}
 
-	void removeNOOP(program* process)
+	value getVal(arg& a, std::map<std::string, value>& evalVals)
 	{
-		std::vector<instruction> remaining;
-		for (instruction& i : process->instructions)
+		if (a.argType == argType::interop)
 		{
-			if (i.func != nullptr ||
-				(i.arguments.argCount == 1 && i.arguments.arguments[0].argType == argType::constant))
+			return createTemporary(type::error);
+		}
+
+		if (a.argType == argType::constant)
+		{
+			value v = createTemporary(a.type);
+			v = a.val;
+			return v;
+		}
+		
+		if (a.argType == argType::variable)
+		{
+			value v = createTemporary(a.type);
+			v = evalVals.at(SCISL_CAST_STRING(a.val)).val;
+			return v;
+		}
+
+		return createTemporary(type::error);
+	}
+
+	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
+	void evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars)
+	{
+		std::vector<precompInstr> newProcess;
+		newProcess.reserve(process.size());
+
+		std::map<std::string, value> evalVal;
+		
+		for (precompInstr& i : process)
+		{
+			if (isFunc(i.meta, stlFuncs::set)) //initialization of var
+			{
+				arg& cur = i.instr.arguments.arguments[0];
+				if (cur.argType != argType::variable)
+				{
+					newProcess.push_back(i);
+					continue;
+				}
+
+				value tmp = createTemporary(cur.type);
+				tmp.isTemporary = false;
+				evalVal.insert({ SCISL_CAST_STRING(cur.val), tmp });
+
+				value val = getVal(i.instr.arguments.arguments[1], evalVal);
+				evalVal.at(SCISL_CAST_STRING(cur.val)) = val.val;
+
+				if (val.type == type::error)
+				{
+					newProcess.push_back(i);
+					continue;
+				}
+
+				delete[] i.instr.arguments.arguments;
+			}
+			else if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps are scary, invalidate everything once one is found
+			{
+				for (auto& p : evalVal)
+				{
+					if (p.second.type != type::error)
+					{
+						precompInstr t;
+						t.meta = stlFuncMeta[(unsigned short)(stlFuncs::set)];
+						t.instr.func = t.meta.fnc;
+						t.instr.arguments.argCount = 2;
+						t.instr.arguments.arguments = new arg[2];
+						t.instr.arguments.arguments[0].argType = argType::variable;
+						t.instr.arguments.arguments[0].type = p.second.type;
+						t.instr.arguments.arguments[0].val = new std::string(p.first);
+
+						t.instr.arguments.arguments[1].argType = argType::constant;
+						t.instr.arguments.arguments[1].type = p.second.type;
+						switch (p.second.type)
+						{
+						case type::string:
+							t.instr.arguments.arguments[1].val = new std::string(SCISL_CAST_STRING(p.second.val));
+							break;
+						case type::integer:
+							t.instr.arguments.arguments[1].val = new SCISL_INT_PRECISION(SCISL_CAST_INT(p.second.val));
+							break;
+						case type::floating:
+							t.instr.arguments.arguments[1].val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(p.second.val));
+							break;
+						}
+						newProcess.push_back(t);
+					}
+					p.second.isTemporary = true;
+					p.second = createTemporary(type::error);
+				}
+				newProcess.push_back(i);
+			}
+			else if ((i.meta.optimizerFlags & SCISL_OP_NO_MOD) > 0) //doesn't modify anything, good!
+			{
+				for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+				{
+					arg& cur = i.instr.arguments.arguments[j];
+					if (cur.argType == argType::variable)
+					{
+						if (evalVal.contains(SCISL_CAST_STRING(cur.val)))
+						{
+							value val = evalVal.at(SCISL_CAST_STRING(cur.val));
+							if (val.type != type::error)
+							{
+								cur.argType = argType::constant;
+								cur.type = val.type;
+								delete (std::string*)(cur.val);
+								switch (cur.type)
+								{
+								case type::string:
+									cur.val = new std::string(SCISL_CAST_STRING(val.val));
+									break;
+								case type::integer:
+									cur.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(val.val));
+									break;
+								case type::floating:
+									cur.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(val.val));
+									break;
+								}
+							}
+						}
+						else
+						{
+							std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val) << " referenced before being defined by SET by " << i.meta.funcID << ".\n";
+						}
+					}
+				}
+				newProcess.push_back(i);
+			}
+			else //these can modify
+			{
+				if (!isSTLfunc(i.meta.fnc)) //invalidate everything
+				{
+					for (auto& p : evalVal)
+					{
+						if (p.second.type != type::error)
+						{
+							precompInstr t;
+							t.meta = stlFuncMeta[(unsigned short)(stlFuncs::set)];
+							t.instr.func = t.meta.fnc;
+							t.instr.arguments.argCount = 2;
+							t.instr.arguments.arguments = new arg[2];
+							t.instr.arguments.arguments[0].argType = argType::variable;
+							t.instr.arguments.arguments[0].type = p.second.type;
+							t.instr.arguments.arguments[0].val = new std::string(p.first);
+
+							t.instr.arguments.arguments[1].argType = argType::constant;
+							t.instr.arguments.arguments[1].type = p.second.type;
+							switch (p.second.type)
+							{
+							case type::string:
+								t.instr.arguments.arguments[1].val = new std::string(SCISL_CAST_STRING(p.second.val));
+								break;
+							case type::integer:
+								t.instr.arguments.arguments[1].val = new SCISL_INT_PRECISION(SCISL_CAST_INT(p.second.val));
+								break;
+							case type::floating:
+								t.instr.arguments.arguments[1].val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(p.second.val));
+								break;
+							}
+							newProcess.push_back(t);
+						}
+						p.second.isTemporary = true;
+						p.second = createTemporary(type::error);
+					}
+					newProcess.push_back(i);
+					continue;
+				}
+
+				bool valid = true;
+				arg& modified = i.instr.arguments.arguments[0];
+				if (modified.argType != argType::variable)
+				{
+					for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+					{
+						arg& cur = i.instr.arguments.arguments[j];
+						value val = getVal(cur, evalVal);
+						if (val.type != type::error)
+						{
+
+							if (cur.argType == argType::variable)
+							{
+								delete (std::string*)cur.val;
+
+								cur.argType = argType::constant;
+								cur.type = val.type;
+								switch (cur.type)
+								{
+								case type::string:
+									cur.val = new std::string(SCISL_CAST_STRING(val.val));
+									break;
+								case type::integer:
+									cur.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(val.val));
+									break;
+								case type::floating:
+									cur.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(val.val));
+									break;
+								}
+							}
+						}
+					}
+					newProcess.push_back(i);
+					continue;
+				}
+				for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+				{
+					arg& cur = i.instr.arguments.arguments[j];
+					value val = getVal(cur, evalVal);
+					if (val.type == type::error)
+					{
+						valid = false;
+					}
+				}
+
+				value v = getVal(modified, evalVal);
+				if (!valid && v.type != type::error)
+				{
+					precompInstr t;
+					t.meta = stlFuncMeta[(unsigned short)(stlFuncs::set)];
+					t.instr.func = t.meta.fnc;
+					t.instr.arguments.argCount = 2;
+					t.instr.arguments.arguments = new arg[2];
+					t.instr.arguments.arguments[0].argType = argType::variable;
+					t.instr.arguments.arguments[0].type = v.type;
+					t.instr.arguments.arguments[0].val = new std::string(SCISL_CAST_STRING(modified.val));
+
+					t.instr.arguments.arguments[1].argType = argType::constant;
+					t.instr.arguments.arguments[1].type = v.type;
+					switch (v.type)
+					{
+					case type::string:
+						t.instr.arguments.arguments[1].val = new std::string(SCISL_CAST_STRING(v.val));
+						break;
+					case type::integer:
+						t.instr.arguments.arguments[1].val = new SCISL_INT_PRECISION(SCISL_CAST_INT(v.val));
+						break;
+					case type::floating:
+						t.instr.arguments.arguments[1].val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(v.val));
+						break;
+					}
+					newProcess.push_back(t);
+					evalVal.at(SCISL_CAST_STRING(modified.val)).isTemporary = true;
+					evalVal.at(SCISL_CAST_STRING(modified.val)) = createTemporary(type::error);
+					newProcess.push_back(i);
+					continue;
+				}
+				
+				if (valid)
+				{ //@TODO rest of the functions!
+					switch (strToFuncID(i.meta.funcID))
+					{
+					case stlFuncs::adde:
+					{
+						value p = getVal(i.instr.arguments.arguments[0], evalVal);
+						for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+						{
+							value t = getVal(i.instr.arguments.arguments[j], evalVal);
+							p += t;
+						}
+						evalVal.at(SCISL_CAST_STRING(i.instr.arguments.arguments[0].val)) = p.val;
+						delete[] i.instr.arguments.arguments;
+						break;
+					}
+					default:
+						newProcess.push_back(i);
+						break;
+					}
+				}
+				else
+				{
+					newProcess.push_back(i);
+				}
+			}
+		}
+
+		for (auto& i : evalVal)
+		{
+			for (auto& p : vars)
+			{
+				if (p.first == i.first)
+				{
+					i.second.type = p.second;
+					break;
+				}
+			}
+		}
+
+		process = newProcess;
+	}
+
+	void removeUnusedVars(std::vector<precompInstr>& instructions)
+	{
+		std::map<std::string, unsigned int> varCount;
+		std::vector<precompInstr> remaining;
+		remaining.reserve(instructions.size());
+
+		for (precompInstr& i : instructions)
+		{
+			for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+			{
+				arg& cur = i.instr.arguments.arguments[j];
+				if (cur.argType == argType::variable)
+				{
+					if (varCount.contains(SCISL_CAST_STRING(cur.val)))
+					{
+						varCount.at(SCISL_CAST_STRING(cur.val)) += 1;
+					}
+					else
+					{
+						varCount.insert({ SCISL_CAST_STRING(cur.val), 1});
+					}
+				}
+			}
+		}
+
+		for (precompInstr& i : instructions)
+		{
+			if (isFunc(i.meta, stlFuncs::set))
+			{
+				arg& cur = i.instr.arguments.arguments[0];
+				if (cur.argType == argType::variable)
+				{
+					if (varCount.at(SCISL_CAST_STRING(cur.val)) == 1)
+					{
+						delete[] i.instr.arguments.arguments;
+						continue;
+					}
+				}
+			}
+			remaining.push_back(i);
+		}
+		instructions = remaining;
+	}
+
+	void removeNOOP(std::vector<precompInstr>& instructions)
+	{
+		std::vector<precompInstr> remaining;
+		remaining.reserve(instructions.size());
+		for (precompInstr& i : instructions)
+		{
+			if (!isFunc(i.meta, stlFuncs::noop))
 			{
 				remaining.push_back(std::move(i));
 			}
+			else
+			{
+				delete[] i.instr.arguments.arguments;
+			}
 		}
-		process->instructions = std::move(remaining);
+		instructions = std::move(remaining);
 	}
 
 	program* compile(const char* filename)
@@ -313,27 +616,26 @@ namespace scisl
 			std::string line;
 			std::vector<std::pair<std::string, type>> vars = {};
 
-			std::vector<scislPeephole> peeps = {};
+			std::vector<precompInstr> instructions;
 
+			lineNum = 0;
 			while (std::getline(file, line))
 			{
-				auto instr = parseInstr(line, vars);
-				opt->instructions.push_back(instr.first);
-				peeps.push_back(instr.second);
+				size_t lineNum = 0;
+				instructions.push_back(parseInstr(line, vars));
 			}
 
-			auto removedVars = evaluateConstants(opt);
-
-			for (unsigned int i = 0; i < peeps.size(); i++)
+			evaluateConstants(instructions, vars);
+			removeNOOP(instructions);
+			removeUnusedVars(instructions);
+			
+			finalize(instructions, vars);
+			opt->instructions.reserve(instructions.size());
+			for (precompInstr& i : instructions)
 			{
-				scislPeephole peep = peeps[i];
-				if (peep != nullptr) peep(opt->instructions[i]);
+				opt->instructions.push_back(i.instr);
 			}
-
-			removeNOOP(opt);
-
-			resolveLabels(opt->instructions);
-
+			
 			opt->memory = new value[vars.size()];
 			opt->memsize = vars.size();
 			for (unsigned int i = 0; i < vars.size(); i++)

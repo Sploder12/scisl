@@ -29,12 +29,9 @@ namespace scisl
 		interopTable.insert({ id, tvar });
 	}
 
-	void registerFunc(std::string id, scislFunc func, unsigned short argCount, scislPeephole optimizer)
+	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes, unsigned int optimizerFlags, scislPeephole optimizer)
 	{
-		registeredFunc tmp;
-		tmp.func = func;
-		tmp.argCount = argCount;
-		tmp.optimizer = optimizer;
+		registeredFunc tmp = { id, func, optimizer, argCount, argTypes, optimizerFlags };
 		interopFuncTable.insert({ id, tmp });
 	}
 

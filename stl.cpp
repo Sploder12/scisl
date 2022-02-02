@@ -6,33 +6,31 @@
 #pragma warning(disable : 4244)
 namespace scisl
 {
-	inline value createTemporary(type tipe)
+	bool isSTLfunc(scislFunc fnc)
 	{
-		value opt;
-		opt.type = tipe;
-		opt.isTemporary = true;
-		switch (tipe)
+		for (unsigned int i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
 		{
-		case (type::string):
-			opt.val = new std::string("");
-			break;
-		case (type::integer):
-			opt.val = new SCISL_INT_PRECISION(0);
-			break;
-		case (type::floating):
-			opt.val = new SCISL_FLOAT_PRECISION(0);
-			break;
-		default:
-			opt.val = nullptr;
+			if (fnc == stlFuncMeta[i].fnc) return true;
 		}
-		return opt;
+
+		return false;
+	}
+
+	bool isFunc(scislFunc func, stlFuncs fnc)
+	{
+		return func == stlFuncMeta[(unsigned short)(fnc)].fnc;
+	}
+
+	bool isFunc(scislfuncMeta meta, stlFuncs fnc)
+	{
+		return meta.funcID == stlFuncMeta[(unsigned short)(fnc)].funcID;
 	}
 
 	stlFuncs strToFuncID(const std::string& str)
 	{
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
 		{
-			if (str == stlFuncIDs[i])
+			if (str == stlFuncMeta[i].funcID)
 			{
 				return (stlFuncs)(i);
 			}
@@ -187,33 +185,23 @@ namespace scisl
 		}
 	}
 
-
-	 bool isSTLfunc(scislFunc fnc)
+	inline void toNOOP(precompInstr& instruct)
 	{
-		for (unsigned int i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
-		{
-			if (fnc == stlFuncLUT[i]) return true;
-		}
-
-		return false;
+		instruct.instr.func = nullptr;
+		delete[] instruct.instr.arguments.arguments;
+		instruct.instr.arguments.arguments = nullptr;
+		instruct.instr.arguments.argCount = 0;
+		instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
 	}
 
-	inline void toNOOP(instruction& instruct)
+	inline argType getAType(precompInstr& instruct, unsigned short argIdx)
 	{
-		instruct.func = nullptr;
-		delete[] instruct.arguments.arguments;
-		instruct.arguments.arguments = nullptr;
-		instruct.arguments.argCount = 0;
+		return instruct.instr.arguments.arguments[argIdx].argType;
 	}
 
-	inline argType getAType(instruction& instruct, unsigned short argIdx)
+	inline type getVType(precompInstr& instruct, unsigned short argIdx)
 	{
-		return instruct.arguments.arguments[argIdx].argType;
-	}
-
-	inline type getVType(instruction& instruct, unsigned short argIdx)
-	{
-		return instruct.arguments.arguments[argIdx].type;
+		return instruct.instr.arguments.arguments[argIdx].type;
 	}
 
 	void plusEq(value& first, value& other)
@@ -236,33 +224,34 @@ namespace scisl
 		first /= other;
 	}
 
-	void removeErrArgs(instruction& instruct)
+	void removeErrArgs(precompInstr& instruct)
 	{
 		std::vector<arg> remaining;
 
-		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
 		{
 			if (getAType(instruct, i) != argType::error)
 			{
-				remaining.push_back(std::move(instruct.arguments.arguments[i]));
+				remaining.push_back(std::move(instruct.instr.arguments.arguments[i]));
+				continue;
 			}
+			instruct.instr.arguments.arguments[i].argType = argType::constant;
 		}
 
-		if (remaining.size() != instruct.arguments.argCount)
+		if (remaining.size() != instruct.instr.arguments.argCount)
 		{
-
-			delete[] instruct.arguments.arguments;
-			instruct.arguments.arguments = new arg[remaining.size()];
-			instruct.arguments.argCount = remaining.size();
+			delete[] instruct.instr.arguments.arguments;
+			instruct.instr.arguments.arguments = new arg[remaining.size()];
+			instruct.instr.arguments.argCount = remaining.size();
 		}
 
-		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
 		{
-			instruct.arguments.arguments[i] = std::move(remaining[i]);
+			instruct.instr.arguments.arguments[i] = std::move(remaining[i]);
 		}
 	}
 
-	void combineConsts(instruction& instruct, unsigned short startIDX, void (*func)(value&, value&))
+	void combineConsts(precompInstr& instruct, unsigned short startIDX, void (*func)(value&, value&))
 	{
 		value firstStr;
 		firstStr.type = type::string;
@@ -270,7 +259,7 @@ namespace scisl
 		firstInt.type = type::integer;
 		value firstFloat;
 		firstFloat.type = type::floating;
-		for (unsigned int i = startIDX; i < instruct.arguments.argCount; i++)
+		for (unsigned int i = startIDX; i < instruct.instr.arguments.argCount; i++)
 		{
 			if (getAType(instruct, i) == argType::constant)
 			{
@@ -280,42 +269,42 @@ namespace scisl
 				{
 					if (firstStr.val == nullptr)
 					{
-						firstStr.val = instruct.arguments.arguments[i].val;
+						firstStr.val = instruct.instr.arguments.arguments[i].val;
 						break;
 					}
 
 					value tmp = createTemporary(type::string);
-					tmp.val = instruct.arguments.arguments[i].val;
+					tmp = instruct.instr.arguments.arguments[i].val;
 					func(firstStr, tmp);
-					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
 					break;
 				}
 				case type::integer:
 				{
 					if (firstInt.val == nullptr)
 					{
-						firstInt.val = instruct.arguments.arguments[i].val;
+						firstInt.val = instruct.instr.arguments.arguments[i].val;
 						break;
 					}
 
 					value tmp = createTemporary(type::integer);
-					tmp.val = instruct.arguments.arguments[i].val;
+					tmp = instruct.instr.arguments.arguments[i].val;
 					func(firstInt, tmp);
-					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
 					break;
 				}
 				case type::floating:
 				{
 					if (firstFloat.val == nullptr)
 					{
-						firstFloat.val = instruct.arguments.arguments[i].val;
+						firstFloat.val = instruct.instr.arguments.arguments[i].val;
 						break;
 					}
 
 					value tmp = createTemporary(type::floating);
-					tmp.val = instruct.arguments.arguments[i].val;
+					tmp = instruct.instr.arguments.arguments[i].val;
 					func(firstFloat, tmp);
-					instruct.arguments.arguments[i].argType = argType::error; //mark deleted
+					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
 					break;
 				}
 				default:
@@ -326,10 +315,10 @@ namespace scisl
 		removeErrArgs(instruct);
 	}
 
-	void removeIdentity(instruction& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
+	void removeIdentity(precompInstr& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
 	{
 
-		for (unsigned int i = 0; i < instruct.arguments.argCount; i++)
+		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
 		{
 			if (getAType(instruct, i) == argType::constant)
 			{
@@ -339,19 +328,19 @@ namespace scisl
 					break;
 				case type::floating:
 				{
-					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.arguments.arguments[i].val);
+					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments.arguments[i].val);
 					if (val == identityVal)
 					{
-						instruct.arguments.arguments[i].argType = argType::error;
+						instruct.instr.arguments.arguments[i].argType = argType::error;
 					}
 					break;
 				}
 				case type::integer:
 				{
-					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.arguments.arguments[i].val);
+					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments.arguments[i].val);
 					if (val == identityVal)
 					{
-						instruct.arguments.arguments[i].argType = argType::error;
+						instruct.instr.arguments.arguments[i].argType = argType::error;
 					}
 					break;
 				}
@@ -362,7 +351,7 @@ namespace scisl
 		removeErrArgs(instruct);
 	}
 
-	inline bool settingConst(instruction& instruct)
+	inline bool settingConst(precompInstr& instruct)
 	{
 		if (getAType(instruct, 0) == argType::constant)
 		{ //setting a constant
@@ -372,14 +361,14 @@ namespace scisl
 		return false;
 	}
 
-	void setPeep(instruction& instruct)
+	void setPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 		
 	}
 
 
-	void addPeep(instruction& instruct)
+	void addPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 
@@ -388,7 +377,7 @@ namespace scisl
 		removeIdentity(instruct, 1, 0);
 	}
 
-	void addePeep(instruction& instruct)
+	void addePeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 
@@ -397,27 +386,18 @@ namespace scisl
 		removeIdentity(instruct, 1, 0);
 	}
 
-	void subPeep(instruction& instruct)
+	void subPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 
 	}
 
-	void subePeep(instruction& instruct)
+	void subePeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 	}
 
-	void multPeep(instruction& instruct)
-	{
-		if (settingConst(instruct)) return;
-
-		combineConsts(instruct, 1, multEq);
-
-		removeIdentity(instruct, 1, 1);
-	}
-
-	void multePeep(instruction& instruct)
+	void multPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 
@@ -426,22 +406,31 @@ namespace scisl
 		removeIdentity(instruct, 1, 1);
 	}
 
-	void divPeep(instruction& instruct)
+	void multePeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+
+		combineConsts(instruct, 1, multEq);
+
+		removeIdentity(instruct, 1, 1);
+	}
+
+	void divPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 	}
 
-	void divePeep(instruction& instruct)
+	void divePeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 	}
 
-	void printPeep(instruction& instruct)
+	void printPeep(precompInstr& instruct)
 	{
 		combineConsts(instruct, 0, plusEq);
 	}
 
-	void cjmpPeep(instruction& instruct)
+	void cjmpPeep(precompInstr& instruct)
 	{
 
 	}

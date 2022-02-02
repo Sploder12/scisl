@@ -58,6 +58,8 @@ namespace scisl
 
 		~value();
 	};
+
+	value createTemporary(type tipe);
 }
 
 #endif

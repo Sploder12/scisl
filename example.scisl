@@ -10,3 +10,4 @@ ADDE $(num) -1
 CJMP testLabel $(num)
 PRINT "We made it"
 ExampleFunc $(num)
+NOOP

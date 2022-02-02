@@ -394,4 +394,26 @@ namespace scisl
 			}
 		}
 	}
+
+	value createTemporary(type tipe)
+	{
+		value opt;
+		opt.type = tipe;
+		opt.isTemporary = true;
+		switch (tipe)
+		{
+		case (type::string):
+			opt.val = new std::string("");
+			break;
+		case (type::integer):
+			opt.val = new SCISL_INT_PRECISION(0);
+			break;
+		case (type::floating):
+			opt.val = new SCISL_FLOAT_PRECISION(0);
+			break;
+		default:
+			opt.val = nullptr;
+		}
+		return opt;
+	}
 }

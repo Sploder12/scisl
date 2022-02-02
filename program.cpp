@@ -12,16 +12,16 @@ namespace scisl
 	{
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
 		{
-			if (func == stlFuncLUT[i])
+			if (func == stlFuncMeta[i].fnc)
 			{
-				return stlFuncIDs[i];
+				return stlFuncMeta[i].funcID;
 			}
 		}
 
 		auto& t = getFuncTable();
 		for (auto& i : t)
 		{
-			if (i.second.func = func)
+			if (i.second.fnc = func)
 			{
 				return i.first;
 			}

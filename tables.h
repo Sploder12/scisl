@@ -2,7 +2,6 @@
 #define SCISL_TABLES_H
 
 #include "common.h"
-
 #include "program.h"
 
 #include <map>
@@ -15,12 +14,7 @@ namespace scisl
 		void* adr;
 	};
 
-	struct registeredFunc
-	{
-		scislFunc func;
-		unsigned short argCount;
-		scislPeephole optimizer = nullptr;
-	};
+	typedef scislfuncMeta registeredFunc;
 
 	typedef std::map<std::string, registeredVar> varTable;
 	typedef std::map<std::string, registeredFunc> funcTable;
@@ -29,7 +23,7 @@ namespace scisl
 	void registerVar(std::string id, SCISL_FLOAT_PRECISION& var);
 	void registerVar(std::string id, std::string& var);
 
-	void registerFunc(std::string id, scislFunc func, unsigned short argCount, scislPeephole optimizer = nullptr);
+	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes = "", unsigned int optimizerFlags = 0, scislPeephole optimizer = nullptr);
 
 	varTable& getVarTable();
 

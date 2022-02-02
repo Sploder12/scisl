@@ -27,136 +27,63 @@ namespace scisl
 		stlFuncCount
 	};
 
-	const std::string stlFuncIDs[(unsigned short)(stlFuncs::stlFuncCount)] =
-	{
-		"SET",
-		"ADD",
-		"ADDE",
-		"SUB",
-		"SUBE",
-		"MULT",
-		"MULTE",
-		"DIV",
-		"DIVE",
-		"PRINT",
-
-		"LABEL",
-		"JMP",
-		"CJMP",
-
-		"NOOP"
-	};
-
-	//0 is veriadic arg count, these are only checked at compile time
-	constexpr unsigned char stlArgExpect[(unsigned short)(stlFuncs::stlFuncCount)]
-	{
-		2,
-		0,
-		0,
-		3,
-		2,
-		0,
-		0,
-		3,
-		2,
-		0,
-
-		1,
-		1,
-		2,
-
-		0
-	};
-
+	bool isSTLfunc(scislFunc fnc);
+	bool isFunc(scislFunc func, stlFuncs fnc);
+	bool isFunc(scislfuncMeta meta, stlFuncs fnc);
 	stlFuncs strToFuncID(const std::string& str);
 
-	//expects 2 args
+
 	void set(program& process, const args& args);
-
-	//veriadic args
 	void add(program& process, const args& args);
-
-	//veriadic args
 	void adde(program& process, const args& args);
-
-	//3 args
 	void sub(program& process, const args& args);
-
-	//2 args
 	void sube(program& process, const args& args);
-
-	//veriadic args
 	void mult(program& process, const args& args);
-
-	//veriadic args
 	void multe(program& process, const args& args);
-
-	//3 args
 	void div(program& process, const args& args);
-
-	//2 args
 	void dive(program& process, const args& args);
 
-	//veriadic args
 	void print(program& process, const args& args);
-
 	void jmp(program& process, const args& args);
-
 	void cjmp(program& process, const args& args);
 
-	constexpr scislFunc stlFuncLUT[(unsigned short)(stlFuncs::stlFuncCount)] =
+
+	void setPeep(precompInstr& instruct);
+	void addPeep(precompInstr& instruct);
+	void addePeep(precompInstr& instruct);
+	void subPeep(precompInstr& instruct);
+	void subePeep(precompInstr& instruct);
+	void multPeep(precompInstr& instruct);
+	void multePeep(precompInstr& instruct);
+	void divPeep(precompInstr& instruct);
+	void divePeep(precompInstr& instruct);
+	void printPeep(precompInstr& instruct);
+
+	void cjmpPeep(precompInstr& instruct);
+
+	#define SCISL_OP_NO_MOD 1
+	#define SCISL_OP_NO_JMP 2
+
+	//ID, func, peep, args, argTypes, optimizerFlags
+	//args 0 is veriadic
+	const scislfuncMeta stlFuncMeta[(unsigned short)(stlFuncs::stlFuncCount)] =
 	{
-		set,
-		add,
-		adde,
-		sub,
-		sube,
-		mult,
-		multe,
-		div,
-		dive,
-		print,
+		{ "SET", set, setPeep, 2, "aa", SCISL_OP_NO_JMP },
+		{ "ADD", add, addPeep, 0, "a", SCISL_OP_NO_JMP },
+		{ "ADDE", adde, addePeep, 0, "a", SCISL_OP_NO_JMP },
+		{ "SUB", sub, subPeep, 3, "ann", SCISL_OP_NO_JMP },
+		{ "SUBE", sube, subePeep, 2, "nn", SCISL_OP_NO_JMP },
+		{ "MULT", mult, multPeep, 0, "an", SCISL_OP_NO_JMP },
+		{ "MULTE", multe, multePeep, 0, "an", SCISL_OP_NO_JMP },
+		{ "DIV", div, divPeep, 3, "ann", SCISL_OP_NO_JMP },
+		{ "DIVE", dive, divePeep, 2, "nn", SCISL_OP_NO_JMP },
+		{ "PRINT", print, printPeep, 0, "a", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
 
-		nullptr,
-		jmp,
-		cjmp,
+		{ "LABEL", nullptr, nullptr, 1, "a", SCISL_OP_NO_MOD },
+		{ "JMP", jmp, nullptr, 1, "a", SCISL_OP_NO_MOD  },
+		{ "CJMP", cjmp, cjmpPeep, 2, "an", SCISL_OP_NO_MOD  },
 
-		nullptr
-	};
-
-	bool isSTLfunc(scislFunc fnc);
-
-	void setPeep(instruction& instruct);
-	void addPeep(instruction& instruct);
-	void addePeep(instruction& instruct);
-	void subPeep(instruction& instruct);
-	void subePeep(instruction& instruct);
-	void multPeep(instruction& instruct);
-	void multePeep(instruction& instruct);
-	void divPeep(instruction& instruct);
-	void divePeep(instruction& instruct);
-	void printPeep(instruction& instruct);
-
-	void cjmpPeep(instruction& instruct);
-
-	constexpr scislPeephole stlFuncPeep[(unsigned short)(stlFuncs::stlFuncCount)] =
-	{
-		setPeep,
-		addPeep,
-		addePeep,
-		subPeep,
-		subePeep,
-		multPeep,
-		multePeep,
-		divPeep,
-		divePeep,
-		printPeep,
-
-		nullptr,
-		nullptr,
-		cjmpPeep,
-
-		nullptr
+		{ "NOOP", nullptr, nullptr, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
 	};
 }
 

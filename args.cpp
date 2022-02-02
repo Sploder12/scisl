@@ -174,7 +174,12 @@ namespace scisl
 			delete (std::string*)(val);
 			break;
 		case argType::variable:
-			delete (unsigned short*)(val);
+			if (finalized) 
+			{
+				delete (unsigned short*)(val);
+				break;
+			}
+			delete (std::string*)(val);
 			break;
 		case argType::constant:
 			switch (type)
