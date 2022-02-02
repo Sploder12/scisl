@@ -1,3 +1,5 @@
+
+
 SET base $(ipt)
 SET done 0
 SET opt 1
@@ -10,4 +12,3 @@ SUB base base 1
 JMP factorial
 
 LABEL end
-SET $(ipt) opt

@@ -8,4 +8,3 @@ MULT v2 v0 v2
 SUB v0 v0 1
 JMP 3
 LABEL 9
-SET $(ipt) v2

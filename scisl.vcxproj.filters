@@ -69,5 +69,11 @@
     <None Include="examples\DECOMP_factorial.scisl">
       <Filter>examples</Filter>
     </None>
+    <None Include="examples\lotsOfConst.scisl">
+      <Filter>examples</Filter>
+    </None>
+    <None Include="examples\DECOMP_lotsOfConst.scisl">
+      <Filter>examples</Filter>
+    </None>
   </ItemGroup>
 </Project>

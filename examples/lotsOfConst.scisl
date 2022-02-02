@@ -1,0 +1,23 @@
+SET opt 0
+ADD opt 10 69
+MULT opt 5 opt
+SUB opt 5 opt
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+ADD opt opt 10
+LABEL hi
+SET opt opt
