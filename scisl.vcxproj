@@ -162,6 +162,8 @@
   <ItemGroup>
     <None Include="decompiled.scisl" />
     <None Include="example.scisl" />
+    <None Include="examples\DECOMP_factorial.scisl" />
+    <None Include="examples\factorial.scisl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

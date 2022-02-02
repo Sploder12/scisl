@@ -52,7 +52,8 @@ namespace scisl
 		return opt;
 	}
 
-	inline size_t findV(std::vector<std::pair<std::string, type>>& vars, std::string& cur)
+	template <typename T>
+	inline size_t findV(std::vector<std::pair<std::string, T>>& vars, std::string& cur)
 	{
 		for (unsigned short i = 0; i < vars.size(); i++)
 		{
@@ -83,11 +84,26 @@ namespace scisl
 		}
 	}
 
+	precompInstr noopInstr()
+	{
+		precompInstr opt;
+		opt.meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
+		opt.instr.arguments.argCount = opt.meta.expectedArgs;
+		opt.instr.func = opt.meta.fnc;
+		opt.instr.arguments.arguments = nullptr;
+		return opt;
+	}
+
 	size_t lineNum = 0;
-	precompInstr parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
+	std::pair<precompInstr, bool> parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<std::string> things = splitLine(line);
 		unsigned char argCount = things.size() - 1;
+		if (line == "" || line == "\t" || line[0] == ';')
+		{
+			return {noopInstr(), true};
+		}
+
 		stlFuncs fID = strToFuncID(things[0]);
 
 		precompInstr opt;
@@ -108,10 +124,8 @@ namespace scisl
 		{
 			if (opt.meta.expectedArgs != argCount)
 			{
-				opt.instr.func = nullptr;
-				opt.instr.arguments.argCount = 0;
-				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << argCount << ".\n";
-				return opt; //error
+				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
+				return { opt, false }; //error
 			}
 		}
 
@@ -192,13 +206,30 @@ namespace scisl
 			{
 				carg->type = type::string;
 			}
+			else if (next[0] == '$')
+			{
+				carg->type = type::integer;
+				std::cout << "SCISL COMPILER WARNING: line:" << lineNum << "\tInitializing variable with interoperable, assuming INT.\n";
+			}
+			else
+			{
+				const unsigned int loc = findV(vars, next);
+				if (loc >= vars.size())
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
+				}
+				else
+				{
+					carg->type = vars[loc].second;
+				}
+			}
 
 			carg->val = new std::string(cur);
 			vars.push_back({ cur, carg->type });
 		}
 
 		opt.instr.func = opt.meta.fnc;
-		return opt;
+		return { opt, true };
 	}
 
 	void finalize(std::vector<precompInstr>& instructions, std::vector<std::pair<std::string, type>>& vars)
@@ -267,12 +298,65 @@ namespace scisl
 		
 		if (a.argType == argType::variable)
 		{
-			value v = createTemporary(a.type);
-			v = evalVals.at(SCISL_CAST_STRING(a.val)).val;
+			value& t = evalVals.at(SCISL_CAST_STRING(a.val));
+			value v = createTemporary(t.type);
+			if (v.type != type::error)
+			{
+				v = t.val;
+			}
 			return v;
 		}
 
 		return createTemporary(type::error);
+	}
+
+	void simulate(std::map<std::string, value>& vals, args& argz, scislFunc target)
+	{
+		program fakeP;
+		std::vector<std::pair<std::string, value&>> virtualVars;
+		args fakeArgs;
+		fakeArgs.argCount = argz.argCount;
+		fakeArgs.arguments = new arg[argz.argCount];
+
+		for (auto& v : vals)
+		{
+			if (v.second.type != type::error)
+			{
+				virtualVars.push_back({v.first, v.second});
+			}
+		}
+
+		for (unsigned int i = 0; i < argz.argCount; i++)
+		{
+			arg& cur = argz.arguments[i];
+			if (cur.argType == argType::variable)
+			{
+				fakeArgs.arguments[i].argType = argType::variable;
+				fakeArgs.arguments[i].finalized = true;
+				fakeArgs.arguments[i].type = cur.type;
+				fakeArgs.arguments[i].val = new unsigned short(findV(virtualVars, SCISL_CAST_STRING(cur.val)));
+				continue;
+			}
+			fakeArgs.arguments[i] = cur;
+		}
+
+		fakeP.memsize = virtualVars.size();
+		fakeP.memory = new value[fakeP.memsize];
+		for (unsigned int i = 0; i < fakeP.memsize; i++)
+		{
+			fakeP.memory[i] = createTemporary(virtualVars[i].second.type);
+			fakeP.memory[i].isTemporary = false;
+			fakeP.memory[i] = virtualVars[i].second.val;
+		}
+
+		target(fakeP, fakeArgs);
+
+		for (unsigned int i = 0; i < fakeP.memsize; i++)
+		{
+			virtualVars[i].second = fakeP.memory[i].val;
+		}
+
+		delete[] fakeArgs.arguments;
 	}
 
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
@@ -294,11 +378,10 @@ namespace scisl
 					continue;
 				}
 
-				value tmp = createTemporary(cur.type);
+				value val = getVal(i.instr.arguments.arguments[1], evalVal);
+				value tmp = createTemporary(val.type);
 				tmp.isTemporary = false;
 				evalVal.insert({ SCISL_CAST_STRING(cur.val), tmp });
-
-				value val = getVal(i.instr.arguments.arguments[1], evalVal);
 				evalVal.at(SCISL_CAST_STRING(cur.val)) = val.val;
 
 				if (val.type == type::error)
@@ -501,18 +584,23 @@ namespace scisl
 				}
 				
 				if (valid)
-				{ //@TODO rest of the functions!
+				{ 
 					switch (strToFuncID(i.meta.funcID))
 					{
+					case stlFuncs::add:
 					case stlFuncs::adde:
+					case stlFuncs::sub:
+					case stlFuncs::sube:
+					case stlFuncs::mult:
+					case stlFuncs::multe:
+					case stlFuncs::div:
+					case stlFuncs::dive:
+					case stlFuncs::less:
+					case stlFuncs::great:
+					case stlFuncs::equal:
+					case stlFuncs::nequal:
 					{
-						value p = getVal(i.instr.arguments.arguments[0], evalVal);
-						for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
-						{
-							value t = getVal(i.instr.arguments.arguments[j], evalVal);
-							p += t;
-						}
-						evalVal.at(SCISL_CAST_STRING(i.instr.arguments.arguments[0].val)) = p.val;
+						simulate(evalVal, i.instr.arguments, i.instr.func);
 						delete[] i.instr.arguments.arguments;
 						break;
 					}
@@ -621,8 +709,14 @@ namespace scisl
 			lineNum = 0;
 			while (std::getline(file, line))
 			{
-				size_t lineNum = 0;
-				instructions.push_back(parseInstr(line, vars));
+				lineNum++;
+				auto o = parseInstr(line, vars);
+				if (o.second)
+				{
+					instructions.push_back(o.first);
+					continue;
+				}
+				return nullptr;
 			}
 
 			evaluateConstants(instructions, vars);

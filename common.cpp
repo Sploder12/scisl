@@ -374,6 +374,160 @@ namespace scisl
 		return *this;
 	}
 
+	bool value::operator<(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			return false;
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+			{
+				return SCISL_CAST_INT(this->val) < SCISL_CAST_INT(other.val);
+			}
+			case type::floating:
+				return SCISL_CAST_INT(this->val) < SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) < SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) > SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
+
+	bool value::operator>(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			return false;
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_INT(this->val) > SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_INT(this->val) > SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) > SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) > SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
+
+	bool value::operator==(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			switch (other.type)
+			{
+			case type::string:
+				return SCISL_CAST_STRING(this->val) == SCISL_CAST_STRING(other.val);
+			default:
+				return false;
+			}
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_INT(this->val) == SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_INT(this->val) == SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) == SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) == SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
+
+	bool value::operator!=(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			switch (other.type)
+			{
+			case type::string:
+				return SCISL_CAST_STRING(this->val) != SCISL_CAST_STRING(other.val);
+			default:
+				return true;
+			}
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return true;
+			case type::integer:
+				return SCISL_CAST_INT(this->val) != SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_INT(this->val) != SCISL_CAST_FLOAT(other.val);
+			default:
+				return true;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return true;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) != SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) != SCISL_CAST_FLOAT(other.val);
+			default:
+				return true;
+			}
+		default:
+			return true;
+		}
+	}
+
 	value::~value()
 	{
 		if (isTemporary)
@@ -410,6 +564,72 @@ namespace scisl
 			break;
 		case (type::floating):
 			opt.val = new SCISL_FLOAT_PRECISION(0);
+			break;
+		default:
+			opt.val = nullptr;
+		}
+		return opt;
+	}
+
+	value createTemporary(type tipe, SCISL_INT_PRECISION val)
+	{
+		value opt;
+		opt.type = tipe;
+		opt.isTemporary = true;
+		switch (tipe)
+		{
+		case (type::string):
+			opt.val = new std::string(std::to_string(val));
+			break;
+		case (type::integer):
+			opt.val = new SCISL_INT_PRECISION(val);
+			break;
+		case (type::floating):
+			opt.val = new SCISL_FLOAT_PRECISION(val);
+			break;
+		default:
+			opt.val = nullptr;
+		}
+		return opt;
+	}
+
+	value createTemporary(type tipe, SCISL_FLOAT_PRECISION val)
+	{
+		value opt;
+		opt.type = tipe;
+		opt.isTemporary = true;
+		switch (tipe)
+		{
+		case (type::string):
+			opt.val = new std::string(std::to_string(val));
+			break;
+		case (type::integer):
+			opt.val = new SCISL_INT_PRECISION(val);
+			break;
+		case (type::floating):
+			opt.val = new SCISL_FLOAT_PRECISION(val);
+			break;
+		default:
+			opt.val = nullptr;
+		}
+		return opt;
+	}
+
+	value createTemporary(type tipe, std::string val)
+	{
+		value opt;
+		opt.type = tipe;
+		opt.isTemporary = true;
+		switch (tipe)
+		{
+		case (type::string):
+			opt.val = new std::string(val);
+			break;
+		case (type::integer):
+			opt.val = new SCISL_INT_PRECISION(std::stol(val));
+			break;
+		case (type::floating):
+			opt.val = new SCISL_FLOAT_PRECISION(std::stod(val));
 			break;
 		default:
 			opt.val = nullptr;

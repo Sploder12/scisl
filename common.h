@@ -56,10 +56,18 @@ namespace scisl
 		value& operator>>=(value& other);
 		value& operator<<=(value& other);
 
+		bool operator<(value& other);
+		bool operator>(value& other);
+		bool operator==(value& other);
+		bool operator!=(value& other);
+
 		~value();
 	};
 
 	value createTemporary(type tipe);
+	value createTemporary(type tipe, SCISL_INT_PRECISION val);
+	value createTemporary(type tipe, SCISL_FLOAT_PRECISION val);
+	value createTemporary(type tipe, std::string val);
 }
 
 #endif

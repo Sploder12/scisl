@@ -1,0 +1,13 @@
+SET base $(ipt)
+SET done 0
+SET opt 1
+
+LABEL factorial
+LESS done base 2
+CJMP end done
+MULT opt base opt
+SUB base base 1
+JMP factorial
+
+LABEL end
+SET $(ipt) opt

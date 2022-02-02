@@ -100,7 +100,7 @@ namespace scisl
 	{
 		value cur = args.arguments[0].getValue(process);
 		value prod = createTemporary(cur.type);
-		prod = args.arguments[1].getValue(process);
+		prod = args.arguments[1].getValue(process).val;
 
 		for (unsigned char i = 2; i < args.argCount; i++)
 		{
@@ -167,6 +167,42 @@ namespace scisl
 			}
 		}
 		std::cout << '\n';
+	}
+
+	void less(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+		value second = args.arguments[2].getValue(process);
+
+		cur = createTemporary(cur.type, first < second).val;
+	}
+
+	void great(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+		value second = args.arguments[2].getValue(process);
+
+		cur = createTemporary(cur.type, first > second);
+	}
+
+	void equal(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+		value second = args.arguments[2].getValue(process);
+
+		cur = createTemporary(cur.type, first == second).val;
+	}
+
+	void nequal(program& process, const args& args)
+	{
+		value cur = args.arguments[0].getValue(process);
+		value first = args.arguments[1].getValue(process);
+		value second = args.arguments[2].getValue(process);
+
+		cur = createTemporary(cur.type, first != second).val;
 	}
 
 	void jmp(program& process, const args& args)
@@ -428,6 +464,26 @@ namespace scisl
 	void printPeep(precompInstr& instruct)
 	{
 		combineConsts(instruct, 0, plusEq);
+	}
+
+	void lessPeep(precompInstr& instruct)
+	{
+
+	}
+
+	void greatPeep(precompInstr& instruct)
+	{
+	
+	}
+
+	void equalPeep(precompInstr& instruct)
+	{
+
+	}
+
+	void nequalPeep(precompInstr& instruct)
+	{
+
 	}
 
 	void cjmpPeep(precompInstr& instruct)
