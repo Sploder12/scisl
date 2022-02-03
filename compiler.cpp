@@ -95,6 +95,38 @@ namespace scisl
 	}
 
 	size_t lineNum = 0;
+	inline std::pair<argType, type> strToType(std::string& str, std::vector<std::pair<std::string, type>>& vars)
+	{
+		if (isNumeric(str[0]))
+		{
+			if (str.find('.') != std::string::npos)
+			{
+				return { argType::constant, type::floating };
+			}
+
+			return { argType::constant, type::integer };
+		}
+	
+		if (str[0] == '"')
+		{
+			return { argType::constant, type::string };
+		}
+
+		if (str[0] == '$')
+		{
+			auto& vTable = getVarTable();
+			return { argType::interop, vTable.at(str.substr(1, str.size() - 1))->type };
+		}
+
+		const unsigned int loc = findV(vars, str);
+		if (loc >= vars.size())
+		{
+			return { argType::variable, type::error };
+		}
+
+		return { argType::variable, vars[loc].second };
+	}
+
 	std::pair<precompInstr, bool> parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<std::string> things = splitLine(line);
@@ -105,7 +137,6 @@ namespace scisl
 		}
 
 		stlFuncs fID = strToFuncID(things[0]);
-
 		precompInstr opt;
 
 		if (fID != stlFuncs::stlFuncCount)
@@ -120,13 +151,10 @@ namespace scisl
 			opt.meta = mta;
 		}
 
-		if (opt.meta.expectedArgs != 0)
+		if (opt.meta.expectedArgs != 0 && opt.meta.expectedArgs != argCount)
 		{
-			if (opt.meta.expectedArgs != argCount)
-			{
-				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
-				return { opt, false }; //error
-			}
+			std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
+			return { opt, false }; //error
 		}
 
 		opt.instr.arguments.arguments = new arg[argCount];
@@ -137,6 +165,7 @@ namespace scisl
 			std::string& cur = things[i + 1];
 			arg* carg = &opt.instr.arguments.arguments[i];
 
+			//labels
 			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
 			{
 				carg->argType = argType::constant;
@@ -145,85 +174,50 @@ namespace scisl
 				continue;
 			}
 
-			//constants
-			if (isNumeric(cur[0]))
+			std::pair<argType, type> ctype = strToType(cur, vars);
+			carg->argType = ctype.first;
+			carg->val.type = ctype.second;
+			if (ctype.first == argType::interop) //interoperables
 			{
-				carg->argType = argType::constant;
-				if (cur.find('.') != std::string::npos)
-				{
-					carg->val.type = type::floating;
-					carg->val.val = new SCISL_FLOAT_PRECISION(std::stod(cur));
-					continue;
-				}
-				else
-				{
-					carg->val.type = type::integer;
-					carg->val.val = new SCISL_INT_PRECISION(std::stol(cur));
-					continue;
-				}
-			}
-			else if (cur[0] == '"')
-			{
-				carg->argType = argType::constant;
-				carg->val.type = type::string;
-				carg->val.val = new std::string(cur.substr(1, cur.size() - 2));
-				continue;
-			}
-
-			//interoperables
-			if (cur[0] == '$')
-			{
-				auto& vTable = getVarTable();
-				carg->argType = argType::interop;
 				carg->val.val = new std::string(cur.substr(1, cur.size() - 1));
-				carg->val.type = vTable.at(*(std::string*)carg->val.val)->type;
+				continue;
+			}
+			
+			if (ctype.first == argType::constant) //constants
+			{
+				switch (ctype.second)
+				{
+				case type::string:
+					carg->val.val = new std::string(cur.substr(1, cur.size() - 2));
+					break;
+				case type::integer:
+					carg->val.val = new SCISL_INT_PRECISION(std::stol(cur));
+					break;
+				case type::floating:
+					carg->val.val = new SCISL_FLOAT_PRECISION(std::stod(cur));
+					break;
+				default:
+					break;
+				}
 				continue;
 			}
 
-			//normal variables
-			carg->argType = argType::variable;
-			unsigned short loc = findV(vars, cur);
-			if (loc != vars.size())
+			//variables
+			if (ctype.second != type::error)
 			{
-				carg->val.type = vars[loc].second;
-				carg->val.val = new std::string(vars[loc].first);
+				carg->val.val = new std::string(cur);
 				continue;
 			}
 
 			std::string& next = things[i + 2];
-			if (isNumeric(next[0]))
+			type rtype = strToType(next, vars).second;
+			if (rtype == type::error)
 			{
-				if (next.find('.') != std::string::npos)
-				{
-					carg->val.type = type::floating;
-				}
-				else
-				{
-					carg->val.type = type::integer;
-				}
-			}
-			else if (next[0] == '"')
-			{
-				carg->val.type = type::string;
-			}
-			else if (next[0] == '$')
-			{
-				auto& vTable = getVarTable();
-				carg->val.type = vTable.at(next.substr(1, cur.size() - 1))->type;
-			}
-			else
-			{
-				const unsigned int loc = findV(vars, next);
-				if (loc >= vars.size())
-				{
-					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
-				}
-				else
-				{
-					carg->val.type = vars[loc].second;
-				}
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
+				return { opt, false };
 			}
 
+			carg->val.type = rtype;
 			carg->val.val = new std::string(cur);
 			vars.push_back({ cur, carg->val.type });
 		}
@@ -256,13 +250,13 @@ namespace scisl
 				arg& cur = instructions[i].instr.arguments.arguments[j];
 				if (cur.argType == argType::variable)
 				{
-					if (findV(remainingVars, SCISL_CAST_STRING(cur.val.val)) == remainingVars.size())
+					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
+					if (loc == remainingVars.size())
 					{
 						value space = createTemporary(cur.val.type);
 						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), std::move(space) });
 					}
 
-					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
 					delete (std::string*)(cur.val.val);
 					cur.val.val = remainingVars[loc].second.val;
 					cur.finalized = true;
