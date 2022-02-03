@@ -59,20 +59,20 @@ namespace scisl
 			switch (other.val.type)
 			{
 			case type::integer:
-				this->val = new SCISL_INT_PRECISION(*(SCISL_INT_PRECISION*)(other.val.val));
+				this->val.val = new SCISL_INT_PRECISION(*(SCISL_INT_PRECISION*)(other.val.val));
 				break;
 			case type::floating:
-				this->val = new SCISL_FLOAT_PRECISION(*(SCISL_FLOAT_PRECISION*)(other.val.val));
+				this->val.val = new SCISL_FLOAT_PRECISION(*(SCISL_FLOAT_PRECISION*)(other.val.val));
 				break;
 			case type::string:
-				this->val = new std::string(*(std::string*)other.val.val);
+				this->val.val = new std::string(*(std::string*)other.val.val);
 				break;
 			}
 			break;
 		}
 		case argType::variable:
 		case argType::interop: //copy the name
-			this->val = new std::string(*(std::string*)other.val.val);
+			this->val.val = new std::string(*(std::string*)other.val.val);
 			break;
 		default:
 			break;
@@ -89,7 +89,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& arg::getValue(program& process)
+	value& arg::getValue()
 	{
 
 		switch (argType)
@@ -156,6 +156,9 @@ namespace scisl
 		case argType::interop:
 			delete (std::string*)(val.val);
 			val.type = type::error;
+			break;
+		case argType::variable:
+			val.val = nullptr;
 			break;
 		default:
 			break;

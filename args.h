@@ -35,7 +35,7 @@ namespace scisl
 		arg& operator=(arg& other);
 		arg& operator=(arg&& cmove) noexcept;
 
-		value& getValue(program& process);
+		value& getValue();
 
 		std::string toString();
 

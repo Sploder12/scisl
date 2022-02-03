@@ -40,8 +40,8 @@ namespace scisl
 
 	void set(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& to = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& to = args.arguments[1].getValue();
 
 		cur = to.val;
 	}
@@ -49,26 +49,26 @@ namespace scisl
 	//veriadic args
 	void add(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue();
 		value sum = createTemporary(cur.type); //defaults as empty
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value& to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue();
 			sum += to;
 		}
-		
+		int t = SCISL_CAST_INT(sum.val);
 		cur = sum.val;
 	}
 
 	//veriadic args
 	void adde(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue();
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value to = args.arguments[i].getValue(process);
+			value to = args.arguments[i].getValue();
 			cur += to;
 		}
 	}
@@ -76,9 +76,9 @@ namespace scisl
 	//3 args
 	void sub(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		value diff = createTemporary(cur.type);
 		diff = first.val;
@@ -90,8 +90,8 @@ namespace scisl
 	//2 args
 	void sube(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
 
 		cur -= first;
 	}
@@ -99,13 +99,13 @@ namespace scisl
 	//veriadic args
 	void mult(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue();
 		value prod = createTemporary(cur.type);
-		prod = args.arguments[1].getValue(process).val;
+		prod = args.arguments[1].getValue().val;
 
 		for (unsigned char i = 2; i < args.argCount; i++)
 		{
-			value& to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue();
 			prod *= to;
 		}
 
@@ -115,11 +115,11 @@ namespace scisl
 	//veriadic args
 	void multe(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue();
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value& to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue();
 			cur *= to;
 		}
 	}
@@ -127,9 +127,9 @@ namespace scisl
 	//3 args
 	void div(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		value quo = createTemporary(cur.type);
 		quo = first.val;
@@ -140,8 +140,8 @@ namespace scisl
 	//2 args
 	void dive(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
 
 		cur /= first;
 	}
@@ -151,7 +151,7 @@ namespace scisl
 	{
 		for (unsigned char i = 0; i < args.argCount; i++)
 		{
-			value& cur = args.arguments[i].getValue(process);
+			value& cur = args.arguments[i].getValue();
 			switch (cur.type)
 			{
 			case type::string:
@@ -172,36 +172,36 @@ namespace scisl
 
 	void less(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		cur = first < second;
 	}
 
 	void great(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		cur = first > second;
 	}
 
 	void equal(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		cur = first == second;
 	}
 
 	void nequal(program& process, const args& args)
 	{
-		value& cur = args.arguments[0].getValue(process);
-		value& first = args.arguments[1].getValue(process);
-		value& second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
 
 		cur = first != second;
 	}
@@ -214,7 +214,7 @@ namespace scisl
 
 	void cjmp(program& process, const args& args)
 	{
-		value& cur = args.arguments[1].getValue(process);
+		value& cur = args.arguments[1].getValue();
 		if (SCISL_CAST_INT(cur.val) > 0)
 		{
 			unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
@@ -261,33 +261,6 @@ namespace scisl
 		first /= other;
 	}
 
-	void removeErrArgs(precompInstr& instruct)
-	{
-		std::vector<arg> remaining;
-
-		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
-		{
-			if (getAType(instruct, i) != argType::error)
-			{
-				remaining.push_back(std::move(instruct.instr.arguments.arguments[i]));
-				continue;
-			}
-			instruct.instr.arguments.arguments[i].argType = argType::constant;
-		}
-
-		if (remaining.size() != instruct.instr.arguments.argCount)
-		{
-			delete[] instruct.instr.arguments.arguments;
-			instruct.instr.arguments.arguments = new arg[remaining.size()];
-			instruct.instr.arguments.argCount = remaining.size();
-		}
-
-		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
-		{
-			instruct.instr.arguments.arguments[i] = std::move(remaining[i]);
-		}
-	}
-
 	void combineConsts(precompInstr& instruct, unsigned short startIDX, void (*func)(value&, value&))
 	{
 		value firstStr;
@@ -296,65 +269,78 @@ namespace scisl
 		firstInt.type = type::integer;
 		value firstFloat;
 		firstFloat.type = type::floating;
+		std::vector<arg> realArgs;
+		for (unsigned int i = 0; i < startIDX; i++)
+		{
+			realArgs.push_back(std::move(instruct.instr.arguments.arguments[i]));
+		}
+
 		for (unsigned int i = startIDX; i < instruct.instr.arguments.argCount; i++)
 		{
-			if (getAType(instruct, i) == argType::constant)
+			arg& cur = instruct.instr.arguments.arguments[i];
+			if (cur.argType == argType::constant)
 			{
-				switch (getVType(instruct, i))
+				switch (cur.val.type)
 				{
 				case type::string:
 				{
 					if (firstStr.val == nullptr)
 					{
-						firstStr.val = instruct.instr.arguments.arguments[i].val.val;
+						firstStr.val = cur.val.val;
+						realArgs.push_back(std::move(cur));
 						break;
 					}
 
-					value tmp = createTemporary(type::string);
-					tmp = instruct.instr.arguments.arguments[i].val;
-					func(firstStr, tmp);
-					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
+					func(firstStr, cur.getValue());
+					
 					break;
 				}
 				case type::integer:
 				{
 					if (firstInt.val == nullptr)
 					{
-						firstInt.val = instruct.instr.arguments.arguments[i].val.val;
+						firstInt.val = cur.val.val;
+						realArgs.push_back(std::move(cur));
 						break;
 					}
 
-					value tmp = createTemporary(type::integer);
-					tmp = instruct.instr.arguments.arguments[i].val;
-					func(firstInt, tmp);
-					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
+					func(firstInt, cur.getValue());
 					break;
 				}
 				case type::floating:
 				{
 					if (firstFloat.val == nullptr)
 					{
-						firstFloat.val = instruct.instr.arguments.arguments[i].val.val;
+						firstFloat.val = cur.val.val;
+						realArgs.push_back(std::move(cur));
 						break;
 					}
 
-					value tmp = createTemporary(type::floating);
-					tmp = instruct.instr.arguments.arguments[i].val;
-					func(firstFloat, tmp);
-					instruct.instr.arguments.arguments[i].argType = argType::error; //mark deleted
+					func(firstFloat, cur.getValue());
 					break;
 				}
 				default:
 					break;
 				}
+				continue;
 			}
+			realArgs.push_back(std::move(cur));
 		}
-		removeErrArgs(instruct);
+
+		delete[] instruct.instr.arguments.arguments;
+		instruct.instr.arguments.argCount = realArgs.size();
+		instruct.instr.arguments.arguments = new arg[realArgs.size()];
+		for (unsigned int i = 0; i < realArgs.size(); i++)
+		{
+			instruct.instr.arguments.arguments[i] = std::move(realArgs[i]);
+		}
+		firstStr.val = nullptr;
+		firstInt.val = nullptr;
+		firstFloat.val = nullptr;
 	}
 
 	void removeIdentity(precompInstr& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
 	{
-
 		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
 		{
 			if (getAType(instruct, i) == argType::constant)
@@ -384,8 +370,6 @@ namespace scisl
 				}
 			}
 		}
-
-		removeErrArgs(instruct);
 	}
 
 	inline bool settingConst(precompInstr& instruct)
