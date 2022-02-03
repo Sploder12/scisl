@@ -27,12 +27,10 @@ namespace scisl
 	};
 
 	//these are vals, used during runtime
-	//although similar to arg, it acts VERY differently
 	struct value
 	{
 		type type;
 		void* val;
-		bool isTemporary = false;
 
 		value() :
 			type(type::error), val(nullptr) {}
@@ -44,6 +42,9 @@ namespace scisl
 		value& operator=(value&& moved) noexcept;
 
 		value& operator=(void* val);
+		value& operator=(SCISL_INT_PRECISION val);
+		value& operator=(SCISL_FLOAT_PRECISION val);
+		value& operator=(std::string val);
 
 		value& operator+=(value& other);
 		value& operator-=(value& other);

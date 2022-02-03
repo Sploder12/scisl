@@ -8,15 +8,10 @@
 
 namespace scisl
 {
-	struct registeredVar
-	{
-		type type;
-		void* adr;
-	};
-
+	typedef value registeredVar;
 	typedef scislfuncMeta registeredFunc;
 
-	typedef std::map<std::string, registeredVar> varTable;
+	typedef std::map<std::string, registeredVar*> varTable;
 	typedef std::map<std::string, registeredFunc> funcTable;
 
 	void registerVar(std::string id, SCISL_INT_PRECISION& var);

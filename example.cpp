@@ -16,10 +16,8 @@ int main()
 	prog->decompile("examples/DECOMP_factorial.scisl");
 	prog->run();
 
-	prog->dumpMemory();
-
 	std::cout << "Factorial of " << FACT << " is " << number;
 
-	
+	delete prog;
 	return 0;
 }

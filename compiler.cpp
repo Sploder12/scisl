@@ -140,8 +140,8 @@ namespace scisl
 			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
 			{
 				carg->argType = argType::constant;
-				carg->type = type::integer;
-				carg->val = new std::string(cur);
+				carg->val.type = type::integer;
+				carg->val.val = new std::string(cur);
 				continue;
 			}
 
@@ -151,22 +151,22 @@ namespace scisl
 				carg->argType = argType::constant;
 				if (cur.find('.') != std::string::npos)
 				{
-					carg->type = type::floating;
-					carg->val = new SCISL_FLOAT_PRECISION(std::stod(cur));
+					carg->val.type = type::floating;
+					carg->val.val = new SCISL_FLOAT_PRECISION(std::stod(cur));
 					continue;
 				}
 				else
 				{
-					carg->type = type::integer;
-					carg->val = new SCISL_INT_PRECISION(std::stol(cur));
+					carg->val.type = type::integer;
+					carg->val.val = new SCISL_INT_PRECISION(std::stol(cur));
 					continue;
 				}
 			}
 			else if (cur[0] == '"')
 			{
 				carg->argType = argType::constant;
-				carg->type = type::string;
-				carg->val = new std::string(cur.substr(1, cur.size() - 2));
+				carg->val.type = type::string;
+				carg->val.val = new std::string(cur.substr(1, cur.size() - 2));
 				continue;
 			}
 
@@ -175,8 +175,8 @@ namespace scisl
 			{
 				auto& vTable = getVarTable();
 				carg->argType = argType::interop;
-				carg->val = new std::string(cur.substr(2, cur.size() - 3));
-				carg->type = vTable.at(*(std::string*)carg->val).type;
+				carg->val.val = new std::string(cur.substr(1, cur.size() - 1));
+				carg->val.type = vTable.at(*(std::string*)carg->val.val)->type;
 				continue;
 			}
 
@@ -185,8 +185,8 @@ namespace scisl
 			unsigned short loc = findV(vars, cur);
 			if (loc != vars.size())
 			{
-				carg->type = vars[loc].second;
-				carg->val = new std::string(vars[loc].first);
+				carg->val.type = vars[loc].second;
+				carg->val.val = new std::string(vars[loc].first);
 				continue;
 			}
 
@@ -195,21 +195,21 @@ namespace scisl
 			{
 				if (next.find('.') != std::string::npos)
 				{
-					carg->type = type::floating;
+					carg->val.type = type::floating;
 				}
 				else
 				{
-					carg->type = type::integer;
+					carg->val.type = type::integer;
 				}
 			}
 			else if (next[0] == '"')
 			{
-				carg->type = type::string;
+				carg->val.type = type::string;
 			}
 			else if (next[0] == '$')
 			{
-				carg->type = type::integer;
-				std::cout << "SCISL COMPILER WARNING: line:" << lineNum << "\tInitializing variable with interoperable, assuming INT.\n";
+				auto& vTable = getVarTable();
+				carg->val.type = vTable.at(next.substr(1, cur.size() - 1))->type;
 			}
 			else
 			{
@@ -220,21 +220,21 @@ namespace scisl
 				}
 				else
 				{
-					carg->type = vars[loc].second;
+					carg->val.type = vars[loc].second;
 				}
 			}
 
-			carg->val = new std::string(cur);
-			vars.push_back({ cur, carg->type });
+			carg->val.val = new std::string(cur);
+			vars.push_back({ cur, carg->val.type });
 		}
 
 		opt.instr.func = opt.meta.fnc;
 		return { opt, true };
 	}
 
-	void finalize(std::vector<precompInstr>& instructions, std::vector<std::pair<std::string, type>>& vars)
+	void finalize(std::vector<precompInstr>& instructions)
 	{
-		std::vector<std::pair<std::string, type>> remainingVars;
+		std::vector<std::pair<std::string, value>> remainingVars;
 		std::map<std::string, unsigned int> labels;
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
@@ -245,9 +245,9 @@ namespace scisl
 
 			if (isFunc(cur.meta, stlFuncs::label))
 			{
-				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val) , i });
-				delete (std::string*)(cur.instr.arguments.arguments[0].val);
-				cur.instr.arguments.arguments[0].val = new SCISL_INT_PRECISION(i);
+				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val) , i });
+				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
+				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(i);
 				continue;
 			}
 
@@ -256,14 +256,15 @@ namespace scisl
 				arg& cur = instructions[i].instr.arguments.arguments[j];
 				if (cur.argType == argType::variable)
 				{
-					if (findV(remainingVars, SCISL_CAST_STRING(cur.val)) == remainingVars.size())
+					if (findV(remainingVars, SCISL_CAST_STRING(cur.val.val)) == remainingVars.size())
 					{
-						remainingVars.push_back({ SCISL_CAST_STRING(cur.val), cur.type });
+						value space = createTemporary(cur.val.type);
+						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), std::move(space) });
 					}
 
-					unsigned short loc = findV(vars, SCISL_CAST_STRING(cur.val));
-					delete (std::string*)(cur.val);
-					cur.val = new unsigned short(loc);
+					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
+					delete (std::string*)(cur.val.val);
+					cur.val.val = remainingVars[loc].second.val;
 					cur.finalized = true;
 				}
 			}
@@ -274,14 +275,19 @@ namespace scisl
 			precompInstr& cur = instructions[i];
 			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
 			{
-				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val)];
-				delete (std::string*)(cur.instr.arguments.arguments[0].val);
-				cur.instr.arguments.arguments[0].val = new SCISL_INT_PRECISION(loc);
+				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val)];
+				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
+				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
 			}
 		}
-		vars = remainingVars;
+
+		for (auto& t : remainingVars)
+		{
+			t.second.val = nullptr;
+		}
 	}
 
+	/*
 	value getVal(arg& a, std::map<std::string, value>& evalVals)
 	{
 		if (a.argType == argType::interop)
@@ -692,6 +698,7 @@ namespace scisl
 		}
 		instructions = std::move(remaining);
 	}
+	*/
 
 	program* compile(const char* filename)
 	{
@@ -699,12 +706,11 @@ namespace scisl
 		if (file.is_open())
 		{
 			program* opt = new program();
-			opt->memory = nullptr;
 			
 			std::string line;
-			std::vector<std::pair<std::string, type>> vars = {};
 
 			std::vector<precompInstr> instructions;
+			std::vector<std::pair<std::string, type>> vars = {};
 
 			lineNum = 0;
 			while (std::getline(file, line))
@@ -719,34 +725,15 @@ namespace scisl
 				return nullptr;
 			}
 
-			evaluateConstants(instructions, vars);
-			removeNOOP(instructions);
-			removeUnusedVars(instructions);
+			//evaluateConstants(instructions, vars);
+			//removeNOOP(instructions);
+			//removeUnusedVars(instructions);
 			
-			finalize(instructions, vars);
+			finalize(instructions);
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)
 			{
 				opt->instructions.push_back(i.instr);
-			}
-			
-			opt->memory = new value[vars.size()];
-			opt->memsize = vars.size();
-			for (unsigned int i = 0; i < vars.size(); i++)
-			{
-				opt->memory[i].type = vars[i].second;
-				switch (vars[i].second)
-				{
-				case type::integer:
-					opt->memory[i].val = new SCISL_INT_PRECISION(0);
-					break;
-				case type::floating:
-					opt->memory[i].val = new SCISL_FLOAT_PRECISION(0);
-					break;
-				case type::string:
-					opt->memory[i].val = new std::string("");
-					break;
-				}
 			}
 
 			file.close();

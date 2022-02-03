@@ -6,14 +6,12 @@ namespace scisl
 	{
 		std::swap(this->type, moved.type);
 		std::swap(this->val, moved.val);
-		std::swap(this->isTemporary, moved.isTemporary);
 	}
 
 	value& value::operator=(value&& moved) noexcept
 	{
 		std::swap(this->type, moved.type);
 		std::swap(this->val, moved.val);
-		std::swap(this->isTemporary, moved.isTemporary);
 		return *this;
 	}
 
@@ -30,6 +28,57 @@ namespace scisl
 			case type::floating:
 				SCISL_CAST_FLOAT(this->val) = SCISL_CAST_FLOAT(val);
 				break;
+		}
+		return *this;
+	}
+
+	value& value::operator=(SCISL_INT_PRECISION val)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			SCISL_CAST_STRING(this->val) = std::to_string(val);
+			break;
+		case type::integer:
+			SCISL_CAST_INT(this->val) = val;
+			break;
+		case type::floating:
+			SCISL_CAST_FLOAT(this->val) = SCISL_FLOAT_PRECISION(val);
+			break;
+		}
+		return *this;
+	}
+
+	value& value::operator=(SCISL_FLOAT_PRECISION val)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			SCISL_CAST_STRING(this->val) = std::to_string(val);
+			break;
+		case type::integer:
+			SCISL_CAST_INT(this->val) = SCISL_INT_PRECISION(val);
+			break;
+		case type::floating:
+			SCISL_CAST_FLOAT(this->val) = val;
+			break;
+		}
+		return *this;
+	}
+
+	value& value::operator=(std::string val)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			SCISL_CAST_STRING(this->val) = val;
+			break;
+		case type::integer:
+			SCISL_CAST_INT(this->val) = std::stol(val);
+			break;
+		case type::floating:
+			SCISL_CAST_FLOAT(this->val) = std::stod(val);
+			break;
 		}
 		return *this;
 	}
@@ -530,22 +579,19 @@ namespace scisl
 
 	value::~value()
 	{
-		if (isTemporary)
+		switch (this->type)
 		{
-			switch (this->type)
-			{
-			case type::string:
-				delete (std::string*)(this->val);
-				break;
-			case type::integer:
-				delete (SCISL_INT_PRECISION*)(this->val);
-				break;
-			case type::floating:
-				delete (SCISL_FLOAT_PRECISION*)(this->val);
-				break;
-			default:
-				break;
-			}
+		case type::string:
+			delete (std::string*)(this->val);
+			break;
+		case type::integer:
+			delete (SCISL_INT_PRECISION*)(this->val);
+			break;
+		case type::floating:
+			delete (SCISL_FLOAT_PRECISION*)(this->val);
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -553,7 +599,6 @@ namespace scisl
 	{
 		value opt;
 		opt.type = tipe;
-		opt.isTemporary = true;
 		switch (tipe)
 		{
 		case (type::string):
@@ -575,7 +620,6 @@ namespace scisl
 	{
 		value opt;
 		opt.type = tipe;
-		opt.isTemporary = true;
 		switch (tipe)
 		{
 		case (type::string):
@@ -597,7 +641,6 @@ namespace scisl
 	{
 		value opt;
 		opt.type = tipe;
-		opt.isTemporary = true;
 		switch (tipe)
 		{
 		case (type::string):
@@ -619,7 +662,6 @@ namespace scisl
 	{
 		value opt;
 		opt.type = tipe;
-		opt.isTemporary = true;
 		switch (tipe)
 		{
 		case (type::string):

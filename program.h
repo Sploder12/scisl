@@ -18,8 +18,6 @@ namespace scisl
 	struct precompInstr;
 	struct program
 	{
-		value* memory;
-		unsigned short memsize;
 		std::vector<instruction> instructions;
 		unsigned int curInstr = 0;
 
@@ -29,8 +27,6 @@ namespace scisl
 
 		void run();
 
-		void dumpMemory();
-		
 		~program();
 	};
 

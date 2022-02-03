@@ -62,46 +62,54 @@ namespace scisl
 
 	void program::run()
 	{
+		curInstr = 0;
 		while (curInstr < instructions.size())
 		{
 			step();
 		}
 	}
 
-	void program::dumpMemory()
-	{
-		for (unsigned int i = 0; i < memsize; i++)
-		{
-			value& cur = memory[i];
-			switch (cur.type)
-			{
-			case type::string:
-				std::cout << "Type: String\tValue: " << SCISL_CAST_STRING(cur.val) << '\n';
-				break;
-			case type::integer:
-				std::cout << "Type: Int\tValue: " << SCISL_CAST_INT(cur.val) << '\n';
-				break;
-			case type::floating:
-				std::cout << "Type: Float\tValue: " << SCISL_CAST_FLOAT(cur.val) << '\n';
-				break;
-			default:
-				std::cout << "Type: Error\tValue: " << (unsigned long long)(cur.val) << '\n';
-				break;
-			}
-		}
-	}
-
 	program::~program()
 	{
-		for (unsigned int i = 0; i < memsize; i++)
-		{
-			memory[i].isTemporary = true;
-		}
-
-		delete[] memory;
+		std::map<void*, type> varz;
 		for (instruction& i : instructions)
 		{
+			for (unsigned int j = 0; j < i.arguments.argCount; j++)
+			{
+				arg& cur = i.arguments.arguments[j];
+				if (cur.argType == argType::variable)
+				{
+					if (!varz.contains(cur.val.val))
+					{
+						varz.insert({ cur.val.val, cur.val.type});
+					}
+					cur.val.val = nullptr;
+					cur.val.type = type::error;
+					continue;
+				}
+			}
+
 			delete[] i.arguments.arguments;
+		}
+
+		for (auto& j : varz)
+		{
+
+			switch (j.second)
+			{
+			case type::string:
+				delete (std::string*)(j.first);
+				break;
+			case type::integer:
+				delete (SCISL_INT_PRECISION*)(j.first);
+				break;
+			case type::floating:
+				delete (SCISL_FLOAT_PRECISION*)(j.first);
+				break;
+			default:
+				break;
+			}
+
 		}
 	}
 

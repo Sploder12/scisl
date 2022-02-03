@@ -40,8 +40,8 @@ namespace scisl
 
 	void set(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value to = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& to = args.arguments[1].getValue(process);
 
 		cur = to.val;
 	}
@@ -49,12 +49,12 @@ namespace scisl
 	//veriadic args
 	void add(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
 		value sum = createTemporary(cur.type); //defaults as empty
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue(process);
 			sum += to;
 		}
 		
@@ -64,7 +64,7 @@ namespace scisl
 	//veriadic args
 	void adde(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
@@ -76,21 +76,22 @@ namespace scisl
 	//3 args
 	void sub(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
 		value diff = createTemporary(cur.type);
 		diff = first.val;
 		diff -= second;
+
 		cur = diff.val;
 	}
 
 	//2 args
 	void sube(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
 
 		cur -= first;
 	}
@@ -98,13 +99,13 @@ namespace scisl
 	//veriadic args
 	void mult(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
 		value prod = createTemporary(cur.type);
 		prod = args.arguments[1].getValue(process).val;
 
 		for (unsigned char i = 2; i < args.argCount; i++)
 		{
-			value to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue(process);
 			prod *= to;
 		}
 
@@ -114,11 +115,11 @@ namespace scisl
 	//veriadic args
 	void multe(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value to = args.arguments[i].getValue(process);
+			value& to = args.arguments[i].getValue(process);
 			cur *= to;
 		}
 	}
@@ -126,9 +127,9 @@ namespace scisl
 	//3 args
 	void div(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
 		value quo = createTemporary(cur.type);
 		quo = first.val;
@@ -139,8 +140,8 @@ namespace scisl
 	//2 args
 	void dive(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
 
 		cur /= first;
 	}
@@ -150,7 +151,7 @@ namespace scisl
 	{
 		for (unsigned char i = 0; i < args.argCount; i++)
 		{
-			value cur = args.arguments[i].getValue(process);
+			value& cur = args.arguments[i].getValue(process);
 			switch (cur.type)
 			{
 			case type::string:
@@ -171,52 +172,52 @@ namespace scisl
 
 	void less(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
-		cur = createTemporary(cur.type, first < second).val;
+		cur = first < second;
 	}
 
 	void great(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
-		cur = createTemporary(cur.type, first > second);
+		cur = first > second;
 	}
 
 	void equal(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
-		cur = createTemporary(cur.type, first == second).val;
+		cur = first == second;
 	}
 
 	void nequal(program& process, const args& args)
 	{
-		value cur = args.arguments[0].getValue(process);
-		value first = args.arguments[1].getValue(process);
-		value second = args.arguments[2].getValue(process);
+		value& cur = args.arguments[0].getValue(process);
+		value& first = args.arguments[1].getValue(process);
+		value& second = args.arguments[2].getValue(process);
 
-		cur = createTemporary(cur.type, first != second).val;
+		cur = first != second;
 	}
 
 	void jmp(program& process, const args& args)
 	{
-		unsigned int line = *(unsigned int*)(args.arguments[0].val);
+		unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
 		process.curInstr = line;
 	}
 
 	void cjmp(program& process, const args& args)
 	{
-		value cur = args.arguments[1].getValue(process);
+		value& cur = args.arguments[1].getValue(process);
 		if (SCISL_CAST_INT(cur.val) > 0)
 		{
-			unsigned int line = *(unsigned int*)(args.arguments[0].val);
+			unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
 			process.curInstr = line;
 		}
 	}
@@ -237,7 +238,7 @@ namespace scisl
 
 	inline type getVType(precompInstr& instruct, unsigned short argIdx)
 	{
-		return instruct.instr.arguments.arguments[argIdx].type;
+		return instruct.instr.arguments.arguments[argIdx].val.type;
 	}
 
 	void plusEq(value& first, value& other)
@@ -305,7 +306,7 @@ namespace scisl
 				{
 					if (firstStr.val == nullptr)
 					{
-						firstStr.val = instruct.instr.arguments.arguments[i].val;
+						firstStr.val = instruct.instr.arguments.arguments[i].val.val;
 						break;
 					}
 
@@ -319,7 +320,7 @@ namespace scisl
 				{
 					if (firstInt.val == nullptr)
 					{
-						firstInt.val = instruct.instr.arguments.arguments[i].val;
+						firstInt.val = instruct.instr.arguments.arguments[i].val.val;
 						break;
 					}
 
@@ -333,7 +334,7 @@ namespace scisl
 				{
 					if (firstFloat.val == nullptr)
 					{
-						firstFloat.val = instruct.instr.arguments.arguments[i].val;
+						firstFloat.val = instruct.instr.arguments.arguments[i].val.val;
 						break;
 					}
 
@@ -364,7 +365,7 @@ namespace scisl
 					break;
 				case type::floating:
 				{
-					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments.arguments[i].val);
+					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments.arguments[i].val.val);
 					if (val == identityVal)
 					{
 						instruct.instr.arguments.arguments[i].argType = argType::error;
@@ -373,7 +374,7 @@ namespace scisl
 				}
 				case type::integer:
 				{
-					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments.arguments[i].val);
+					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments.arguments[i].val.val);
 					if (val == identityVal)
 					{
 						instruct.instr.arguments.arguments[i].argType = argType::error;
