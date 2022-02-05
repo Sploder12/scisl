@@ -57,7 +57,7 @@ namespace scisl
 			value& to = args.arguments[i].getValue();
 			sum += to;
 		}
-		int t = SCISL_CAST_INT(sum.val);
+
 		cur = sum.val;
 	}
 

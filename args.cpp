@@ -89,6 +89,36 @@ namespace scisl
 		return *this;
 	}
 
+	arg& arg::operator=(std::string& v)
+	{
+		switch (this->argType)
+		{
+		case argType::constant:
+			switch (this->val.type)
+			{
+			case type::string:
+				this->val.val = new std::string(v.substr(1, v.size() - 2));
+				break;
+			case type::integer:
+				this->val.val = new SCISL_INT_PRECISION(std::stol(v));
+				break;
+			case type::floating:
+				this->val.val = new SCISL_FLOAT_PRECISION(std::stod(v));
+				break;
+			default:
+				break;
+			}
+			break;
+		case argType::variable:
+			this->val.val = new std::string(v);
+			break;
+		case argType::interop:
+			this->val.val = new std::string(v.substr(1, v.size() - 1));
+			break;
+		}
+		return *this;
+	}
+
 	value& arg::getValue()
 	{
 

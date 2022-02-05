@@ -10,6 +10,7 @@
 #endif
 
 #include <string>
+#include <vector>
 
 #define SCISL_CAST_INT(var) (*(SCISL_INT_PRECISION*)(var))
 #define SCISL_CAST_FLOAT(var) (*(SCISL_FLOAT_PRECISION*)(var))
@@ -69,6 +70,19 @@ namespace scisl
 	value createTemporary(type tipe, SCISL_INT_PRECISION val);
 	value createTemporary(type tipe, SCISL_FLOAT_PRECISION val);
 	value createTemporary(type tipe, std::string val);
+
+	template <typename T>
+	inline size_t findV(std::vector<std::pair<std::string, T>>& vars, std::string& cur)
+	{
+		for (unsigned short i = 0; i < vars.size(); i++)
+		{
+			if (vars[i].first == cur)
+			{
+				return i;
+			}
+		}
+		return vars.size();
+	}
 }
 
 #endif
