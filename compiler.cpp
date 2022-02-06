@@ -196,61 +196,6 @@ namespace scisl
 		return { opt, true };
 	}
 
-	void finalize(std::vector<precompInstr>& instructions)
-	{
-		std::vector<std::pair<std::string, value*>> remainingVars;
-		std::map<std::string, unsigned int> labels;
-		for (unsigned int i = 0; i < instructions.size(); i++)
-		{
-			precompInstr& cur = instructions[i];
-			
-			scislPeephole peep = cur.meta.peep;
-			if (peep != nullptr) peep(cur);
-
-			if (isFunc(cur.meta, stlFuncs::label))
-			{
-				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val) , i });
-				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
-				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(i);
-				continue;
-			}
-
-			for (unsigned int j = 0; j < instructions[i].instr.arguments.argCount; j++)
-			{
-				arg& cur = instructions[i].instr.arguments.arguments[j];
-				if (cur.argType == argType::variable)
-				{
-					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
-					if (loc == remainingVars.size())
-					{
-						value* space = new value(createTemporary(cur.val.type));
-						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), space });
-					}
-
-					delete (std::string*)(cur.val.val);
-					cur.val.val = remainingVars[loc].second->val;
-					cur.finalized = true;
-				}
-			}
-		}
-
-		for (unsigned int i = 0; i < instructions.size(); i++)
-		{
-			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
-			{
-				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val)];
-				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
-				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
-			}
-		}
-
-		for (auto& t : remainingVars)
-		{
-			t.second->val = nullptr;
-			delete t.second;
-		}
-	}
 	
 	void simulate(std::map<std::string, value*>& vals, args& argz, scislFunc target)
 	{
@@ -305,6 +250,19 @@ namespace scisl
 			delete var.second;
 			var.second = nullptr;
 		}
+	}
+
+	inline void deleteArgsUF(args& argz)
+	{
+		for (unsigned int j = 0; j < argz.argCount; j++)
+		{
+			arg* c = &argz.arguments[j];
+			if (c->argType == argType::variable)
+			{
+				delete (std::string*)(c->val.val);
+			}
+		}
+		delete[] argz.arguments;
 	}
 
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
@@ -385,19 +343,10 @@ namespace scisl
 	
 				evalVal.insert({ SCISL_CAST_STRING(cur.val.val), n });
 
-				for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
-				{
-					arg* c = &i.instr.arguments.arguments[j];
-					if (c->argType == argType::variable)
-					{
-						delete (std::string*)(c->val.val);
-					}
-				}
-				delete[] i.instr.arguments.arguments;
+				deleteArgsUF(i.instr.arguments);
 				continue;
 			}
 
-			
 			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps are scary, invalidate everything once one is found
 			{
 				invalidateVars(newProcess, evalVal);
@@ -486,29 +435,15 @@ namespace scisl
 			{
 				switch (strToFuncID(i.meta.funcID))
 				{
-				case stlFuncs::add:
-				case stlFuncs::adde:
-				case stlFuncs::sub:
-				case stlFuncs::sube:
-				case stlFuncs::mult:
-				case stlFuncs::multe:
-				case stlFuncs::div:
-				case stlFuncs::dive:
-				case stlFuncs::less:
-				case stlFuncs::great:
-				case stlFuncs::equal:
-				case stlFuncs::nequal:
+				case stlFuncs::add: case stlFuncs::adde:
+				case stlFuncs::sub: case stlFuncs::sube:
+				case stlFuncs::mult: case stlFuncs::multe:
+				case stlFuncs::div: case stlFuncs::dive:
+				case stlFuncs::less: case stlFuncs::great:
+				case stlFuncs::equal: case stlFuncs::nequal:
 				{
 					simulate(evalVal, i.instr.arguments, i.instr.func);
-					for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
-					{
-						arg* c = &i.instr.arguments.arguments[j];
-						if (c->argType == argType::variable)
-						{
-							delete (std::string*)(c->val.val);
-						}
-					}
-					delete[] i.instr.arguments.arguments;
+					deleteArgsUF(i.instr.arguments);
 					break;
 				}
 				default:
@@ -531,6 +466,80 @@ namespace scisl
 			}
 			delete i.second;
 		}
+	}
+
+	void finalize(std::vector<precompInstr>& instructions)
+	{
+		std::vector<std::pair<std::string, value*>> remainingVars;
+		std::map<std::string, unsigned int> labels;
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+
+			scislPeephole peep = cur.meta.peep;
+			if (peep != nullptr) peep(cur);
+
+			if (isFunc(cur.meta, stlFuncs::label))
+			{
+				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val) , i });
+				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
+				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(i);
+				continue;
+			}
+
+			for (unsigned int j = 0; j < instructions[i].instr.arguments.argCount; j++)
+			{
+				arg& cur = instructions[i].instr.arguments.arguments[j];
+				if (cur.argType == argType::variable)
+				{
+					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
+					if (loc == remainingVars.size())
+					{
+						value* space = new value(createTemporary(cur.val.type));
+						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), space });
+					}
+
+					delete (std::string*)(cur.val.val);
+					cur.val.val = remainingVars[loc].second->val;
+					cur.finalized = true;
+				}
+			}
+		}
+
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
+			{
+				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val)];
+				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
+				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
+			}
+		}
+
+		for (auto& t : remainingVars)
+		{
+			t.second->val = nullptr;
+			delete t.second;
+		}
+	}
+
+	void removeNOOP(std::vector<precompInstr>& instructions)
+	{
+		std::vector<precompInstr> remaining;
+		remaining.reserve(instructions.size());
+		for (precompInstr& i : instructions)
+		{
+			if (!isFunc(i.meta, stlFuncs::noop))
+			{
+				remaining.push_back(std::move(i));
+			}
+			else
+			{
+				delete[] i.instr.arguments.arguments;
+			}
+		}
+		instructions = std::move(remaining);
 	}
 
 	/*
@@ -580,25 +589,6 @@ namespace scisl
 	}
 	*/
 
-	void removeNOOP(std::vector<precompInstr>& instructions)
-	{
-		std::vector<precompInstr> remaining;
-		remaining.reserve(instructions.size());
-		for (precompInstr& i : instructions)
-		{
-			if (!isFunc(i.meta, stlFuncs::noop))
-			{
-				remaining.push_back(std::move(i));
-			}
-			else
-			{
-				delete[] i.instr.arguments.arguments;
-			}
-		}
-		instructions = std::move(remaining);
-	}
-	
-
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -634,7 +624,7 @@ namespace scisl
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)
 			{
-				opt->instructions.push_back(i.instr);
+				opt->instructions.push_back(std::move(i.instr));
 			}
 
 			return opt;
