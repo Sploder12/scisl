@@ -39,7 +39,7 @@ namespace scisl
 		value(value& o) = default;
 		value(value&& moved) noexcept;
 
-		value& operator=(value& o) = default;
+		value& operator=(value& o);
 		value& operator=(value&& moved) noexcept;
 
 		value& operator=(void* val);

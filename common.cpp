@@ -8,6 +8,24 @@ namespace scisl
 		std::swap(this->val, moved.val);
 	}
 
+	value& value::operator=(value& o)
+	{
+		this->type = o.type;
+		switch (o.type)
+		{
+		case type::integer:
+			this->val = new SCISL_INT_PRECISION(SCISL_CAST_INT(o.val));
+			break;
+		case type::floating:
+			this->val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(o.val));
+			break;
+		case type::string:
+			this->val = new std::string(SCISL_CAST_STRING(o.val));
+			break;
+		}
+		return *this;
+	}
+
 	value& value::operator=(value&& moved) noexcept
 	{
 		std::swap(this->type, moved.type);

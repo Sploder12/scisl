@@ -292,6 +292,20 @@ namespace scisl
 		delete[] fakeArgs.arguments;
 	}
 
+
+	inline void invalidateVars(std::vector<precompInstr>& newProcess, std::map<std::string, value*>& evalVal)
+	{
+		for (std::pair<const std::string, value*>& var : evalVal)
+		{
+			if (var.second != nullptr)
+			{
+				newProcess.push_back(setInstr(var.first, var.second));
+			}
+			delete var.second;
+			var.second = nullptr;
+		}
+	}
+
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
 	void evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars)
 	{
@@ -304,14 +318,14 @@ namespace scisl
 		{
 			if (isFunc(i.meta, stlFuncs::set)) //initialization of var
 			{
-				const arg& cur = i.instr.arguments.arguments[0];
+				arg& cur = i.instr.arguments.arguments[0];
 				if (cur.argType != argType::variable)
 				{
 					newProcess.push_back(std::move(i));
 					continue;
 				}
 
-				const arg& next = i.instr.arguments.arguments[1];
+				arg& next = i.instr.arguments.arguments[1];
 				if (evalVal.contains(SCISL_CAST_STRING(cur.val.val)))
 				{
 					if (next.argType == argType::interop)
@@ -361,35 +375,11 @@ namespace scisl
 						continue;
 					}
 
-					n->type = v->type;
-					switch (n->type)
-					{
-					case type::integer:
-						n->val = new SCISL_INT_PRECISION(*(SCISL_INT_PRECISION*)(v->val));
-						break;
-					case type::floating:
-						n->val = new SCISL_FLOAT_PRECISION(*(SCISL_FLOAT_PRECISION*)(v->val));
-						break;
-					case type::string:
-						n->val = new std::string(*(std::string*)v->val);
-						break;
-					}
+					*n = *v;
 				}
 				else
 				{
-					n->type = next.val.type;
-					switch (n->type)
-					{
-					case type::integer:
-						n->val = new SCISL_INT_PRECISION(*(SCISL_INT_PRECISION*)(next.val.val));
-						break;
-					case type::floating:
-						n->val = new SCISL_FLOAT_PRECISION(*(SCISL_FLOAT_PRECISION*)(next.val.val));
-						break;
-					case type::string:
-						n->val = new std::string(*(std::string*)next.val.val);
-						break;
-					}
+					*n = next.val;
 				}
 	
 				evalVal.insert({ SCISL_CAST_STRING(cur.val.val), n });
@@ -400,16 +390,8 @@ namespace scisl
 			
 			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps are scary, invalidate everything once one is found
 			{
-				for (std::pair<const std::string, value*>& var : evalVal)
-				{
-					if (var.second != nullptr)
-					{
-						newProcess.push_back(setInstr(var.first, var.second));
-					}
-					delete var.second;
-					var.second = nullptr;
-				}
-				newProcess.push_back(i);
+				invalidateVars(newProcess, evalVal);
+				newProcess.push_back(std::move(i));
 				continue;
 			}
 			
@@ -426,20 +408,8 @@ namespace scisl
 							if (val != nullptr)
 							{
 								cur.argType = argType::constant;
-								cur.val.type = val->type;
 								delete (std::string*)(cur.val.val);
-								switch (cur.val.type)
-								{
-								case type::string:
-									cur.val.val = new std::string(SCISL_CAST_STRING(val->val));
-									break;
-								case type::integer:
-									cur.val.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(val->val));
-									break;
-								case type::floating:
-									cur.val.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(val->val));
-									break;
-								}
+								cur.val = *val;
 							}
 						}
 						else
@@ -455,16 +425,8 @@ namespace scisl
 			//these can modify
 			if (!isSTLfunc(i.meta.fnc)) //invalidate everything
 			{
-				for (std::pair<const std::string, value*>& var : evalVal)
-				{
-					if (var.second != nullptr)
-					{
-						newProcess.push_back(setInstr(var.first, var.second));
-					}
-					delete var.second;
-					var.second = nullptr;
-				}
-				newProcess.push_back(i);
+				invalidateVars(newProcess, evalVal);
+				newProcess.push_back(std::move(i));
 				continue;
 			}
 
@@ -476,30 +438,14 @@ namespace scisl
 				{
 					arg& cur = i.instr.arguments.arguments[j];
 					value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-					if (val != nullptr)
+					if (val != nullptr && cur.argType == argType::variable)
 					{
-						if (cur.argType == argType::variable)
-						{
-							delete (std::string*)(cur.val.val);
-
-							cur.argType = argType::constant;
-							cur.val.type = val->type;
-							switch (cur.val.type)
-							{
-							case type::string:
-								cur.val.val = new std::string(SCISL_CAST_STRING(val->val));
-								break;
-							case type::integer:
-								cur.val.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(val->val));
-								break;
-							case type::floating:
-								cur.val.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(val->val));
-								break;
-							}
-						}
+						cur.argType = argType::constant;
+						delete (std::string*)(cur.val.val);
+						cur.val = *val;
 					}
 				}
-				newProcess.push_back(i);
+				newProcess.push_back(std::move(i));
 				continue;
 			}
 
@@ -521,7 +467,7 @@ namespace scisl
 				newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
 				delete v;
 				v = nullptr;
-				newProcess.push_back(i);
+				newProcess.push_back(std::move(i));
 				continue;
 			}
 
@@ -547,14 +493,13 @@ namespace scisl
 					break;
 				}
 				default:
-					newProcess.push_back(i);
+					newProcess.push_back(std::move(i));
 					break;
 				}
+				continue;
 			}
-			else
-			{
-				newProcess.push_back(i);
-			}
+
+			newProcess.push_back(std::move(i));
 		}
 
 		process = newProcess;
