@@ -198,7 +198,7 @@ namespace scisl
 
 	void finalize(std::vector<precompInstr>& instructions)
 	{
-		std::vector<std::pair<std::string, value>> remainingVars;
+		std::vector<std::pair<std::string, value*>> remainingVars;
 		std::map<std::string, unsigned int> labels;
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
@@ -223,12 +223,12 @@ namespace scisl
 					unsigned short loc = findV(remainingVars, SCISL_CAST_STRING(cur.val.val));
 					if (loc == remainingVars.size())
 					{
-						value space = createTemporary(cur.val.type);
-						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), std::move(space) });
+						value* space = new value(createTemporary(cur.val.type));
+						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), space });
 					}
 
 					delete (std::string*)(cur.val.val);
-					cur.val.val = remainingVars[loc].second.val;
+					cur.val.val = remainingVars[loc].second->val;
 					cur.finalized = true;
 				}
 			}
@@ -247,7 +247,8 @@ namespace scisl
 
 		for (auto& t : remainingVars)
 		{
-			t.second.val = nullptr;
+			t.second->val = nullptr;
+			delete t.second;
 		}
 	}
 	
@@ -383,6 +384,15 @@ namespace scisl
 				}
 	
 				evalVal.insert({ SCISL_CAST_STRING(cur.val.val), n });
+
+				for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+				{
+					arg* c = &i.instr.arguments.arguments[j];
+					if (c->argType == argType::variable)
+					{
+						delete (std::string*)(c->val.val);
+					}
+				}
 				delete[] i.instr.arguments.arguments;
 				continue;
 			}
@@ -465,6 +475,7 @@ namespace scisl
 			if (!valid && v != nullptr)
 			{
 				newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
+				delete (std::string*)(v->val);
 				delete v;
 				v = nullptr;
 				newProcess.push_back(std::move(i));
@@ -489,6 +500,14 @@ namespace scisl
 				case stlFuncs::nequal:
 				{
 					simulate(evalVal, i.instr.arguments, i.instr.func);
+					for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+					{
+						arg* c = &i.instr.arguments.arguments[j];
+						if (c->argType == argType::variable)
+						{
+							delete (std::string*)(c->val.val);
+						}
+					}
 					delete[] i.instr.arguments.arguments;
 					break;
 				}
@@ -503,6 +522,15 @@ namespace scisl
 		}
 
 		process = newProcess;
+
+		for (auto& i : evalVal)
+		{
+			if (i.second != nullptr)
+			{
+				delete (std::string*)(i.second->val);
+			}
+			delete i.second;
+		}
 	}
 
 	/*
