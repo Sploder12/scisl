@@ -22,7 +22,7 @@ int main()
 	if (prog == nullptr) return -1;
 	prog->decompile("examples/DECOMP_factorial.scisl");
 	
-	prog->run();
+	number = prog->run();
 	
 	std::cout << "Factorial of " << FACT << " is " << number;
 

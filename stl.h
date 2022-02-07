@@ -24,10 +24,20 @@ namespace scisl
 		equal,
 		nequal,
 
+		land, //logical
+		lor,
+
+		band, //bitwise
+		bor,
+		bxor,
+		lshift,
+		rshift,
+
 		label,
 		jmp,
 		cjmp,
 
+		exit,
 		noop,
 		stlFuncCount
 	};
@@ -53,11 +63,20 @@ namespace scisl
 	void equal(program& process, const args& args);
 	void nequal(program& process, const args& args);
 
+	void land(program& process, const args& args);
+	void lor(program& process, const args& args);
+
+	void band(program& process, const args& args);
+	void bor(program& process, const args& args);
+	void bxor(program& process, const args& args);
+	void lshift(program& process, const args& args);
+	void rshift(program& process, const args& args);
 
 	void print(program& process, const args& args);
 	void jmp(program& process, const args& args);
 	void cjmp(program& process, const args& args);
 
+	void end(program& process, const args& args);
 
 	void setPeep(precompInstr& instruct);
 	void addPeep(precompInstr& instruct);
@@ -74,6 +93,15 @@ namespace scisl
 	void greatPeep(precompInstr& instruct);
 	void equalPeep(precompInstr& instruct);
 	void nequalPeep(precompInstr& instruct);
+
+	void landPeep(precompInstr& instruct);
+	void lorPeep(precompInstr& instruct);
+
+	void bandPeep(precompInstr& instruct);
+	void borPeep(precompInstr& instruct);
+	void bxorPeep(precompInstr& instruct);
+	void lshiftPeep(precompInstr& instruct);
+	void rshiftPeep(precompInstr& instruct);
 
 	void cjmpPeep(precompInstr& instruct);
 
@@ -100,11 +128,21 @@ namespace scisl
 		{ "EQUAL", equal, equalPeep, 3, "nnn", SCISL_OP_NO_JMP},
 		{ "NEQUAL", nequal, nequalPeep, 3, "nnn", SCISL_OP_NO_JMP},
 
+		{ "LAND", land, landPeep, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "LOR", lor, lorPeep, 3, "nnn", SCISL_OP_NO_JMP},
+
+		{ "BAND", band, bandPeep, 2, "ii", SCISL_OP_NO_JMP},
+		{ "BOR", bor, borPeep, 2, "ii", SCISL_OP_NO_JMP},
+		{ "BXOR", bxor, bxorPeep, 2, "ii", SCISL_OP_NO_JMP},
+		{ "LSHIFT", lshift, lshiftPeep, 2, "ii", SCISL_OP_NO_JMP},
+		{ "RSHIFT", rshift, rshiftPeep, 2, "ii", SCISL_OP_NO_JMP},
+
 		{ "LABEL", nullptr, nullptr, 1, "a", SCISL_OP_NO_MOD },
 		{ "JMP", jmp, nullptr, 1, "a", SCISL_OP_NO_MOD  },
 		{ "CJMP", cjmp, cjmpPeep, 2, "an", SCISL_OP_NO_MOD  },
 
-		{ "NOOP", nullptr, nullptr, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
+		{ "EXIT", end, nullptr, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP},
+		{ "NOOP", nullptr, nullptr, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP }
 	};
 }
 

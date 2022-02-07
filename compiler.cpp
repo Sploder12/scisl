@@ -49,6 +49,46 @@ namespace scisl
 		}
 	}
 
+	constexpr const char* typeCharToStr(const char c)
+	{
+		switch (c)
+		{
+		case 'a':
+			return "Any";
+		case 'n':
+			return "Numeric";
+		case 's':
+			return "String";
+		case 'i':
+			return "Integer";
+		case 'f':
+			return "Float";
+		default:
+			return "error";
+		}
+	}
+
+	size_t lineNum = 0;
+	bool typeCheck(precompInstr& bi)
+	{
+		const std::string& tstr = bi.meta.argTypes;
+		if (tstr == "") return true;
+
+		char curType = 'a';
+		for (unsigned int i = 0; i < bi.instr.arguments.argCount; i++)
+		{
+			if (i < tstr.size()) curType = tstr[i];
+
+			type atype = bi.instr.arguments.arguments[i].val.type;
+			if (!isRightType(curType, atype))
+			{
+				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << ", Expected " << typeCharToStr(curType) << ", Got " << typeToStr(atype) << ".\n";
+				return false;
+			}
+		}
+		return true;
+	}
+
 	precompInstr noopInstr()
 	{
 		precompInstr opt;
@@ -87,7 +127,7 @@ namespace scisl
 		return opt;
 	}
 
-	size_t lineNum = 0;
+	
 	inline std::pair<argType, type> strToType(std::string& str, std::vector<std::pair<std::string, type>>& vars)
 	{
 		switch (str[0])
@@ -193,7 +233,7 @@ namespace scisl
 		}
 
 		opt.instr.func = opt.meta.fnc;
-		return { opt, true };
+		return { opt, typeCheck(opt) };
 	}
 
 	
@@ -608,7 +648,7 @@ namespace scisl
 				auto o = parseInstr(line, vars);
 				if (o.second)
 				{
-					instructions.push_back(o.first);
+					instructions.push_back(std::move(o.first));
 					continue;
 				}
 				file.close();

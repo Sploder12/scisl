@@ -60,13 +60,14 @@ namespace scisl
 		instructions[curInstr++].run(*this);
 	}
 
-	void program::run()
+	SCISL_INT_PRECISION program::run()
 	{
 		curInstr = 0;
 		while (curInstr < instructions.size())
 		{
 			step();
 		}
+		return retVal;
 	}
 
 	program::~program()

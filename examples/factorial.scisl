@@ -12,4 +12,4 @@ SUB base base 1
 JMP factorial
 
 LABEL end
-SET $ipt opt
+EXIT opt

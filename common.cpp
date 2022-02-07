@@ -554,6 +554,76 @@ namespace scisl
 		}
 	}
 
+	bool value::operator&&(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			return false;
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_INT(this->val) && SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_INT(this->val) && SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) && SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) && SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
+
+	bool value::operator||(value& other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			return false;
+		case type::integer:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_INT(this->val) || SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_INT(this->val) || SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		case type::floating:
+			switch (other.type)
+			{
+			case type::string:
+				return false;
+			case type::integer:
+				return SCISL_CAST_FLOAT(this->val) || SCISL_CAST_INT(other.val);
+			case type::floating:
+				return SCISL_CAST_FLOAT(this->val) || SCISL_CAST_FLOAT(other.val);
+			default:
+				return false;
+			}
+		default:
+			return false;
+		}
+	}
+
 	bool value::operator!=(value& other)
 	{
 		switch (this->type)

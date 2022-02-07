@@ -27,6 +27,21 @@ namespace scisl
 		error
 	};
 
+	constexpr const char* typeToStr(type t)
+	{
+		switch (t)
+		{
+		case scisl::type::integer:
+			return "Integer";
+		case scisl::type::floating:
+			return "Float";
+		case scisl::type::string:
+			return "String";
+		default:
+			return "Error";
+		}
+	}
+
 	//these are vals, used during runtime
 	struct value
 	{
@@ -62,6 +77,9 @@ namespace scisl
 		bool operator>(value& other);
 		bool operator==(value& other);
 		bool operator!=(value& other);
+
+		bool operator&&(value& other);
+		bool operator||(value& other);
 
 		~value();
 	};

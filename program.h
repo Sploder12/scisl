@@ -20,12 +20,13 @@ namespace scisl
 	{
 		std::vector<instruction> instructions;
 		unsigned int curInstr = 0;
+		SCISL_INT_PRECISION retVal = 0;
 
 		void decompile(const char* filename);
 
 		void step();
 
-		void run();
+		SCISL_INT_PRECISION run();
 
 		~program();
 	};

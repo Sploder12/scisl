@@ -206,6 +206,64 @@ namespace scisl
 		cur = first != second;
 	}
 
+	void land(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
+
+		cur = first && second;
+	}
+
+	void lor(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+		value& second = args.arguments[2].getValue();
+
+		cur = first || second;
+	}
+
+	void band(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+
+		cur &= first;
+	}
+
+	void bor(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+
+		cur |= first;
+	}
+
+	void bxor(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+
+		cur ^= first;
+	}
+
+	void lshift(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+
+		cur <<= first;
+	}
+
+	void rshift(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& first = args.arguments[1].getValue();
+
+		cur >>= first;
+	}
+
 	void jmp(program& process, const args& args)
 	{
 		unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
@@ -220,6 +278,13 @@ namespace scisl
 			unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
 			process.curInstr = line;
 		}
+	}
+
+	void end(program& process, const args& args)
+	{
+		value& v = args.arguments[0].getValue();
+		process.curInstr = process.instructions.size();
+		process.retVal = SCISL_CAST_INT(v.val);
 	}
 
 	inline void toNOOP(precompInstr& instruct)
@@ -453,22 +518,57 @@ namespace scisl
 
 	void lessPeep(precompInstr& instruct)
 	{
-
+		if (settingConst(instruct)) return;
 	}
 
 	void greatPeep(precompInstr& instruct)
 	{
-	
+		if (settingConst(instruct)) return;
 	}
 
 	void equalPeep(precompInstr& instruct)
 	{
-
+		if (settingConst(instruct)) return;
 	}
 
 	void nequalPeep(precompInstr& instruct)
 	{
+		if (settingConst(instruct)) return;
+	}
 
+	void landPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void lorPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void bandPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void borPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void bxorPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void lshiftPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void rshiftPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
 	}
 
 	void cjmpPeep(precompInstr& instruct)
