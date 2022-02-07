@@ -170,6 +170,42 @@ namespace scisl
 		std::cout << '\n';
 	}
 
+	void substr(program& process, const args& args)
+	{
+		value& c = args.arguments[0].getValue();
+		value& str = args.arguments[1].getValue();
+		value& start = args.arguments[2].getValue();
+		value& end = args.arguments[2].getValue();
+
+		c = SCISL_CAST_STRING(str.val).substr(SCISL_CAST_INT(start.val), SCISL_CAST_INT(end.val) - SCISL_CAST_INT(start.val));
+	}
+
+	void sstrlen(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& str = args.arguments[1].getValue();
+
+		cur = (SCISL_INT_PRECISION)(SCISL_CAST_STRING(str.val).size());
+	}
+
+	void chrset(program& process, const args& args)
+	{
+		value& str = args.arguments[0].getValue();
+		value& c = args.arguments[1].getValue();
+		value& idx = args.arguments[2].getValue();
+		//type checking guarentees this has the right types
+		((std::string*)(str.val))[SCISL_CAST_INT(idx.val)] = char(SCISL_CAST_INT(c.val));
+	}
+
+	void chrat(program& process, const args& args)
+	{
+		value& cur = args.arguments[0].getValue();
+		value& str = args.arguments[1].getValue();
+		value& idx = args.arguments[2].getValue();
+		//type checking guarentees this has the right types
+		cur = ((std::string*)(str.val))[SCISL_CAST_INT(idx.val)];
+	}
+
 	void less(program& process, const args& args)
 	{
 		value& cur = args.arguments[0].getValue();
@@ -535,6 +571,26 @@ namespace scisl
 	void printPeep(precompInstr& instruct)
 	{
 		combineConsts(instruct, 0, plusEq);
+	}
+
+	void substrPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void strlenPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void chrsetPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
+	}
+
+	void chratPeep(precompInstr& instruct)
+	{
+		if (settingConst(instruct)) return;
 	}
 
 	void lessPeep(precompInstr& instruct)

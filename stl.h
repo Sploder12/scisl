@@ -19,6 +19,11 @@ namespace scisl
 		dive,
 		print,
 
+		substr,
+		sstrlen, //strings can be used as vectors
+		chrset,
+		chrat,
+
 		less,
 		great,
 		equal,
@@ -57,6 +62,12 @@ namespace scisl
 	void multe(program& process, const args& args);
 	void div(program& process, const args& args);
 	void dive(program& process, const args& args);
+	void print(program& process, const args& args);
+
+	void substr(program& process, const args& args);
+	void sstrlen(program& process, const args& args);
+	void chrset(program& process, const args& args);
+	void chrat(program& process, const args& args);
 
 	void less(program& process, const args& args);
 	void great(program& process, const args& args);
@@ -72,7 +83,6 @@ namespace scisl
 	void lshift(program& process, const args& args);
 	void rshift(program& process, const args& args);
 
-	void print(program& process, const args& args);
 	void jmp(program& process, const args& args);
 	void cjmp(program& process, const args& args);
 
@@ -88,6 +98,11 @@ namespace scisl
 	void divPeep(precompInstr& instruct);
 	void divePeep(precompInstr& instruct);
 	void printPeep(precompInstr& instruct);
+
+	void substrPeep(precompInstr& instruct);
+	void strlenPeep(precompInstr& instruct);
+	void chrsetPeep(precompInstr& instruct);
+	void chratPeep(precompInstr& instruct);
 
 	void lessPeep(precompInstr& instruct);
 	void greatPeep(precompInstr& instruct);
@@ -122,6 +137,11 @@ namespace scisl
 		{ "DIV", div, divPeep, 3, "ann", SCISL_OP_NO_JMP },
 		{ "DIVE", dive, divePeep, 2, "nn", SCISL_OP_NO_JMP },
 		{ "PRINT", print, printPeep, 0, "a", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
+
+		{ "SUBSTR", substr, substrPeep, 4, "ssii", SCISL_OP_NO_JMP},
+		{ "STRLEN", sstrlen, strlenPeep, 2, "ns", SCISL_OP_NO_JMP},
+		{ "CHRSET", chrset, chrsetPeep, 3, "sii", SCISL_OP_NO_JMP},
+		{ "CHRAT", chrat, chratPeep, 3, "nsi", SCISL_OP_NO_JMP},
 
 		{ "LESS", less, lessPeep, 3, "nnn", SCISL_OP_NO_JMP},
 		{ "GREAT", great, greatPeep, 3, "nnn", SCISL_OP_NO_JMP},
