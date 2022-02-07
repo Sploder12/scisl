@@ -188,7 +188,15 @@ namespace scisl
 			val.type = type::error;
 			break;
 		case argType::variable:
-			val.val = nullptr;
+			if (finalized)
+			{
+				val.val = nullptr;
+			}
+			else
+			{
+				delete (std::string*)(val.val);
+				val.val = nullptr;
+			}
 			break;
 		default:
 			break;

@@ -259,6 +259,7 @@ namespace scisl
 			if (cur.argType == argType::variable)
 			{
 				fakeArgs.arguments[i].argType = argType::variable; 
+				fakeArgs.arguments[i].finalized = true;
 				fakeArgs.arguments[i].val.val = virtualVars[findV(virtualVars, SCISL_CAST_STRING(cur.val.val))].second->val;
 				fakeArgs.arguments[i].val.type = virtualVars[findV(virtualVars, SCISL_CAST_STRING(cur.val.val))].second->type;
 				continue;
@@ -268,13 +269,6 @@ namespace scisl
 
 		target(fakeP, fakeArgs);
 
-		for (unsigned int i = 0; i < fakeArgs.argCount; i++)
-		{
-			if (fakeArgs.arguments[i].argType == argType::variable)
-			{
-				fakeArgs.arguments[i].val.val = nullptr;
-			}
-		}
 		delete[] fakeArgs.arguments;
 	}
 
@@ -290,19 +284,6 @@ namespace scisl
 			delete var.second;
 			var.second = nullptr;
 		}
-	}
-
-	inline void deleteArgsUF(args& argz)
-	{
-		for (unsigned int j = 0; j < argz.argCount; j++)
-		{
-			arg* c = &argz.arguments[j];
-			if (c->argType == argType::variable)
-			{
-				delete (std::string*)(c->val.val);
-			}
-		}
-		delete[] argz.arguments;
 	}
 
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
@@ -383,7 +364,7 @@ namespace scisl
 	
 				evalVal.insert({ SCISL_CAST_STRING(cur.val.val), n });
 
-				deleteArgsUF(i.instr.arguments);
+				delete[] i.instr.arguments.arguments;
 				continue;
 			}
 
@@ -483,7 +464,7 @@ namespace scisl
 				case stlFuncs::equal: case stlFuncs::nequal:
 				{
 					simulate(evalVal, i.instr.arguments, i.instr.func);
-					deleteArgsUF(i.instr.arguments);
+					delete[] i.instr.arguments.arguments;
 					break;
 				}
 				default:

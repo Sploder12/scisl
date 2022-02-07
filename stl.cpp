@@ -302,14 +302,6 @@ namespace scisl
 	inline void toNOOP(precompInstr& instruct)
 	{
 		instruct.instr.func = nullptr;
-		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
-		{
-			arg& cur = instruct.instr.arguments.arguments[i];
-			if (cur.argType == argType::variable)
-			{
-				delete (std::string*)(cur.val.val);
-			}
-		}
 		delete[] instruct.instr.arguments.arguments;
 		instruct.instr.arguments.arguments = nullptr;
 		instruct.instr.arguments.argCount = 0;
