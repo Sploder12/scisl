@@ -661,6 +661,7 @@ namespace scisl
 			//removeUnusedVars(instructions);
 			
 			finalize(instructions);
+			removeNOOP(instructions);
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)
 			{

@@ -273,10 +273,22 @@ namespace scisl
 	void cjmp(program& process, const args& args)
 	{
 		value& cur = args.arguments[1].getValue();
-		if (SCISL_CAST_INT(cur.val) > 0)
+		switch (cur.type)
 		{
-			unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
-			process.curInstr = line;
+		case type::integer:
+			if (SCISL_CAST_INT(cur.val) > 0)
+			{
+				unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
+				process.curInstr = line;
+			}
+			break;
+		case type::floating:
+			if (SCISL_CAST_FLOAT(cur.val) > 0)
+			{
+				unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
+				process.curInstr = line;
+			}
+			break;
 		}
 	}
 
@@ -290,6 +302,14 @@ namespace scisl
 	inline void toNOOP(precompInstr& instruct)
 	{
 		instruct.instr.func = nullptr;
+		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
+		{
+			arg& cur = instruct.instr.arguments.arguments[i];
+			if (cur.argType == argType::variable)
+			{
+				delete (std::string*)(cur.val.val);
+			}
+		}
 		delete[] instruct.instr.arguments.arguments;
 		instruct.instr.arguments.arguments = nullptr;
 		instruct.instr.arguments.argCount = 0;
@@ -451,6 +471,15 @@ namespace scisl
 	{
 		if (settingConst(instruct)) return;
 		
+		arg& first = instruct.instr.arguments.arguments[0];
+		arg& second = instruct.instr.arguments.arguments[1];
+		if (first.argType == argType::variable && second.argType == argType::variable)
+		{
+			if (SCISL_CAST_STRING(first.val.val) == SCISL_CAST_STRING(second.val.val))
+			{
+				toNOOP(instruct);
+			}
+		}
 	}
 
 
@@ -573,7 +602,48 @@ namespace scisl
 
 	void cjmpPeep(precompInstr& instruct)
 	{
-
+		arg& cond = instruct.instr.arguments.arguments[1];
+		if (cond.argType == argType::constant)
+		{
+			value& v = cond.val;
+			switch (v.type)
+			{
+			case type::integer:
+				if (SCISL_CAST_INT(v.val) > 0)
+				{
+					args t;
+					t.argCount = 1;
+					t.arguments = new arg[1];
+					t.arguments[0] = instruct.instr.arguments.arguments[0];
+					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
+					instruct.instr.func = instruct.meta.fnc;
+					delete[] instruct.instr.arguments.arguments;
+					instruct.instr.arguments = t;
+				}
+				else
+				{
+					toNOOP(instruct);
+				}
+				break;
+			case type::floating:
+				if (SCISL_CAST_FLOAT(v.val) > 0)
+				{
+					args t;
+					t.argCount = 1;
+					t.arguments = new arg[1];
+					t.arguments[0] = instruct.instr.arguments.arguments[0];
+					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
+					instruct.instr.func = instruct.meta.fnc;
+					delete[] instruct.instr.arguments.arguments;
+					instruct.instr.arguments = t;
+				}
+				else
+				{
+					toNOOP(instruct);
+				}
+				break;
+			}
+		}
 	}
 }
 #pragma warning(pop)
