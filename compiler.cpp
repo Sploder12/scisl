@@ -501,7 +501,7 @@ namespace scisl
 			newProcess.push_back(std::move(i));
 		}
 
-		process = newProcess;
+		process = std::move(newProcess);
 
 		for (auto& i : evalVal)
 		{
