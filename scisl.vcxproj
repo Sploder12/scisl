@@ -164,8 +164,10 @@
     <None Include="example.scisl" />
     <None Include="examples\DECOMP_factorial.scisl" />
     <None Include="examples\DECOMP_lotsOfConst.scisl" />
+    <None Include="examples\DECOMP_strVal.scisl" />
     <None Include="examples\factorial.scisl" />
     <None Include="examples\lotsOfConst.scisl" />
+    <None Include="examples\strVal.scisl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

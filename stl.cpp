@@ -68,7 +68,7 @@ namespace scisl
 
 		for (unsigned char i = 1; i < args.argCount; i++)
 		{
-			value to = args.arguments[i].getValue();
+			value& to = args.arguments[i].getValue();
 			cur += to;
 		}
 	}
@@ -176,7 +176,7 @@ namespace scisl
 		value& str = args.arguments[1].getValue();
 		value& start = args.arguments[2].getValue();
 		value& end = args.arguments[2].getValue();
-
+		//thank type checking
 		c = SCISL_CAST_STRING(str.val).substr(SCISL_CAST_INT(start.val), SCISL_CAST_INT(end.val) - SCISL_CAST_INT(start.val));
 	}
 
@@ -203,7 +203,7 @@ namespace scisl
 		value& str = args.arguments[1].getValue();
 		value& idx = args.arguments[2].getValue();
 		//type checking guarentees this has the right types
-		cur = ((std::string*)(str.val))[SCISL_CAST_INT(idx.val)];
+		cur = SCISL_CAST_STRING(str.val)[SCISL_CAST_INT(idx.val)];
 	}
 
 	void less(program& process, const args& args)

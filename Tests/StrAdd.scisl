@@ -1,0 +1,27 @@
+SET el "el"
+SET lo "lo"
+
+SET hello "h"
+ADDE hello el lo
+ADDE hello " "
+ADDE hello $name "."
+
+SET sum 0
+SET i 0
+SET len 0
+STRLEN len hello
+SET done 0
+
+LABEL count
+EQUAL done i len
+CJMP end done
+
+SET cur 0
+CHRAT cur hello i
+ADDE sum cur
+ADDE i 1
+
+JMP count
+
+LABEL end
+EXIT sum

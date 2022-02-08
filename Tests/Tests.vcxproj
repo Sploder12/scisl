@@ -177,6 +177,9 @@
     <None Include="Factorial12.scisl" />
     <None Include="Math.scisl" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="StrAdd.scisl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -15,12 +15,14 @@ int main()
 {
 
 	int number = FACT;
+	std::string name = "Bob";
 	scisl::registerVar("ipt", number);
+	scisl::registerVar("name", name);
 
-	scisl::program* prog = scisl::compile("examples/factorial.scisl");
+	scisl::program* prog = scisl::compile("examples/strVal.scisl");
 
 	if (prog == nullptr) return -1;
-	prog->decompile("examples/DECOMP_factorial.scisl");
+	prog->decompile("examples/DECOMP_strVal.scisl");
 	
 	number = prog->run();
 	

@@ -75,5 +75,11 @@
     <None Include="examples\DECOMP_lotsOfConst.scisl">
       <Filter>examples</Filter>
     </None>
+    <None Include="examples\strVal.scisl">
+      <Filter>examples</Filter>
+    </None>
+    <None Include="examples\DECOMP_strVal.scisl">
+      <Filter>examples</Filter>
+    </None>
   </ItemGroup>
 </Project>

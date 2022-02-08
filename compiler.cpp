@@ -145,7 +145,12 @@ namespace scisl
 		case '$':
 		{
 			auto& vTable = getVarTable();
-			return { argType::interop, vTable.at(str.substr(1, str.size() - 1))->type };
+			std::string key = str.substr(1, str.size() - 1);
+			if (!vTable.contains(key))
+			{
+				return { argType::interop, type::error };
+			}
+			return { argType::interop, vTable.at(key)->type };
 		}
 		default:
 			{
@@ -186,7 +191,7 @@ namespace scisl
 
 		if (opt.meta.expectedArgs != 0 && opt.meta.expectedArgs != argCount)
 		{
-			std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
+			std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
 			return { opt, false }; //error
 		}
 
@@ -212,21 +217,33 @@ namespace scisl
 			carg->argType = ctype.first;
 			carg->val.type = ctype.second;
 
+			if (ctype.first == argType::interop && ctype.second == type::error)
+			{
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing unregistered variable " << cur << ".\n";
+				return { opt, false };
+			}
+
 			//variables
 			if (ctype.second == type::error)
 			{
-				std::string& next = things[i + 2];
-				type rtype = strToType(next, vars).second;
-				if (rtype == type::error)
+				if (fID == stlFuncs::set)
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
-					return { opt, false };
+					std::string& next = things[i + 2];
+					type rtype = strToType(next, vars).second;
+					if (rtype == type::error)
+					{
+						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
+						return { opt, false };
+					}
+
+					carg->val.type = rtype;
+					carg->val.val = new std::string(cur);
+					vars.push_back({ cur, carg->val.type });
+					continue;
 				}
 
-				carg->val.type = rtype;
-				carg->val.val = new std::string(cur);
-				vars.push_back({ cur, carg->val.type });
-				continue;
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
+				return { opt, false };
 			}
 			*carg = cur; //everything else
 			//see arg(str&) constructor
@@ -429,15 +446,23 @@ namespace scisl
 				continue;
 			}
 
+			valid = evalVal.at(SCISL_CAST_STRING(modified.val.val)) != nullptr;
 			for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
 			{
 				arg& cur = i.instr.arguments.arguments[j];
-				if (cur.argType != argType::variable) continue;
+				if (cur.argType == argType::constant) continue;
+				
+				if (cur.argType == argType::interop)
+				{
+					valid = false;
+					break;
+				}
 
 				value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
 				if (val == nullptr)
 				{
 					valid = false;
+					break;
 				}
 			}
 
@@ -445,9 +470,8 @@ namespace scisl
 			if (!valid && v != nullptr)
 			{
 				newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
-				delete (std::string*)(v->val);
 				delete v;
-				v = nullptr;
+				evalVal.at(SCISL_CAST_STRING(modified.val.val)) = nullptr;
 				newProcess.push_back(std::move(i));
 				continue;
 			}

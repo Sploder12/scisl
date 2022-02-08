@@ -52,5 +52,26 @@ namespace Scisl
 
 			Assert::AreEqual(opt, 479001600);
 		}
+
+		TEST_METHOD(StringArray)
+		{
+			std::string name = "Bob";
+			scisl::registerVar("name", name);
+			scisl::program* prog = scisl::compile("../../Tests/StrAdd.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			int opt = prog->run();
+			delete prog;
+
+			int expected = 0;
+			std::string tmp = "hello " + name + '.';
+			for (char c : tmp)
+			{
+				expected += c;
+			}
+
+			Assert::AreEqual(expected, opt);
+		}
 	};
 }

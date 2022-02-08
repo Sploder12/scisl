@@ -16,7 +16,7 @@ namespace scisl
 	void registerVar(std::string id, SCISL_FLOAT_PRECISION& var)
 	{
 		registeredVar* tvar = new registeredVar();
-		tvar->type = type::integer;
+		tvar->type = type::floating;
 		tvar->val = &var;
 		interopTable.insert({ id, tvar });
 	}
@@ -24,7 +24,7 @@ namespace scisl
 	void registerVar(std::string id, std::string& var)
 	{
 		registeredVar* tvar = new registeredVar();
-		tvar->type = type::integer;
+		tvar->type = type::string;
 		tvar->val = &var;
 		interopTable.insert({ id, tvar });
 	}
