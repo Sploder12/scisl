@@ -9,6 +9,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\DecompiledScisl">
+      <UniqueIdentifier>{5f916148-45b5-4f8c-b4ec-91ca240c58a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
@@ -39,6 +42,15 @@
     </None>
     <None Include="Factorial12.scisl">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="DecompiledScisl\Factorial12.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
+    <None Include="DecompiledScisl\Math.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
+    <None Include="DecompiledScisl\StrAdd.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

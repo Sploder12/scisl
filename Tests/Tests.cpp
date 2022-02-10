@@ -16,7 +16,7 @@ namespace Scisl
 		{
 			int first = 10, second = 10;
 			scisl::registerVar("first", first);
-			scisl::registerVar("second", second);
+			scisl::defineMacro("second", std::to_string(second));
 
 			int a = 0, s = 0, m = 0, d = 0;
 			scisl::registerVar("a", a);
@@ -28,6 +28,7 @@ namespace Scisl
 
 			if (prog == nullptr) Assert::Fail();
 
+			prog->decompile("../../Tests/DecompiledScisl/Math.scisl");
 			prog->run();
 			delete prog;
 
@@ -48,6 +49,7 @@ namespace Scisl
 			if (prog == nullptr) Assert::Fail();
 
 			prog->run();
+			prog->decompile("../../Tests/DecompiledScisl/Factorial12.scisl");
 			delete prog;
 
 			Assert::AreEqual(opt, 479001600);
@@ -56,12 +58,13 @@ namespace Scisl
 		TEST_METHOD(StringArray)
 		{
 			std::string name = "Bob";
-			scisl::registerVar("name", name);
+			scisl::defineMacro("name", '"' + name + '"');
 			scisl::program* prog = scisl::compile("../../Tests/StrAdd.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
 			int opt = prog->run();
+			prog->decompile("../../Tests/DecompiledScisl/StrAdd.scisl");
 			delete prog;
 
 			int expected = 0;

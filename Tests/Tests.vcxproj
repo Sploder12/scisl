@@ -174,6 +174,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="DecompiledScisl\Factorial12.scisl" />
+    <None Include="DecompiledScisl\Math.scisl" />
+    <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="Factorial12.scisl" />
     <None Include="Math.scisl" />
   </ItemGroup>

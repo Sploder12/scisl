@@ -4,7 +4,7 @@ SET lo "lo"
 SET hello "h"
 ADDE hello el lo
 ADDE hello " "
-ADDE hello $name "."
+ADDE hello #name "."
 
 SET sum 0
 SET i 0

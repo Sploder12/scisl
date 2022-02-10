@@ -132,17 +132,28 @@ namespace scisl
 	{
 		switch (str[0])
 		{
+		case '#': //preprocessor
+		{
+			auto& macros = getMacroTable();
+			std::string key = str.substr(1, str.size() - 1);
+			if (!macros.contains(key))
+			{
+				return { argType::interop, type::error };
+			}
+			str = macros.at(key);
+			return strToType(str, vars); //note that you can create an infinite loop with macros
+		}
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
-		case '-':
+		case '-': //numbers
 			if (str.find('.') != std::string::npos)
 			{
 				return { argType::constant, type::floating };
 			}
 			return { argType::constant, type::integer };
-		case '"':
+		case '"': //strings
 			return { argType::constant, type::string };
-		case '$':
+		case '$': //interops
 		{
 			auto& vTable = getVarTable();
 			std::string key = str.substr(1, str.size() - 1);
@@ -152,7 +163,7 @@ namespace scisl
 			}
 			return { argType::interop, vTable.at(key)->type };
 		}
-		default:
+		default: //variables
 			{
 				const unsigned int loc = findV(vars, str);
 				if (loc >= vars.size())
@@ -174,7 +185,8 @@ namespace scisl
 			return {noopInstr(), true};
 		}
 
-		const stlFuncs fID = strToFuncID(things[0]);
+		auto start = things[0].find_first_not_of('\t');
+		const stlFuncs fID = strToFuncID(things[0].substr(start, things[0].size() - start));
 		precompInstr opt;
 
 		if (fID != stlFuncs::stlFuncCount)
@@ -219,7 +231,7 @@ namespace scisl
 
 			if (ctype.first == argType::interop && ctype.second == type::error)
 			{
-				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing unregistered variable " << cur << ".\n";
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing unregistered variable/macro " << cur << ".\n";
 				return { opt, false };
 			}
 
@@ -486,6 +498,8 @@ namespace scisl
 				case stlFuncs::div: case stlFuncs::dive:
 				case stlFuncs::less: case stlFuncs::great:
 				case stlFuncs::equal: case stlFuncs::nequal:
+				case stlFuncs::chrat: case stlFuncs::chrset:
+				case stlFuncs::sstrlen: case stlFuncs::substr:
 				{
 					simulate(evalVal, i.instr.arguments, i.instr.func);
 					delete[] i.instr.arguments.arguments;
@@ -505,10 +519,6 @@ namespace scisl
 
 		for (auto& i : evalVal)
 		{
-			if (i.second != nullptr)
-			{
-				delete (std::string*)(i.second->val);
-			}
 			delete i.second;
 		}
 	}
@@ -587,7 +597,6 @@ namespace scisl
 		instructions = std::move(remaining);
 	}
 
-	/*
 	void removeUnusedVars(std::vector<precompInstr>& instructions)
 	{
 		std::map<std::string, unsigned int> varCount;
@@ -601,13 +610,13 @@ namespace scisl
 				arg& cur = i.instr.arguments.arguments[j];
 				if (cur.argType == argType::variable)
 				{
-					if (varCount.contains(SCISL_CAST_STRING(cur.val)))
+					if (varCount.contains(SCISL_CAST_STRING(cur.val.val)))
 					{
-						varCount.at(SCISL_CAST_STRING(cur.val)) += 1;
+						varCount.at(SCISL_CAST_STRING(cur.val.val)) += 1;
 					}
 					else
 					{
-						varCount.insert({ SCISL_CAST_STRING(cur.val), 1});
+						varCount.insert({ SCISL_CAST_STRING(cur.val.val), 1});
 					}
 				}
 			}
@@ -620,19 +629,18 @@ namespace scisl
 				arg& cur = i.instr.arguments.arguments[0];
 				if (cur.argType == argType::variable)
 				{
-					if (varCount.at(SCISL_CAST_STRING(cur.val)) == 1)
+					if (varCount.at(SCISL_CAST_STRING(cur.val.val)) == 1)
 					{
 						delete[] i.instr.arguments.arguments;
 						continue;
 					}
 				}
 			}
-			remaining.push_back(i);
+			remaining.push_back(std::move(i));
 		}
-		instructions = remaining;
+		instructions = std::move(remaining);
 		
 	}
-	*/
 
 	program* compile(const char* filename)
 	{
@@ -663,7 +671,7 @@ namespace scisl
 
 			evaluateConstants(instructions, vars);
 			removeNOOP(instructions);
-			//removeUnusedVars(instructions);
+			removeUnusedVars(instructions);
 			
 			finalize(instructions);
 			removeNOOP(instructions);
@@ -675,6 +683,7 @@ namespace scisl
 
 			return opt;
 		}
+		std::cout << "SCISL COMPILER ERROR: Could not open file " << filename << ".\n";
 		return nullptr;
 	}
 }

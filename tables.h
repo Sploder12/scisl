@@ -13,6 +13,7 @@ namespace scisl
 
 	typedef std::map<std::string, registeredVar*> varTable;
 	typedef std::map<std::string, registeredFunc> funcTable;
+	typedef std::map<std::string, std::string> macroTable;
 
 	void registerVar(std::string id, SCISL_INT_PRECISION& var);
 	void registerVar(std::string id, SCISL_FLOAT_PRECISION& var);
@@ -20,9 +21,13 @@ namespace scisl
 
 	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes = "", unsigned int optimizerFlags = 0, scislPeephole optimizer = nullptr);
 
+	void defineMacro(std::string id, std::string value);
+
 	varTable& getVarTable();
 
 	funcTable& getFuncTable();
+
+	macroTable& getMacroTable();
 }
 
 #endif

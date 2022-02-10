@@ -60,9 +60,6 @@
     <None Include="example.scisl">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="decompiled.scisl">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="examples\factorial.scisl">
       <Filter>examples</Filter>
     </None>

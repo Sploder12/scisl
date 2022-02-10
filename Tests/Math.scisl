@@ -1,5 +1,5 @@
 SET first $first
-SET second $second
+SET second #second
 
 ADD $a first second
 SUB $s first second

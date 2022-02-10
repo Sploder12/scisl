@@ -4,6 +4,7 @@ namespace scisl
 {
 	varTable interopTable;
 	funcTable interopFuncTable;
+	macroTable macros;
 
 	void registerVar(std::string id, SCISL_INT_PRECISION& var)
 	{
@@ -35,6 +36,11 @@ namespace scisl
 		interopFuncTable.insert({ id, std::move(tmp) });
 	}
 
+	void defineMacro(std::string id, std::string value)
+	{
+		macros.insert({id, value});
+	}
+
 	varTable& getVarTable()
 	{
 		return interopTable;
@@ -43,5 +49,10 @@ namespace scisl
 	funcTable& getFuncTable()
 	{
 		return interopFuncTable;
+	}
+
+	macroTable& getMacroTable()
+	{
+		return macros;
 	}
 }

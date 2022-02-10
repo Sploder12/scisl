@@ -13,11 +13,11 @@
 #define FACT 12
 int main()
 {
-
+	
 	int number = FACT;
 	std::string name = "Bob";
 	scisl::registerVar("ipt", number);
-	scisl::registerVar("name", name);
+	scisl::defineMacro("name", '"' + name + '"');
 
 	scisl::program* prog = scisl::compile("examples/strVal.scisl");
 
@@ -29,5 +29,6 @@ int main()
 	std::cout << "Factorial of " << FACT << " is " << number;
 
 	delete prog;
+
 	return 0;
 }
