@@ -14,14 +14,13 @@ SUBE len 1
 SET done 0
 
 LABEL count
-EQUAL done i len
-CJMP end done
+	EQUAL done i len
+	CJMP end done
 
-SET cur 0
-CHRAT cur hello i
-ADDE sum cur
-ADDE i 1
-
+	SET cur 0
+	CHRAT cur hello i
+	ADDE sum cur
+	ADDE i 1
 JMP count
 
 LABEL end

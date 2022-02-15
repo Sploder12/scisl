@@ -344,14 +344,12 @@ namespace scisl
 		instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
 	}
 
-	inline argType getAType(precompInstr& instruct, unsigned short argIdx)
+	//Expects the instruction to already have 2 args, 1st is the modified, 2nd is the value
+	inline void toSET(precompInstr& instruct)
 	{
-		return instruct.instr.arguments.arguments[argIdx].argType;
-	}
-
-	inline type getVType(precompInstr& instruct, unsigned short argIdx)
-	{
-		return instruct.instr.arguments.arguments[argIdx].val.type;
+		instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::set)];
+		instruct.instr.func = instruct.meta.fnc;
+		setPeep(instruct);
 	}
 
 	void plusEq(value& first, value& other)
@@ -454,40 +452,58 @@ namespace scisl
 
 	void removeIdentity(precompInstr& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
 	{
-		for (unsigned int i = 0; i < instruct.instr.arguments.argCount; i++)
+		std::vector<arg> realArgs;
+		for (unsigned int i = 0; i < startIDX; i++)
 		{
-			if (getAType(instruct, i) == argType::constant)
+			realArgs.push_back(std::move(instruct.instr.arguments.arguments[i]));
+		}
+
+		for (unsigned int i = startIDX; i < instruct.instr.arguments.argCount; i++)
+		{
+			arg& cur = instruct.instr.arguments.arguments[i];
+			if (cur.argType == argType::constant)
 			{
-				switch (getVType(instruct, i))
+				switch (cur.val.type)
 				{
 				case type::string:
+					realArgs.push_back(std::move(cur));
 					break;
 				case type::floating:
 				{
 					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments.arguments[i].val.val);
-					if (val == identityVal)
+					if (val != identityVal)
 					{
-						instruct.instr.arguments.arguments[i].argType = argType::error;
+						realArgs.push_back(std::move(cur));
 					}
 					break;
 				}
 				case type::integer:
 				{
 					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments.arguments[i].val.val);
-					if (val == identityVal)
+					if (val != identityVal)
 					{
-						instruct.instr.arguments.arguments[i].argType = argType::error;
+						realArgs.push_back(std::move(cur));
 					}
 					break;
 				}
 				}
+				continue;
 			}
+			realArgs.push_back(std::move(cur));
+		}
+
+		delete[] instruct.instr.arguments.arguments;
+		instruct.instr.arguments.argCount = realArgs.size();
+		instruct.instr.arguments.arguments = new arg[realArgs.size()];
+		for (unsigned int i = 0; i < realArgs.size(); i++)
+		{
+			instruct.instr.arguments.arguments[i] = std::move(realArgs[i]);
 		}
 	}
 
 	inline bool settingConst(precompInstr& instruct)
 	{
-		if (getAType(instruct, 0) == argType::constant)
+		if (instruct.instr.arguments.arguments[0].argType == argType::constant)
 		{ //setting a constant
 			toNOOP(instruct);
 			return true;
@@ -518,6 +534,12 @@ namespace scisl
 		combineConsts(instruct, 1, plusEq);
 
 		removeIdentity(instruct, 1, 0);
+
+		if (instruct.instr.arguments.argCount == 2)
+		{
+			toSET(instruct);
+			return;
+		}
 	}
 
 	void addePeep(precompInstr& instruct)
@@ -527,17 +549,38 @@ namespace scisl
 		combineConsts(instruct, 1, plusEq);
 
 		removeIdentity(instruct, 1, 0);
+
+		if (instruct.instr.arguments.argCount == 1)
+		{
+			toNOOP(instruct);
+			return;
+		}
 	}
 
 	void subPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
 
+		removeIdentity(instruct, 2, 0);
+
+		if (instruct.instr.arguments.argCount == 2)
+		{
+			toSET(instruct);
+			return;
+		}
 	}
 
 	void subePeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
+
+		removeIdentity(instruct, 1, 0);
+
+		if (instruct.instr.arguments.argCount == 1)
+		{
+			toNOOP(instruct);
+			return;
+		}
 	}
 
 	void multPeep(precompInstr& instruct)
@@ -547,6 +590,12 @@ namespace scisl
 		combineConsts(instruct, 1, multEq);
 
 		removeIdentity(instruct, 1, 1);
+
+		if (instruct.instr.arguments.argCount == 2)
+		{
+			toSET(instruct);
+			return;
+		}
 	}
 
 	void multePeep(precompInstr& instruct)
@@ -556,16 +605,38 @@ namespace scisl
 		combineConsts(instruct, 1, multEq);
 
 		removeIdentity(instruct, 1, 1);
+
+		if (instruct.instr.arguments.argCount == 1)
+		{
+			toNOOP(instruct);
+			return;
+		}
 	}
 
 	void divPeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
+
+		removeIdentity(instruct, 2, 1);
+
+		if (instruct.instr.arguments.argCount == 2)
+		{
+			toSET(instruct);
+			return;
+		}
 	}
 
 	void divePeep(precompInstr& instruct)
 	{
 		if (settingConst(instruct)) return;
+
+		removeIdentity(instruct, 1, 1);
+
+		if (instruct.instr.arguments.argCount == 1)
+		{
+			toNOOP(instruct);
+			return;
+		}
 	}
 
 	void printPeep(precompInstr& instruct)
