@@ -17,4 +17,12 @@ The language uses a hybrid compilation model.
 There are three types, Strings, Integers, and Floats.  
 The types are determined at compile time.  
   
-Comments can be made by starting a line with ';'
+Comments can be made by starting a line with ';'  
+  
+### Interoperability  
+  
+To signify that a variable or function is an interoperable the character `$` preceeds the symbol.  
+There are also macros which get resolved at compile time that are preceeded with `#`.
+  
+Macros **CANNOT** be used to replace more than a single argument/function name.  
+Attempting to do so will result in a compilation error most of the time.  
