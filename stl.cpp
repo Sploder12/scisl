@@ -335,6 +335,13 @@ namespace scisl
 		process.retVal = SCISL_CAST_INT(v.val);
 	}
 
+	void breakp(program& process, const args& args)
+	{
+		value& v = args.arguments[0].getValue();
+		process.broke = true;
+		process.retVal = SCISL_CAST_INT(v.val);
+	}
+
 	inline void toNOOP(precompInstr& instruct)
 	{
 		instruct.instr.func = nullptr;

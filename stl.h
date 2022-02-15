@@ -43,6 +43,7 @@ namespace scisl
 		cjmp,
 
 		exit,
+		breakp,
 		noop,
 		stlFuncCount
 	};
@@ -87,6 +88,7 @@ namespace scisl
 	void cjmp(program& process, const args& args);
 
 	void end(program& process, const args& args);
+	void breakp(program& process, const args& args);
 
 	void setPeep(precompInstr& instruct);
 	void addPeep(precompInstr& instruct);
@@ -162,6 +164,7 @@ namespace scisl
 		{ "CJMP", cjmp, cjmpPeep, 2, "an", SCISL_OP_NO_MOD  },
 
 		{ "EXIT", end, nullptr, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP},
+		{ "BREAK", breakp, nullptr, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
 		{ "NOOP", nullptr, nullptr, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP }
 	};
 }
