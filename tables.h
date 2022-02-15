@@ -19,6 +19,14 @@ namespace scisl
 	void registerVar(std::string id, SCISL_FLOAT_PRECISION& var);
 	void registerVar(std::string id, std::string& var);
 
+	//you can update type, but dont do that after compilation, it's dangerous.
+	void updateVar(std::string id, SCISL_INT_PRECISION& var);
+	void updateVar(std::string id, SCISL_FLOAT_PRECISION& var);
+	void updateVar(std::string id, std::string& var);
+
+	//DO NOT USE THIS AFTER COMPILATION
+	void removeVar(std::string id);
+
 	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes = "", unsigned int optimizerFlags = 0, scislPeephole optimizer = nullptr);
 
 	void defineMacro(std::string id, std::string value);

@@ -1,0 +1,10 @@
+SET test #input
+BREAK test
+ADDE test 25 32 500
+BREAK test
+SUBE test 25
+SUB test test 32
+SUBE test 500
+BREAK test
+MULTE test 10
+EXIT test

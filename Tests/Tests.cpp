@@ -8,6 +8,108 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Scisl
 {
+	TEST_CLASS(SCRIPTING)
+	{
+	public:
+		TEST_METHOD(TwoBalls)
+		{
+			struct ball {
+				int x;
+				int y;
+				unsigned int curInstr;
+			};
+
+			ball b1 = { 5, -5, 0 };
+			ball b2 = { 0, 0, 0 };
+
+			scisl::registerVar("x", b1.x);
+			scisl::registerVar("y", b1.y);
+
+			scisl::program* prog = scisl::compile("../../Tests/TwoBalls.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile("../../Tests/DecompiledScisl/TwoBalls.scisl");
+
+			prog->run();
+			b1.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b2.x);
+			scisl::updateVar("y", b2.y);
+			prog->curInstr = b2.curInstr;
+			prog->run();
+			b2.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b1.x);
+			scisl::updateVar("y", b1.y);
+			prog->curInstr = b1.curInstr;
+			prog->run();
+			b1.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b2.x);
+			scisl::updateVar("y", b2.y);
+			prog->curInstr = b2.curInstr;
+			prog->run();
+			b2.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b1.x);
+			scisl::updateVar("y", b1.y);
+			prog->curInstr = b1.curInstr;
+			prog->run();
+			b1.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b2.x);
+			scisl::updateVar("y", b2.y);
+			prog->curInstr = b2.curInstr;
+			prog->run();
+			b2.curInstr = prog->curInstr;
+
+			scisl::updateVar("x", b1.x);
+			scisl::updateVar("y", b1.y);
+			prog->curInstr = b1.curInstr;
+			int b1ret = prog->run();
+
+
+			scisl::updateVar("x", b2.x);
+			scisl::updateVar("y", b2.y);
+			prog->curInstr = b2.curInstr;
+			int b2ret = prog->run();
+
+			delete prog;
+
+			Assert::AreEqual(-15, b1ret);
+			Assert::AreEqual(5, b2ret);
+		}
+		TEST_METHOD(UsingBreak)
+		{
+			int ipt = 5;
+			scisl::defineMacro("input", std::to_string(ipt));
+			scisl::program* prog = scisl::compile("../../Tests/BasicBreaks.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile("../../Tests/DecompiledScisl/BasicBreaks.scisl");
+			int b1 = prog->run();
+			Assert::IsTrue(prog->broke);
+
+			int b2 = prog->run();
+			Assert::IsTrue(prog->broke);
+
+			int b3 = prog->run();
+			Assert::IsTrue(prog->broke);
+
+			int ret = prog->run();
+			Assert::IsFalse(prog->broke);
+
+			delete prog;
+
+			Assert::AreEqual(ipt, b1);
+			Assert::AreEqual(ipt + 25 + 32 + 500, b2);
+			Assert::AreEqual(ipt, b3);
+			Assert::AreEqual(ipt * 10, ret);
+		}
+	};
+
 	TEST_CLASS(MATH)
 	{
 	public:

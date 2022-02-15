@@ -446,12 +446,16 @@ namespace scisl
 				for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
 				{
 					arg& cur = i.instr.arguments.arguments[j];
-					value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-					if (val != nullptr && cur.argType == argType::variable)
+					
+					if (cur.argType == argType::variable)
 					{
-						cur.argType = argType::constant;
-						delete (std::string*)(cur.val.val);
-						cur.val = *val;
+						value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
+						if (val != nullptr)
+						{
+							cur.argType = argType::constant;
+							delete (std::string*)(cur.val.val);
+							cur.val = *val;
+						}
 					}
 				}
 				newProcess.push_back(std::move(i));

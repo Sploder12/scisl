@@ -52,6 +52,18 @@
     <None Include="DecompiledScisl\StrAdd.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
+    <None Include="BasicBreaks.scisl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="TwoBalls.scisl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="DecompiledScisl\BasicBreaks.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
+    <None Include="DecompiledScisl\TwoBalls.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="StrAdd.scisl">
