@@ -194,7 +194,7 @@ namespace scisl
 		value& c = args.arguments[1].getValue();
 		value& idx = args.arguments[2].getValue();
 		//type checking guarentees this has the right types
-		((std::string*)(str.val))[SCISL_CAST_INT(idx.val)] = char(SCISL_CAST_INT(c.val));
+		SCISL_CAST_STRING(str.val)[SCISL_CAST_INT(idx.val)] = char(SCISL_CAST_INT(c.val));
 	}
 
 	void chrat(program& process, const args& args)

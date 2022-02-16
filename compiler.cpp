@@ -196,9 +196,17 @@ namespace scisl
 		else
 		{
 			auto& funcs = getFuncTable();
-			scislfuncMeta& mta = funcs.at(things[0]);
+			if (funcs.contains(things[0]))
+			{
+				scislfuncMeta& mta = funcs.at(things[0]);
 
-			opt.meta = mta;
+				opt.meta = mta;
+			}
+			else
+			{
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unregistered function.\n";
+				return { opt, false };
+			}
 		}
 
 		if (opt.meta.expectedArgs != 0 && opt.meta.expectedArgs != argCount)
@@ -360,7 +368,13 @@ namespace scisl
 						continue;
 					}
 
-					*evalVal.at(SCISL_CAST_STRING(cur.val.val)) = next.val.val;
+					value*& tmp = evalVal.at(SCISL_CAST_STRING(cur.val.val));
+					if (tmp == nullptr)
+					{
+						tmp = new value();
+					}
+
+					*tmp = next.val.val;
 					continue;
 				}
 

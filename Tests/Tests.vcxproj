@@ -178,10 +178,12 @@
     <None Include="DecompiledScisl\BasicBreaks.scisl" />
     <None Include="DecompiledScisl\Factorial12.scisl" />
     <None Include="DecompiledScisl\Math.scisl" />
+    <None Include="DecompiledScisl\ParseStr.scisl" />
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
     <None Include="Factorial12.scisl" />
     <None Include="Math.scisl" />
+    <None Include="ParseStr.scisl" />
     <None Include="TwoBalls.scisl" />
   </ItemGroup>
   <ItemGroup>

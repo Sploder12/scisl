@@ -64,6 +64,12 @@
     <None Include="DecompiledScisl\TwoBalls.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
+    <None Include="ParseStr.scisl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="DecompiledScisl\ParseStr.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="StrAdd.scisl">

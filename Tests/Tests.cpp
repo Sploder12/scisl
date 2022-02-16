@@ -108,6 +108,51 @@ namespace Scisl
 			Assert::AreEqual(ipt, b3);
 			Assert::AreEqual(ipt * 10, ret);
 		}
+	
+		TEST_METHOD(ParseStr)
+		{
+			std::string line = "apple,orange,c++,scisl,1337,Flood";
+			scisl::registerVar("line", line);
+
+			std::string first = "";
+			std::string second = "";
+			std::string third = "";
+			std::string fourth = "";
+			std::string fifth = "";
+			std::string last = "";
+			scisl::registerVar("first", first);
+			scisl::registerVar("second", second);
+			scisl::registerVar("third", third);
+			scisl::registerVar("fourth", fourth);
+			scisl::registerVar("fifth", fifth);
+			scisl::registerVar("last", last);
+
+			scisl::program* prog = scisl::compile("../../Tests/ParseStr.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile("../../Tests/DecompiledScisl/ParseStr.scisl");
+			int o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("apple"), first);
+			Assert::AreEqual(std::string("orange"), second);
+			Assert::AreEqual(std::string("c++"), third);
+			Assert::AreEqual(std::string("scisl"), fourth);
+			Assert::AreEqual(std::string("1337"), fifth);
+			Assert::AreEqual(std::string("Flood"), last);
+
+			line = "1,2,3,4,5,6";
+			o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("1"), first);
+			Assert::AreEqual(std::string("2"), second);
+			Assert::AreEqual(std::string("3"), third);
+			Assert::AreEqual(std::string("4"), fourth);
+			Assert::AreEqual(std::string("5"), fifth);
+			Assert::AreEqual(std::string("6"), last);
+		}
 	};
 
 	TEST_CLASS(MATH)
