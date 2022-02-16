@@ -73,6 +73,11 @@ namespace scisl
 
 	void removeAllVars()
 	{
+		for (auto& p : interopTable)
+		{
+			p.second->val = nullptr;
+			delete p.second;
+		}
 		interopTable.clear();
 	}
 
