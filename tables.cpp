@@ -71,9 +71,15 @@ namespace scisl
 		}
 	}
 
-	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes, unsigned int optimizerFlags, scislPeephole optimizer)
+	void removeAllVars()
 	{
-		registeredFunc tmp = { id, func, optimizer, argCount, argTypes, optimizerFlags };
+		interopTable.clear();
+	}
+
+	void registerFunc(std::string id, scislFunc func, unsigned short argCount, unsigned short minArgs, std::string argTypes, unsigned int optimizerFlags, scislPeephole optimizer)
+	{
+		id = '$' + id;
+		registeredFunc tmp = { id, func, optimizer, argCount, minArgs, argTypes, optimizerFlags};
 		interopFuncTable.insert({ id, std::move(tmp) });
 	}
 

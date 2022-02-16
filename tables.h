@@ -27,7 +27,9 @@ namespace scisl
 	//DO NOT USE THIS AFTER COMPILATION
 	void removeVar(std::string id);
 
-	void registerFunc(std::string id, scislFunc func, unsigned short argCount, std::string argTypes = "", unsigned int optimizerFlags = 0, scislPeephole optimizer = nullptr);
+	void removeAllVars();
+
+	void registerFunc(std::string id, scislFunc func, unsigned short argCount, unsigned short minArgs = 0,std::string argTypes = "", unsigned int optimizerFlags = 0, scislPeephole optimizer = nullptr);
 
 	void defineMacro(std::string id, std::string value);
 

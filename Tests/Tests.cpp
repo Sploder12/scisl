@@ -13,6 +13,7 @@ namespace Scisl
 	public:
 		TEST_METHOD(TwoBalls)
 		{
+			scisl::removeAllVars();
 			struct ball {
 				int x;
 				int y;
@@ -82,6 +83,7 @@ namespace Scisl
 		}
 		TEST_METHOD(UsingBreak)
 		{
+			scisl::removeAllVars();
 			int ipt = 5;
 			scisl::defineMacro("input", std::to_string(ipt));
 			scisl::program* prog = scisl::compile("../../Tests/BasicBreaks.scisl");
@@ -111,6 +113,7 @@ namespace Scisl
 	
 		TEST_METHOD(ParseStr)
 		{
+			scisl::removeAllVars();
 			std::string line = "apple,orange,c++,scisl,1337,Flood";
 			scisl::registerVar("line", line);
 
@@ -152,6 +155,8 @@ namespace Scisl
 			Assert::AreEqual(std::string("4"), fourth);
 			Assert::AreEqual(std::string("5"), fifth);
 			Assert::AreEqual(std::string("6"), last);
+
+			delete prog;
 		}
 	};
 
@@ -161,6 +166,7 @@ namespace Scisl
 		
 		TEST_METHOD(Math)
 		{
+			scisl::removeAllVars();
 			int first = 10, second = 10;
 			scisl::registerVar("first", first);
 			scisl::defineMacro("second", std::to_string(second));
@@ -188,6 +194,7 @@ namespace Scisl
 
 		TEST_METHOD(Factorial12)
 		{
+			scisl::removeAllVars();
 			int opt = 0;
 			scisl::registerVar("opt", opt);
 
@@ -204,6 +211,7 @@ namespace Scisl
 
 		TEST_METHOD(StringArray)
 		{
+			scisl::removeAllVars();
 			std::string name = "Bob";
 			scisl::defineMacro("name", '"' + name + '"');
 			scisl::program* prog = scisl::compile("../../Tests/StrAdd.scisl");

@@ -35,6 +35,18 @@ namespace scisl
 				return (stlFuncs)(i);
 			}
 		}
+
+		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
+		{
+			const std::vector<std::string>& aliases = funcAliases[i];
+			for (const std::string& s : aliases)
+			{
+				if (str == s)
+				{
+					return (stlFuncs)(i);
+				}
+			}
+		}
 		return stlFuncs::stlFuncCount;
 	}
 
@@ -228,9 +240,17 @@ namespace scisl
 	{
 		value& cur = args.arguments[0].getValue();
 		value& first = args.arguments[1].getValue();
-		value& second = args.arguments[2].getValue();
+		for (unsigned char i = 2; i < args.argCount; i++)
+		{
+			value& next = args.arguments[i].getValue();
+			if (first != next)
+			{
+				cur = false;
+				return;
+			}
+		}
 
-		cur = first == second;
+		cur = true;
 	}
 
 	void nequal(program& process, const args& args)

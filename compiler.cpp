@@ -68,6 +68,17 @@ namespace scisl
 		}
 	}
 
+	inline void toUpper(std::string& str)
+	{
+		for (char& c : str)
+		{
+			if (c >= 'a' && c <= 'z')
+			{
+				c -= ('a' - 'A');
+			}
+		}
+	}
+
 	size_t lineNum = 0;
 	bool typeCheck(precompInstr& bi)
 	{
@@ -186,11 +197,20 @@ namespace scisl
 		}
 
 		auto start = things[0].find_first_not_of('\t');
-		const stlFuncs fID = strToFuncID(things[0].substr(start, things[0].size() - start));
+		std::string funcName = things[0].substr(start, things[0].size() - start);
+		stlFuncs fID = stlFuncs::stlFuncCount;
 		precompInstr opt;
 
-		if (fID != stlFuncs::stlFuncCount)
+		if (funcName[0] != '$')
 		{
+			toUpper(funcName);
+			fID = strToFuncID(funcName);
+			if (fID >= stlFuncs::stlFuncCount)
+			{
+				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unknown STl function.\n";
+				return { opt, false };
+			}
+
 			opt.meta = stlFuncMeta[(unsigned short)(fID)];
 		}
 		else
@@ -212,6 +232,12 @@ namespace scisl
 		if (opt.meta.expectedArgs != 0 && opt.meta.expectedArgs != argCount)
 		{
 			std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
+			return { opt, false }; //error
+		}
+
+		if (argCount < opt.meta.minArgs)
+		{
+			std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " needs at least " << opt.meta.minArgs << " args, got " << (int)(argCount) << ".\n";
 			return { opt, false }; //error
 		}
 

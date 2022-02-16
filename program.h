@@ -49,6 +49,7 @@ namespace scisl
 		scislFunc fnc;
 		scislPeephole peep;
 		unsigned int expectedArgs;
+		unsigned int minArgs;
 		std::string argTypes;
 		unsigned int optimizerFlags;
 	};

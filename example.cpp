@@ -19,26 +19,10 @@ int main()
 	scisl::registerVar("ipt", number);
 	scisl::defineMacro("name", '"' + name + '"');
 
-	std::string line = "apple,orange,c++,scisl,1337,Flood";
-	scisl::registerVar("line", line);
-
-	std::string first = "";
-	std::string second = "";
-	std::string third = "";
-	std::string fourth = "";
-	std::string fifth = "";
-	std::string last = "";
-	scisl::registerVar("first", first);
-	scisl::registerVar("second", second);
-	scisl::registerVar("third", third);
-	scisl::registerVar("fourth", fourth);
-	scisl::registerVar("fifth", fifth);
-	scisl::registerVar("last", last);
-
-	scisl::program* prog = scisl::compile("Tests/ParseStr.scisl");
+	scisl::program* prog = scisl::compile("examples/strVal.scisl");
 
 	if (prog == nullptr) return -1;
-	//prog->decompile("examples/DECOMP_strVal.scisl");
+	prog->decompile("examples/DECOMP_strVal.scisl");
 	
 	number = prog->run();
 	

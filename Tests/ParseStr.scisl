@@ -7,11 +7,11 @@ ADDE sLen 1
 
 LABEL getNext
 	SET ret ""
-	SET t 0
+	= t 0
 	SET c 0
 	LABEL gchr
 		CHRAT t line curChr
-		ADDE curChr 1
+		+= curChr 1
 		SET d 0
 		SET m 0
 ;				   44 is ','
@@ -26,17 +26,17 @@ LABEL getNext
 LABEL nend
 
 SET d 0
-EQUAL d state 0
+EQUALS d state 0
 CJMP first d
-EQUAL d state 1
-CJMP second d
+== d state 1
+CJUMP second d
 EQUAL d state 2
 CJMP third d
 EQUAL d state 3
 CJMP fourth d
 EQUAL d state 4
 CJMP fifth d
-EQUAL d state 5
+equals d state 5
 CJMP last d
 EXIT -1
 
@@ -57,7 +57,7 @@ SET $third ret
 ADDE state 1
 JMP getNext
 
-LABEL fourth
+MARK fourth
 SET $fourth ret
 ADDE state 1
 JMP getNext
@@ -69,4 +69,4 @@ JMP getNext
 
 LABEL last
 SET $last ret
-EXIT 0
+FINISH 0

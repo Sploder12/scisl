@@ -48,6 +48,41 @@ namespace scisl
 		stlFuncCount
 	};
 
+	const std::vector<std::string> funcAliases[(unsigned short)(stlFuncs::stlFuncCount)] =
+	{
+		{ "=" },
+		{ "+" },
+		{ "ADDEQUALS", "+=" },
+		{ "SUBTRACT", "-" },
+		{ "SUBEQUALS", "SUBTRACTEQUALS", "-=" },
+		{ "MULTIPLY", "*" },
+		{ "MULTEQUALS", "MULTIPLYEQUALS", "*=" },
+		{ "DIVIDE", "/" },
+		{ "DIVEQUALS", "DIVIDEEQUALS", "/=" },
+		{ "COUT", "PRINTLN" },
+		{ "SUBSTRING" },
+		{ "STRINGLEN", "STRLENGTH", "STRINGLENGTH", "LENSTR" },
+		{ "CHARSET" },
+		{ "CHARAT" },
+		{ "LESSER", "<" },
+		{ "GREATER", ">" },
+		{ "EQUALS", "==",},
+		{ "NEQUALS", "NOTEQUAL", "NOTEQUALS", "!=" },
+		{ "LOGICALAND", "AND", "&&" },
+		{ "LOGICALOR", "OR", "||" },
+		{ "BITWISEAND", "&" },
+		{ "BITWISEOR", "|" },
+		{ "BITWISEXOR", "XOR", "^" },
+		{ "LEFTSHIFT", "<<" },
+		{ "RIGHTSHIFT", ">>" },
+		{ "MARK" },
+		{ "JUMP", "GOTO" },
+		{ "CJUMP", "CONDITIONALJMP", "CONDITIONALJUMP", "CGOTO", "CONDITIONALGOTO"},
+		{ "FINISH" },
+		{ "HALT" },
+		{ "NOTHING" }
+	};
+
 	bool isSTLfunc(scislFunc fnc);
 	bool isFunc(scislFunc func, stlFuncs fnc);
 	bool isFunc(scislfuncMeta meta, stlFuncs fnc);
@@ -129,43 +164,43 @@ namespace scisl
 	//args 0 is veriadic
 	const scislfuncMeta stlFuncMeta[(unsigned short)(stlFuncs::stlFuncCount)] =
 	{
-		{ "SET", set, setPeep, 2, "aa", SCISL_OP_NO_JMP },
-		{ "ADD", add, addPeep, 0, "a", SCISL_OP_NO_JMP },
-		{ "ADDE", adde, addePeep, 0, "a", SCISL_OP_NO_JMP },
-		{ "SUB", sub, subPeep, 3, "ann", SCISL_OP_NO_JMP },
-		{ "SUBE", sube, subePeep, 2, "nn", SCISL_OP_NO_JMP },
-		{ "MULT", mult, multPeep, 0, "an", SCISL_OP_NO_JMP },
-		{ "MULTE", multe, multePeep, 0, "an", SCISL_OP_NO_JMP },
-		{ "DIV", div, divPeep, 3, "ann", SCISL_OP_NO_JMP },
-		{ "DIVE", dive, divePeep, 2, "nn", SCISL_OP_NO_JMP },
-		{ "PRINT", print, printPeep, 0, "a", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
+		{ "SET", set, setPeep, 2, 2, "aa", SCISL_OP_NO_JMP },
+		{ "ADD", add, addPeep, 0, 2, "a", SCISL_OP_NO_JMP },
+		{ "ADDE", adde, addePeep, 0, 2, "a", SCISL_OP_NO_JMP },
+		{ "SUB", sub, subPeep, 3, 3, "ann", SCISL_OP_NO_JMP },
+		{ "SUBE", sube, subePeep, 2, 2, "nn", SCISL_OP_NO_JMP },
+		{ "MULT", mult, multPeep, 0, 2, "an", SCISL_OP_NO_JMP },
+		{ "MULTE", multe, multePeep, 0, 2, "an", SCISL_OP_NO_JMP },
+		{ "DIV", div, divPeep, 3, 3, "ann", SCISL_OP_NO_JMP },
+		{ "DIVE", dive, divePeep, 2, 2, "nn", SCISL_OP_NO_JMP },
+		{ "PRINT", print, printPeep, 0, 0, "a", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
 
-		{ "SUBSTR", substr, substrPeep, 4, "ssii", SCISL_OP_NO_JMP},
-		{ "STRLEN", sstrlen, strlenPeep, 2, "ns", SCISL_OP_NO_JMP},
-		{ "CHRSET", chrset, chrsetPeep, 3, "sii", SCISL_OP_NO_JMP},
-		{ "CHRAT", chrat, chratPeep, 3, "nsi", SCISL_OP_NO_JMP},
+		{ "SUBSTR", substr, substrPeep, 4, 4, "ssii", SCISL_OP_NO_JMP},
+		{ "STRLEN", sstrlen, strlenPeep, 2, 2, "ns", SCISL_OP_NO_JMP},
+		{ "CHRSET", chrset, chrsetPeep, 3, 3, "sii", SCISL_OP_NO_JMP},
+		{ "CHRAT", chrat, chratPeep, 3, 3, "nsi", SCISL_OP_NO_JMP},
 
-		{ "LESS", less, lessPeep, 3, "nnn", SCISL_OP_NO_JMP},
-		{ "GREAT", great, greatPeep, 3, "nnn", SCISL_OP_NO_JMP},
-		{ "EQUAL", equal, equalPeep, 3, "nnn", SCISL_OP_NO_JMP},
-		{ "NEQUAL", nequal, nequalPeep, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "LESS", less, lessPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "GREAT", great, greatPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "EQUAL", equal, equalPeep, 0, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "NEQUAL", nequal, nequalPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
 
-		{ "LAND", land, landPeep, 3, "nnn", SCISL_OP_NO_JMP},
-		{ "LOR", lor, lorPeep, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "LAND", land, landPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
+		{ "LOR", lor, lorPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
 
-		{ "BAND", band, bandPeep, 2, "ii", SCISL_OP_NO_JMP},
-		{ "BOR", bor, borPeep, 2, "ii", SCISL_OP_NO_JMP},
-		{ "BXOR", bxor, bxorPeep, 2, "ii", SCISL_OP_NO_JMP},
-		{ "LSHIFT", lshift, lshiftPeep, 2, "ii", SCISL_OP_NO_JMP},
-		{ "RSHIFT", rshift, rshiftPeep, 2, "ii", SCISL_OP_NO_JMP},
+		{ "BAND", band, bandPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
+		{ "BOR", bor, borPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
+		{ "BXOR", bxor, bxorPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
+		{ "LSHIFT", lshift, lshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
+		{ "RSHIFT", rshift, rshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
 
-		{ "LABEL", nullptr, nullptr, 1, "a", SCISL_OP_NO_MOD },
-		{ "JMP", jmp, nullptr, 1, "a", SCISL_OP_NO_MOD  },
-		{ "CJMP", cjmp, cjmpPeep, 2, "an", SCISL_OP_NO_MOD  },
+		{ "LABEL", nullptr, nullptr, 1, 1, "a", SCISL_OP_NO_MOD },
+		{ "JMP", jmp, nullptr, 1, 1, "a", SCISL_OP_NO_MOD  },
+		{ "CJMP", cjmp, cjmpPeep, 2, 2, "an", SCISL_OP_NO_MOD  },
 
-		{ "EXIT", end, nullptr, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP},
-		{ "BREAK", breakp, nullptr, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
-		{ "NOOP", nullptr, nullptr, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP }
+		{ "EXIT", end, nullptr, 1, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP},
+		{ "BREAK", breakp, nullptr, 1, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
+		{ "NOOP", nullptr, nullptr, 0, 0, "", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP }
 	};
 }
 
