@@ -296,6 +296,8 @@ namespace scisl
 		}
 
 		opt.instr.func = opt.meta.fnc;
+		auto& peep = opt.meta.peep;
+		if (peep != nullptr) peep(opt);
 		return { opt, typeCheck(opt) };
 	}
 
@@ -686,6 +688,42 @@ namespace scisl
 		
 	}
 
+	void removeUnusedLabels(std::vector<precompInstr>& instructions)
+	{
+		std::map<std::string, unsigned int> usedLabels;
+		std::vector<precompInstr> remaining;
+		remaining.reserve(instructions.size());
+
+		for (precompInstr& i : instructions)
+		{
+			if (isFunc(i.meta, stlFuncs::jmp) || isFunc(i.meta, stlFuncs::cjmp))
+			{
+				arg& label = i.instr.arguments.arguments[0];
+				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
+				{
+					usedLabels.insert({SCISL_CAST_STRING(label.val.val), 0});
+				}
+			}
+		}
+
+		for (precompInstr& i : instructions)
+		{
+			if (isFunc(i.meta, stlFuncs::label))
+			{
+				arg& label = i.instr.arguments.arguments[0];
+				if (usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
+				{
+					remaining.push_back(std::move(i));
+				}
+			}
+			else
+			{
+				remaining.push_back(std::move(i));
+			}
+		}
+		instructions = std::move(remaining);
+	}
+
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -713,6 +751,7 @@ namespace scisl
 			}
 			file.close();
 
+			removeUnusedLabels(instructions);
 			evaluateConstants(instructions, vars);
 			removeNOOP(instructions);
 			removeUnusedVars(instructions);

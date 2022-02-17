@@ -4,6 +4,7 @@ ADDE test 25 32 500
 BREAK test
 SUBE test 25
 SUB test test 32
+LABEL uselessLabel
 SUBE test 500
 BREAK test
 MULTE test 10
