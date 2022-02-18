@@ -1,8 +1,8 @@
 #ifndef SCISL_TABLES_H
 #define SCISL_TABLES_H
 
-#include "common.h"
-#include "program.h"
+#include "../common.h"
+#include "../runtime/program.h"
 
 #include <map>
 

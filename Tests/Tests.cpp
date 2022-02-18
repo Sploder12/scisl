@@ -1,16 +1,19 @@
 #include "CppUnitTest.h"
 
-#include "../compiler.h"
-#include "../tables.h"
+#include "../src/compiler/compiler.h"
+#include "../src/interoperability/tables.h"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+#define DECOMP_PATH "../../Tests/DecompiledScisl/"
 
 namespace Scisl
 {
 	TEST_CLASS(SCRIPTING)
 	{
 	public:
+		#define SCRIPTING_PATH "../../Tests/scripting/"
 		TEST_METHOD(TwoBalls)
 		{
 			scisl::removeAllVars();
@@ -26,11 +29,11 @@ namespace Scisl
 			scisl::registerVar("x", b1.x);
 			scisl::registerVar("y", b1.y);
 
-			scisl::program* prog = scisl::compile("../../Tests/TwoBalls.scisl");
+			scisl::program* prog = scisl::compile(SCRIPTING_PATH "TwoBalls.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
-			prog->decompile("../../Tests/DecompiledScisl/TwoBalls.scisl");
+			prog->decompile(DECOMP_PATH "TwoBalls.scisl");
 
 			prog->run();
 			b1.curInstr = prog->curInstr;
@@ -86,11 +89,11 @@ namespace Scisl
 			scisl::removeAllVars();
 			int ipt = 5;
 			scisl::defineMacro("input", std::to_string(ipt));
-			scisl::program* prog = scisl::compile("../../Tests/BasicBreaks.scisl");
+			scisl::program* prog = scisl::compile(SCRIPTING_PATH "BasicBreaks.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
-			prog->decompile("../../Tests/DecompiledScisl/BasicBreaks.scisl");
+			prog->decompile(DECOMP_PATH "BasicBreaks.scisl");
 			int b1 = prog->run();
 			Assert::IsTrue(prog->broke);
 
@@ -111,6 +114,14 @@ namespace Scisl
 			Assert::AreEqual(ipt * 10, ret);
 		}
 	
+		
+	};
+
+	TEST_CLASS(FUNCTION)
+	{
+	public:
+		#define FUNCTION_PATH "../../Tests/function/"
+
 		TEST_METHOD(ParseStr)
 		{
 			scisl::removeAllVars();
@@ -130,11 +141,11 @@ namespace Scisl
 			scisl::registerVar("fifth", fifth);
 			scisl::registerVar("last", last);
 
-			scisl::program* prog = scisl::compile("../../Tests/ParseStr.scisl");
+			scisl::program* prog = scisl::compile(FUNCTION_PATH "ParseStr.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
-			prog->decompile("../../Tests/DecompiledScisl/ParseStr.scisl");
+			prog->decompile(DECOMP_PATH "ParseStr.scisl");
 			int o = prog->run();
 
 			Assert::AreEqual(0, o);
@@ -163,7 +174,7 @@ namespace Scisl
 	TEST_CLASS(MATH)
 	{
 	public:
-		
+		#define MATH_PATH "../../Tests/math/"
 		TEST_METHOD(Math)
 		{
 			scisl::removeAllVars();
@@ -177,11 +188,11 @@ namespace Scisl
 			scisl::registerVar("m", m);
 			scisl::registerVar("d", d);
 
-			scisl::program* prog = scisl::compile("../../Tests/Math.scisl");
+			scisl::program* prog = scisl::compile(MATH_PATH "Math.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
-			prog->decompile("../../Tests/DecompiledScisl/Math.scisl");
+			prog->decompile(DECOMP_PATH "Math.scisl");
 			prog->run();
 			delete prog;
 
@@ -198,12 +209,12 @@ namespace Scisl
 			int opt = 0;
 			scisl::registerVar("opt", opt);
 
-			scisl::program* prog = scisl::compile("../../Tests/Factorial12.scisl");
+			scisl::program* prog = scisl::compile(MATH_PATH "Factorial12.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
 			prog->run();
-			prog->decompile("../../Tests/DecompiledScisl/Factorial12.scisl");
+			prog->decompile(DECOMP_PATH "Factorial12.scisl");
 			delete prog;
 
 			Assert::AreEqual(opt, 479001600);
@@ -214,12 +225,12 @@ namespace Scisl
 			scisl::removeAllVars();
 			std::string name = "Bob";
 			scisl::defineMacro("name", '"' + name + '"');
-			scisl::program* prog = scisl::compile("../../Tests/StrAdd.scisl");
+			scisl::program* prog = scisl::compile(MATH_PATH "StrAdd.scisl");
 
 			if (prog == nullptr) Assert::Fail();
 
 			int opt = prog->run();
-			prog->decompile("../../Tests/DecompiledScisl/StrAdd.scisl");
+			prog->decompile(DECOMP_PATH "StrAdd.scisl");
 			delete prog;
 
 			int expected = 0;

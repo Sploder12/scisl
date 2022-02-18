@@ -12,37 +12,52 @@
     <Filter Include="Resource Files\DecompiledScisl">
       <UniqueIdentifier>{5f916148-45b5-4f8c-b4ec-91ca240c58a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\math">
+      <UniqueIdentifier>{df41d5b0-87af-4a9f-83ab-b58db5a9ce87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\scripting">
+      <UniqueIdentifier>{45e3612f-b977-4465-8c84-fb2273ec56fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\function">
+      <UniqueIdentifier>{f58dc6df-f11d-4ad5-b2f2-aec19dafdfa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\include">
+      <UniqueIdentifier>{1d972862-04eb-4b2e-9211-f4348b55d84e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\args.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\runtime\args.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
-    <ClCompile Include="..\common.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\common.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
-    <ClCompile Include="..\compiler.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\compiler\compiler.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
-    <ClCompile Include="..\program.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\compiler\compilerOptimizations.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
-    <ClCompile Include="..\stl.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\runtime\instruction.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
-    <ClCompile Include="..\tables.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\runtime\program.cpp">
+      <Filter>Source Files\include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\stl.cpp">
+      <Filter>Source Files\include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\stlOptimizations.cpp">
+      <Filter>Source Files\include</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\interoperability\tables.cpp">
+      <Filter>Source Files\include</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Math.scisl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Factorial12.scisl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="DecompiledScisl\Factorial12.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
@@ -52,28 +67,32 @@
     <None Include="DecompiledScisl\StrAdd.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
-    <None Include="BasicBreaks.scisl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="TwoBalls.scisl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="DecompiledScisl\BasicBreaks.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
     <None Include="DecompiledScisl\TwoBalls.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
-    <None Include="ParseStr.scisl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="DecompiledScisl\ParseStr.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="StrAdd.scisl">
-      <Filter>Resource Files</Filter>
-    </Text>
+    <None Include="function\ParseStr.scisl">
+      <Filter>Resource Files\function</Filter>
+    </None>
+    <None Include="math\Factorial12.scisl">
+      <Filter>Resource Files\math</Filter>
+    </None>
+    <None Include="math\Math.scisl">
+      <Filter>Resource Files\math</Filter>
+    </None>
+    <None Include="math\StrAdd.scisl">
+      <Filter>Resource Files\math</Filter>
+    </None>
+    <None Include="scripting\BasicBreaks.scisl">
+      <Filter>Resource Files\scripting</Filter>
+    </None>
+    <None Include="scripting\TwoBalls.scisl">
+      <Filter>Resource Files\scripting</Filter>
+    </None>
   </ItemGroup>
 </Project>

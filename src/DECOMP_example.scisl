@@ -1,0 +1,8 @@
+PRINT "Hello World!"
+MULTE $num 69 19.376812
+LABEL 2
+PRINT $num
+ADDE $num -1
+CJMP 2 $num
+PRINT "We made it"
+EXIT $num

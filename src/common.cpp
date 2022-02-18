@@ -92,10 +92,10 @@ namespace scisl
 			SCISL_CAST_STRING(this->val) = val;
 			break;
 		case type::integer:
-			SCISL_CAST_INT(this->val) = std::stol(val);
+			SCISL_CAST_INT(this->val) = (SCISL_INT_PRECISION)(std::stol(val));
 			break;
 		case type::floating:
-			SCISL_CAST_FLOAT(this->val) = std::stod(val);
+			SCISL_CAST_FLOAT(this->val) = (SCISL_FLOAT_PRECISION)(std::stod(val));
 			break;
 		}
 		return *this;
@@ -714,10 +714,10 @@ namespace scisl
 			opt.val = new std::string(std::to_string(val));
 			break;
 		case (type::integer):
-			opt.val = new SCISL_INT_PRECISION(val);
+			opt.val = new SCISL_INT_PRECISION((SCISL_INT_PRECISION)(val));
 			break;
 		case (type::floating):
-			opt.val = new SCISL_FLOAT_PRECISION(val);
+			opt.val = new SCISL_FLOAT_PRECISION((SCISL_FLOAT_PRECISION)(val));
 			break;
 		default:
 			opt.val = nullptr;
@@ -735,10 +735,10 @@ namespace scisl
 			opt.val = new std::string(std::to_string(val));
 			break;
 		case (type::integer):
-			opt.val = new SCISL_INT_PRECISION(val);
+			opt.val = new SCISL_INT_PRECISION((SCISL_INT_PRECISION)(val));
 			break;
 		case (type::floating):
-			opt.val = new SCISL_FLOAT_PRECISION(val);
+			opt.val = new SCISL_FLOAT_PRECISION((SCISL_FLOAT_PRECISION)(val));
 			break;
 		default:
 			opt.val = nullptr;
@@ -756,10 +756,10 @@ namespace scisl
 			opt.val = new std::string(val);
 			break;
 		case (type::integer):
-			opt.val = new SCISL_INT_PRECISION(std::stol(val));
+			opt.val = new SCISL_INT_PRECISION((SCISL_INT_PRECISION)(std::stol(val)));
 			break;
 		case (type::floating):
-			opt.val = new SCISL_FLOAT_PRECISION(std::stod(val));
+			opt.val = new SCISL_FLOAT_PRECISION((SCISL_FLOAT_PRECISION)(std::stod(val)));
 			break;
 		default:
 			opt.val = nullptr;

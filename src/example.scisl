@@ -3,11 +3,11 @@ ADDE test " " "World" "!"
 PRINT test
 SET num1 19.3768115942029
 SET num2 69
-MULTE $(num) num2 num1
+MULTE $num num2 num1
 LABEL testLabel
-PRINT $(num)
-ADDE $(num) -1
-CJMP testLabel $(num)
+PRINT $num
+ADDE $num -1
+CJMP testLabel $num
 PRINT "We made it"
-ExampleFunc $(num)
 NOOP
+EXIT $num

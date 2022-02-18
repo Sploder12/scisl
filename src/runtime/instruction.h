@@ -1,39 +1,20 @@
-#ifndef SCISL_PROGRAM_H
-#define SCISL_PROGRAM_H
+#ifndef SCISL_INSTR_H
+#define SCISL_INSTR_H
 
-#include "common.h"
-#include "args.h"
-
-#include <vector>
+#include <string>
 
 namespace scisl
 {
+	struct arg;
+	struct program;
+
 	struct args
 	{
 		arg* arguments;
 		unsigned char argCount;
 	};
 
-	struct instruction;
-	struct precompInstr;
-	struct program
-	{
-		std::vector<instruction> instructions;
-		unsigned int curInstr = 0;
-		SCISL_INT_PRECISION retVal = 0;
-		bool broke = false;
-
-		void decompile(const char* filename);
-
-		void step();
-
-		SCISL_INT_PRECISION run(bool ignoreBreaks = false);
-
-		~program();
-	};
-
 	typedef void (*scislFunc)(program&, const args&);
-	typedef void (*scislPeephole)(precompInstr&);
 
 	struct instruction
 	{
@@ -43,6 +24,8 @@ namespace scisl
 		void run(program& process);
 	};
 
+	struct precompInstr;
+	typedef void (*scislPeephole)(precompInstr&);
 	struct scislfuncMeta
 	{
 		std::string funcID;
@@ -59,6 +42,8 @@ namespace scisl
 		instruction instr;
 		scislfuncMeta meta;
 	};
+
+
 }
 
 #endif

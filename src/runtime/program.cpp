@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "stl.h"
-#include "tables.h"
+#include "../interoperability/tables.h"
 
 namespace scisl
 {
@@ -128,11 +128,5 @@ namespace scisl
 			}
 
 		}
-	}
-
-	void instruction::run(program& process)
-	{
-		if (func == nullptr) return;
-		func(process, arguments);
 	}
 }

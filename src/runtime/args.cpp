@@ -1,8 +1,8 @@
 #include "args.h"
 
-#include "common.h"
+#include "../common.h"
 
-#include "tables.h"
+#include "../interoperability/tables.h"
 #include "program.h"
 
 namespace scisl
@@ -100,10 +100,10 @@ namespace scisl
 				this->val.val = new std::string(v.substr(1, v.size() - 2));
 				break;
 			case type::integer:
-				this->val.val = new SCISL_INT_PRECISION(std::stol(v));
+				this->val.val = new SCISL_INT_PRECISION((SCISL_INT_PRECISION)(std::stol(v)));
 				break;
 			case type::floating:
-				this->val.val = new SCISL_FLOAT_PRECISION(std::stod(v));
+				this->val.val = new SCISL_FLOAT_PRECISION((SCISL_FLOAT_PRECISION)(std::stod(v)));
 				break;
 			default:
 				break;

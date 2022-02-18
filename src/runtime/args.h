@@ -1,7 +1,7 @@
 #ifndef SCISL_ARGS_H
 #define SCISL_ARGS_H
 
-#include "common.h"
+#include "../common.h"
 
 namespace scisl
 {
@@ -13,8 +13,6 @@ namespace scisl
 
 		error
 	};
-
-	struct program;
 
 	struct arg
 	{

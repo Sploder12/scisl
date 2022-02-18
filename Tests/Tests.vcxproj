@@ -160,12 +160,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\args.cpp" />
-    <ClCompile Include="..\common.cpp" />
-    <ClCompile Include="..\compiler.cpp" />
-    <ClCompile Include="..\program.cpp" />
-    <ClCompile Include="..\stl.cpp" />
-    <ClCompile Include="..\tables.cpp" />
+    <ClCompile Include="..\src\common.cpp" />
+    <ClCompile Include="..\src\compiler\compiler.cpp" />
+    <ClCompile Include="..\src\compiler\compilerOptimizations.cpp" />
+    <ClCompile Include="..\src\interoperability\tables.cpp" />
+    <ClCompile Include="..\src\runtime\args.cpp" />
+    <ClCompile Include="..\src\runtime\instruction.cpp" />
+    <ClCompile Include="..\src\runtime\program.cpp" />
+    <ClCompile Include="..\src\runtime\stl.cpp" />
+    <ClCompile Include="..\src\runtime\stlOptimizations.cpp" />
     <ClCompile Include="Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,20 +177,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BasicBreaks.scisl" />
     <None Include="DecompiledScisl\BasicBreaks.scisl" />
     <None Include="DecompiledScisl\Factorial12.scisl" />
     <None Include="DecompiledScisl\Math.scisl" />
     <None Include="DecompiledScisl\ParseStr.scisl" />
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
-    <None Include="Factorial12.scisl" />
-    <None Include="Math.scisl" />
-    <None Include="ParseStr.scisl" />
-    <None Include="TwoBalls.scisl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="StrAdd.scisl" />
+    <None Include="function\ParseStr.scisl" />
+    <None Include="math\Factorial12.scisl" />
+    <None Include="math\Math.scisl" />
+    <None Include="math\StrAdd.scisl" />
+    <None Include="scripting\BasicBreaks.scisl" />
+    <None Include="scripting\TwoBalls.scisl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

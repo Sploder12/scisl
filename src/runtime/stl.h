@@ -1,7 +1,8 @@
 #ifndef SCISL_STL_H
 #define SCISL_STL_H
 
-#include "common.h"
+#include "../common.h"
+#include "stlOptimizations.h"
 #include "program.h"
 
 namespace scisl
@@ -124,38 +125,6 @@ namespace scisl
 
 	void end(program& process, const args& args);
 	void breakp(program& process, const args& args);
-
-	void setPeep(precompInstr& instruct);
-	void addPeep(precompInstr& instruct);
-	void addePeep(precompInstr& instruct);
-	void subPeep(precompInstr& instruct);
-	void subePeep(precompInstr& instruct);
-	void multPeep(precompInstr& instruct);
-	void multePeep(precompInstr& instruct);
-	void divPeep(precompInstr& instruct);
-	void divePeep(precompInstr& instruct);
-	void printPeep(precompInstr& instruct);
-
-	void substrPeep(precompInstr& instruct);
-	void strlenPeep(precompInstr& instruct);
-	void chrsetPeep(precompInstr& instruct);
-	void chratPeep(precompInstr& instruct);
-
-	void lessPeep(precompInstr& instruct);
-	void greatPeep(precompInstr& instruct);
-	void equalPeep(precompInstr& instruct);
-	void nequalPeep(precompInstr& instruct);
-
-	void landPeep(precompInstr& instruct);
-	void lorPeep(precompInstr& instruct);
-
-	void bandPeep(precompInstr& instruct);
-	void borPeep(precompInstr& instruct);
-	void bxorPeep(precompInstr& instruct);
-	void lshiftPeep(precompInstr& instruct);
-	void rshiftPeep(precompInstr& instruct);
-
-	void cjmpPeep(precompInstr& instruct);
 
 	#define SCISL_OP_NO_MOD 1
 	#define SCISL_OP_NO_JMP 2
