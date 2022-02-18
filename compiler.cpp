@@ -724,6 +724,101 @@ namespace scisl
 		instructions = std::move(remaining);
 	}
 
+	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id)
+	{
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (isFunc(cur.meta, stlFuncs::label))
+			{
+				std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				if (v == id)
+				{
+					return i;
+				}
+			}
+		}
+		return instructions.size();
+	}
+
+	template <typename T>
+	inline bool vecContains(std::vector<T>& vec, T& obj)
+	{
+		for (T& o : vec)
+		{
+			if (obj == o)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool exploreBranch(std::vector<precompInstr>& instructions, std::vector<unsigned int>& reachedInstructions, unsigned int branchIdx)
+	{
+		while (branchIdx < instructions.size())
+		{
+			if (!vecContains(reachedInstructions, branchIdx))
+			{
+				precompInstr& cur = instructions[branchIdx];
+				reachedInstructions.push_back(branchIdx);
+				if (isFunc(cur.meta, stlFuncs::jmp))
+				{
+					std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					unsigned int idx = findLabel(instructions, v);
+					if (idx >= instructions.size())
+					{
+						std::cout << "SCISL COMPILER ERROR: jmp uses undefined label " << v << ".\n";
+						return false;
+					}
+					return exploreBranch(instructions, reachedInstructions, idx);
+				}
+				else if (isFunc(cur.meta, stlFuncs::cjmp))
+				{
+					std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					unsigned int idx = findLabel(instructions, v);
+					if (idx >= instructions.size())
+					{
+						std::cout << "SCISL COMPILER ERROR: cjmp uses undefined label " << v << ".\n";
+						return false;
+					}
+					bool r = exploreBranch(instructions, reachedInstructions, idx);
+					if (!r) return false;
+				}
+
+				branchIdx++;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		return true;
+	}
+
+	bool removeUnreachableCode(std::vector<precompInstr>& instructions)
+	{
+		std::vector<precompInstr> remaining;
+		std::vector<unsigned int> reachedInstructions;
+		reachedInstructions.reserve(instructions.size());
+		if (!exploreBranch(instructions, reachedInstructions, 0))
+		{
+			return false;
+		}
+
+		remaining.reserve(reachedInstructions.size());
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			if (vecContains(reachedInstructions, i))
+			{
+				remaining.push_back(std::move(instructions[i]));
+			}
+		}
+		
+		instructions = std::move(remaining);
+		return true;
+	}
+
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -755,7 +850,8 @@ namespace scisl
 			evaluateConstants(instructions, vars);
 			removeNOOP(instructions);
 			removeUnusedVars(instructions);
-			
+			if (!removeUnreachableCode(instructions)) return nullptr;
+
 			finalize(instructions);
 			removeNOOP(instructions);
 			opt->instructions.reserve(instructions.size());

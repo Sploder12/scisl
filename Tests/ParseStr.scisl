@@ -37,9 +37,10 @@ CJMP fourth d
 EQUAL d state 4
 CJMP fifth d
 equals d state 5
-CJMP last d
+JMP last
 EXIT -1
 
+SET unreachable "This is unreachable!"
 
 LABEL first
 SET $first ret
