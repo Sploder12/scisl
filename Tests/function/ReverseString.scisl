@@ -1,0 +1,21 @@
+= ipt $ipt
+= opt ipt
+strlen len opt
+-= len 1
+= i len
+
+= c 0
+= d 0
+= idx 0
+mark top
+	== d i -1
+	cjump bottom d
+	- idx len i
+	charat c ipt idx
+	charset opt c i
+	-= i 1
+	jump top
+label bottom
+
+= $ipt opt
+exit 0

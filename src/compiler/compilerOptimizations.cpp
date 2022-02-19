@@ -94,6 +94,12 @@ namespace scisl
 
 		for (precompInstr& i : process)
 		{
+			if (isFunc(i.meta, stlFuncs::noop))
+			{
+				delete[] i.instr.arguments.arguments;
+				continue;
+			}
+
 			if (isFunc(i.meta, stlFuncs::set)) //initialization of var
 			{
 				arg& cur = i.instr.arguments.arguments[0];
@@ -174,7 +180,29 @@ namespace scisl
 
 			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps are scary, invalidate everything once one is found
 			{
-				invalidateVars(newProcess, evalVal);
+				if (isFunc(i.meta, stlFuncs::cjmp))
+				{
+					arg& c = i.instr.arguments.arguments[1];
+					if (c.argType == argType::variable)
+					{
+						if (evalVal.contains(SCISL_CAST_STRING(c.val.val)))
+						{
+							value* val = evalVal.at(SCISL_CAST_STRING(c.val.val));
+							if (val != nullptr)
+							{
+								c.argType = argType::constant;
+								delete (std::string*)(c.val.val);
+								c.val = *val;
+								if (c.val == 0)
+								{
+									newProcess.push_back(std::move(i));
+									continue;
+								}
+							}
+						}
+					}
+				}
+				invalidateVars(newProcess, evalVal); //invalidate everything
 				newProcess.push_back(std::move(i));
 				continue;
 			}
@@ -198,7 +226,7 @@ namespace scisl
 						}
 						else
 						{
-							std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val.val) << " referenced before being defined by SET by " << i.meta.funcID << ".\n";
+							std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val.val) << " referenced before being defined by SET by " << i.meta.funcName << ".\n";
 							return false;
 						}
 					}
@@ -208,7 +236,7 @@ namespace scisl
 			}
 
 			//these can modify
-			if (!isSTLfunc(i.meta.fnc)) //invalidate everything
+			if (!isSTLfunc((stlFuncs)(i.meta.funcID))) //invalidate everything
 			{
 				invalidateVars(newProcess, evalVal);
 				newProcess.push_back(std::move(i));
@@ -238,6 +266,18 @@ namespace scisl
 				continue;
 			}
 
+			if (!evalVal.contains(SCISL_CAST_STRING(modified.val.val))) //initialization from things that aren't SET
+			{
+				type t = initializes[i.meta.funcID];
+				if (t == type::error)
+				{
+					std::cout << "SCISL COMPILER ERROR: " << i.meta.funcName << " cannot be used to initialize.\n";
+					return false;
+				}
+				value* n = new value(createTemporary(t));
+				evalVal.insert({ SCISL_CAST_STRING(modified.val.val), n });
+			}
+
 			valid = evalVal.at(SCISL_CAST_STRING(modified.val.val)) != nullptr;
 			for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
 			{
@@ -261,16 +301,21 @@ namespace scisl
 			value* v = evalVal.at(SCISL_CAST_STRING(modified.val.val));
 			if (!valid && v != nullptr)
 			{
-				newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
+				if (initializes[(unsigned short)(i.meta.fnc)] == type::error)
+				{
+					newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
+				}
+
 				delete v;
 				evalVal.at(SCISL_CAST_STRING(modified.val.val)) = nullptr;
 				newProcess.push_back(std::move(i));
+				
 				continue;
 			}
 
 			if (valid)
 			{
-				switch (strToFuncID(i.meta.funcID))
+				switch ((stlFuncs)(i.meta.funcID))
 				{
 				case stlFuncs::add: case stlFuncs::adde:
 				case stlFuncs::sub: case stlFuncs::sube:
@@ -296,6 +341,11 @@ namespace scisl
 		}
 
 		process = std::move(newProcess);
+		for (precompInstr& i : process)
+		{
+			scislPeephole& peep = i.meta.peep;
+			if (peep != nullptr) peep(i);
+		}
 
 		for (auto& i : evalVal)
 		{
@@ -364,7 +414,23 @@ namespace scisl
 			remaining.push_back(std::move(i));
 		}
 		instructions = std::move(remaining);
+	}
 
+	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id)
+	{
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (isFunc(cur.meta, stlFuncs::label))
+			{
+				std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				if (v == id)
+				{
+					return i;
+				}
+			}
+		}
+		return (unsigned int)(instructions.size());
 	}
 
 	void removeUnusedLabels(std::vector<precompInstr>& instructions)
@@ -373,14 +439,38 @@ namespace scisl
 		std::vector<precompInstr> remaining;
 		remaining.reserve(instructions.size());
 
-		for (precompInstr& i : instructions)
+		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			if (isFunc(i.meta, stlFuncs::jmp) || isFunc(i.meta, stlFuncs::cjmp))
+			if (isFunc(instructions[i].meta, stlFuncs::jmp) || isFunc(instructions[i].meta, stlFuncs::cjmp))
 			{
-				arg& label = i.instr.arguments.arguments[0];
+				arg& label = instructions[i].instr.arguments.arguments[0];
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
-					usedLabels.insert({ SCISL_CAST_STRING(label.val.val), 0 });
+					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val));
+					if (i + 1 == loc)
+					{
+						instructions[i].instr.func = nullptr;
+						delete[] instructions[i].instr.arguments.arguments;
+						instructions[i].instr.arguments.arguments = nullptr;
+						instructions[i].instr.arguments.argCount = 0;
+						instructions[i].meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
+					}
+					else
+					{
+						usedLabels.insert({ SCISL_CAST_STRING(label.val.val), loc });
+					}
+				}
+				else
+				{
+					unsigned int loc = usedLabels.at(SCISL_CAST_STRING(label.val.val));
+					if (i + 1 == loc)
+					{
+						instructions[i].instr.func = nullptr;
+						delete[] instructions[i].instr.arguments.arguments;
+						instructions[i].instr.arguments.arguments = nullptr;
+						instructions[i].instr.arguments.argCount = 0;
+						instructions[i].meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
+					}
 				}
 			}
 		}
@@ -401,23 +491,6 @@ namespace scisl
 			}
 		}
 		instructions = std::move(remaining);
-	}
-
-	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id)
-	{
-		for (unsigned int i = 0; i < instructions.size(); i++)
-		{
-			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::label))
-			{
-				std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-				if (v == id)
-				{
-					return i;
-				}
-			}
-		}
-		return (unsigned int)(instructions.size());
 	}
 
 	template <typename T>
@@ -463,6 +536,10 @@ namespace scisl
 					}
 					bool r = exploreBranch(instructions, reachedInstructions, idx);
 					if (!r) return false;
+				}
+				else if (isFunc(cur.meta, stlFuncs::exit))
+				{
+					return true;
 				}
 
 				branchIdx++;

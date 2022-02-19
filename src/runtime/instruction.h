@@ -28,7 +28,8 @@ namespace scisl
 	typedef void (*scislPeephole)(precompInstr&);
 	struct scislfuncMeta
 	{
-		std::string funcID;
+		unsigned short funcID;
+		std::string funcName;
 		scislFunc fnc;
 		scislPeephole peep;
 		unsigned int expectedArgs;

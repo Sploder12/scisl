@@ -6,14 +6,9 @@
 #pragma warning(disable : 4244)
 namespace scisl
 {
-	bool isSTLfunc(scislFunc fnc)
+	bool isSTLfunc(stlFuncs fnc)
 	{
-		for (unsigned int i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
-		{
-			if (fnc == stlFuncMeta[i].fnc) return true;
-		}
-
-		return false;
+		return fnc != stlFuncs::stlFuncCount;
 	}
 
 	bool isFunc(scislFunc func, stlFuncs fnc)
@@ -23,14 +18,14 @@ namespace scisl
 
 	bool isFunc(scislfuncMeta meta, stlFuncs fnc)
 	{
-		return meta.funcID == stlFuncMeta[(unsigned short)(fnc)].funcID;
+		return (stlFuncs)(meta.funcID) == fnc;
 	}
 
 	stlFuncs strToFuncID(const std::string& str)
 	{
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
 		{
-			if (str == stlFuncMeta[i].funcID)
+			if (str == stlFuncMeta[i].funcName)
 			{
 				return (stlFuncs)(i);
 			}

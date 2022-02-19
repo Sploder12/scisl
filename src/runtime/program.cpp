@@ -14,7 +14,7 @@ namespace scisl
 		{
 			if (func == stlFuncMeta[i].fnc)
 			{
-				return stlFuncMeta[i].funcID;
+				return stlFuncMeta[i].funcName;
 			}
 		}
 

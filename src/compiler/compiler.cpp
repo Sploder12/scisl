@@ -245,24 +245,27 @@ namespace scisl
 			//variables
 			if (ctype.second == type::error)
 			{
+				type rtype = initializes[(unsigned short)(fID)];
 				if (fID == stlFuncs::set)
 				{
 					std::string& next = things[i + 2];
-					type rtype = strToType(next, vars).second;
+					rtype = strToType(next, vars).second;
 					if (rtype == type::error)
 					{
 						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
 						return { opt, false };
 					}
-
-					carg->val.type = rtype;
-					carg->val.val = new std::string(cur);
-					vars.push_back({ cur, carg->val.type });
-					continue;
+				}
+				else if (rtype == type::error || i > 1)
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
+					return { opt, false };
 				}
 
-				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
-				return { opt, false };
+				carg->val.type = rtype;
+				carg->val.val = new std::string(cur);
+				vars.push_back({ cur, carg->val.type });
+				continue;
 			}
 			*carg = cur; //everything else
 			//see arg(str&) constructor
@@ -360,8 +363,9 @@ namespace scisl
 			removeUnusedLabels(instructions);
 			evaluateConstants(instructions, vars);
 			removeNOOP(instructions);
-			removeUnusedVars(instructions);
 			if (!removeUnreachableCode(instructions)) return nullptr;
+			removeUnusedVars(instructions);
+			removeUnusedLabels(instructions);
 
 			finalize(instructions);
 			removeNOOP(instructions);

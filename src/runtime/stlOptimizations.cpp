@@ -402,7 +402,7 @@ namespace scisl
 					args t;
 					t.argCount = 1;
 					t.arguments = new arg[1];
-					t.arguments[0] = instruct.instr.arguments.arguments[0];
+					t.arguments[0] = std::move(instruct.instr.arguments.arguments[0]);
 					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
 					instruct.instr.func = instruct.meta.fnc;
 					delete[] instruct.instr.arguments.arguments;
@@ -419,7 +419,7 @@ namespace scisl
 					args t;
 					t.argCount = 1;
 					t.arguments = new arg[1];
-					t.arguments[0] = instruct.instr.arguments.arguments[0];
+					t.arguments[0] = std::move(instruct.instr.arguments.arguments[0]);
 					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
 					instruct.instr.func = instruct.meta.fnc;
 					delete[] instruct.instr.arguments.arguments;

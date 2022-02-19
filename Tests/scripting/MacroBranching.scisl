@@ -1,0 +1,21 @@
+SET template #id
+
+== d template 1
+cjmp one d
+== d template 2
+cjmp two d
+== d template 3
+cjmp three d
+jmp none
+
+label one
+exit 10
+
+label two
+exit 25
+
+label three
+exit 30
+
+label none
+exit 0

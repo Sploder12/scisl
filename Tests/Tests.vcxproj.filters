@@ -94,5 +94,17 @@
     <None Include="scripting\TwoBalls.scisl">
       <Filter>Resource Files\scripting</Filter>
     </None>
+    <None Include="function\ReverseString.scisl">
+      <Filter>Resource Files\function</Filter>
+    </None>
+    <None Include="DecompiledScisl\ReverseString.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
+    <None Include="scripting\MacroBranching.scisl">
+      <Filter>Resource Files\scripting</Filter>
+    </None>
+    <None Include="DecompiledScisl\MacroBranching.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
   </ItemGroup>
 </Project>

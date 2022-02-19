@@ -113,6 +113,22 @@ namespace Scisl
 			Assert::AreEqual(ipt, b3);
 			Assert::AreEqual(ipt * 10, ret);
 		}
+
+		TEST_METHOD(MacroBranching)
+		{
+			scisl::removeAllVars();
+			std::string id = "2";
+			scisl::defineMacro("id", id);
+			scisl::program* prog = scisl::compile(SCRIPTING_PATH "MacroBranching.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile(DECOMP_PATH "MacroBranching.scisl");
+			int r = prog->run();
+			delete prog;
+
+			Assert::AreEqual(25, r);
+		}
 	
 		
 	};
@@ -166,6 +182,31 @@ namespace Scisl
 			Assert::AreEqual(std::string("4"), fourth);
 			Assert::AreEqual(std::string("5"), fifth);
 			Assert::AreEqual(std::string("6"), last);
+
+			delete prog;
+		}
+
+		TEST_METHOD(ReverseString)
+		{
+			scisl::removeAllVars();
+			std::string line = "pineapple";
+			scisl::registerVar("ipt", line);
+
+			scisl::program* prog = scisl::compile(FUNCTION_PATH "ReverseString.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile(DECOMP_PATH "ReverseString.scisl");
+			int o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("elppaenip"), line);
+
+			line = "12345";
+			o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("54321"), line);
 
 			delete prog;
 		}

@@ -179,15 +179,19 @@
   <ItemGroup>
     <None Include="DecompiledScisl\BasicBreaks.scisl" />
     <None Include="DecompiledScisl\Factorial12.scisl" />
+    <None Include="DecompiledScisl\MacroBranching.scisl" />
     <None Include="DecompiledScisl\Math.scisl" />
     <None Include="DecompiledScisl\ParseStr.scisl" />
+    <None Include="DecompiledScisl\ReverseString.scisl" />
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
     <None Include="function\ParseStr.scisl" />
+    <None Include="function\ReverseString.scisl" />
     <None Include="math\Factorial12.scisl" />
     <None Include="math\Math.scisl" />
     <None Include="math\StrAdd.scisl" />
     <None Include="scripting\BasicBreaks.scisl" />
+    <None Include="scripting\MacroBranching.scisl" />
     <None Include="scripting\TwoBalls.scisl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

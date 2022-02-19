@@ -554,6 +554,21 @@ namespace scisl
 		}
 	}
 
+	bool value::operator==(SCISL_INT_PRECISION other)
+	{
+		switch (this->type)
+		{
+		case type::string:
+			return false;
+		case type::integer:
+			return SCISL_CAST_INT(this->val) == other;
+		case type::floating:
+			return SCISL_CAST_FLOAT(this->val) == other;
+		default:
+			return false;
+		}
+	}
+
 	bool value::operator&&(value& other)
 	{
 		switch (this->type)
