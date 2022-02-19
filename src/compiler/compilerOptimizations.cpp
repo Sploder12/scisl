@@ -301,7 +301,7 @@ namespace scisl
 			value* v = evalVal.at(SCISL_CAST_STRING(modified.val.val));
 			if (!valid && v != nullptr)
 			{
-				if (initializes[(unsigned short)(i.meta.fnc)] == type::error)
+				if (initializes[(unsigned short)(i.meta.funcID)] == type::error)
 				{
 					newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
 				}
