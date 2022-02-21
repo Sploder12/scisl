@@ -7,6 +7,20 @@
 
 namespace scisl
 {
+	type inferType(const precompInstr& instr, type nextArgType)
+	{
+		if (instr.meta.optimizerFlags & SCISL_OP_INITIALIZES)
+		{
+			type rtype = initializes[instr.meta.funcID];
+			if (rtype == type::error)
+			{
+				return nextArgType;
+			}
+			return rtype;
+		}
+		return type::error;
+	}
+
 	precompInstr setInstr(const std::string& varName, value* var)
 	{
 		precompInstr opt;
@@ -84,6 +98,54 @@ namespace scisl
 		}
 	}
 
+	bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
+	{
+		for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+		{
+			arg& cur = i.instr.arguments.arguments[j];
+			if (cur.argType == argType::constant) continue;
+
+			if (cur.argType == argType::interop)
+			{
+				return false;
+			}
+
+			value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
+			if (val == nullptr)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	inline bool handleNoMod(precompInstr& i, std::map<std::string, value*>& evalVal)
+	{
+		for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+		{
+			arg& cur = i.instr.arguments.arguments[j];
+			if (cur.argType == argType::variable)
+			{
+				if (evalVal.contains(SCISL_CAST_STRING(cur.val.val)))
+				{
+					value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
+					if (val != nullptr)
+					{
+						cur.argType = argType::constant;
+						delete (std::string*)(cur.val.val);
+						cur.val = *val;
+					}
+				}
+				else
+				{
+					std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val.val) << " referenced before being defined by SET by " << i.meta.funcName << ".\n";
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
 	bool evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars)
 	{
@@ -94,86 +156,8 @@ namespace scisl
 
 		for (precompInstr& i : process)
 		{
-			if (isFunc(i.meta, stlFuncs::noop))
+			if (isFunc(i.meta, stlFuncs::noop)) //removes NOOP
 			{
-				delete[] i.instr.arguments.arguments;
-				continue;
-			}
-
-			if (isFunc(i.meta, stlFuncs::set)) //initialization of var
-			{
-				arg& cur = i.instr.arguments.arguments[0];
-				if (cur.argType != argType::variable)
-				{
-					newProcess.push_back(std::move(i));
-					continue;
-				}
-
-				arg& next = i.instr.arguments.arguments[1];
-				if (evalVal.contains(SCISL_CAST_STRING(cur.val.val)))
-				{
-					if (next.argType == argType::interop)
-					{
-						delete evalVal.at(SCISL_CAST_STRING(cur.val.val));
-						evalVal.at(SCISL_CAST_STRING(cur.val.val)) = nullptr;
-						newProcess.push_back(std::move(i));
-						continue;
-					}
-
-					if (next.argType == argType::variable)
-					{
-						value* v = evalVal.at(SCISL_CAST_STRING(next.val.val));
-						if (v == nullptr)
-						{
-							delete evalVal.at(SCISL_CAST_STRING(cur.val.val));
-							evalVal.at(SCISL_CAST_STRING(cur.val.val)) = nullptr;
-							newProcess.push_back(std::move(i));
-							continue;
-						}
-
-						*evalVal.at(SCISL_CAST_STRING(cur.val.val)) = v->val;
-						continue;
-					}
-
-					value*& tmp = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-					if (tmp == nullptr)
-					{
-						tmp = new value();
-					}
-
-					*tmp = next.val.val;
-					continue;
-				}
-
-				value* n = new value();
-				if (next.argType == argType::interop)
-				{
-					delete n;
-					newProcess.push_back(std::move(i));
-					evalVal.insert({ SCISL_CAST_STRING(cur.val.val), nullptr });
-					continue;
-				}
-
-				if (next.argType == argType::variable)
-				{
-					value* v = evalVal.at(SCISL_CAST_STRING(next.val.val));
-					if (v == nullptr)
-					{
-						delete n;
-						newProcess.push_back(std::move(i));
-						evalVal.insert({ SCISL_CAST_STRING(cur.val.val), nullptr });
-						continue;
-					}
-
-					*n = *v;
-				}
-				else
-				{
-					*n = next.val;
-				}
-
-				evalVal.insert({ SCISL_CAST_STRING(cur.val.val), n });
-
 				delete[] i.instr.arguments.arguments;
 				continue;
 			}
@@ -209,41 +193,23 @@ namespace scisl
 
 			if ((i.meta.optimizerFlags & SCISL_OP_NO_MOD) > 0) //doesn't modify anything, good!
 			{
-				for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+				if (handleNoMod(i, evalVal))
 				{
-					arg& cur = i.instr.arguments.arguments[j];
-					if (cur.argType == argType::variable)
-					{
-						if (evalVal.contains(SCISL_CAST_STRING(cur.val.val)))
-						{
-							value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-							if (val != nullptr)
-							{
-								cur.argType = argType::constant;
-								delete (std::string*)(cur.val.val);
-								cur.val = *val;
-							}
-						}
-						else
-						{
-							std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val.val) << " referenced before being defined by SET by " << i.meta.funcName << ".\n";
-							return false;
-						}
-					}
+					newProcess.push_back(std::move(i));
+					continue;
 				}
-				newProcess.push_back(std::move(i));
-				continue;
+				return false; //an error can be detected here
 			}
 
 			//these can modify
-			if (!isSTLfunc((stlFuncs)(i.meta.funcID))) //invalidate everything
+			bool simulatable = (i.meta.optimizerFlags & SCISL_OP_SIMABLE);
+			if (!simulatable && !isSTLfunc((stlFuncs)(i.meta.funcID)))
 			{
 				invalidateVars(newProcess, evalVal);
 				newProcess.push_back(std::move(i));
 				continue;
 			}
 
-			bool valid = true;
 			arg& modified = i.instr.arguments.arguments[0];
 			if (modified.argType != argType::variable)
 			{
@@ -266,75 +232,40 @@ namespace scisl
 				continue;
 			}
 
-			if (!evalVal.contains(SCISL_CAST_STRING(modified.val.val))) //initialization from things that aren't SET
+			if (!evalVal.contains(SCISL_CAST_STRING(modified.val.val))) //initialization
 			{
-				type t = initializes[i.meta.funcID];
+				type t = inferType(i, i.instr.arguments.arguments[1].val.type);
 				if (t == type::error)
 				{
-					std::cout << "SCISL COMPILER ERROR: " << i.meta.funcName << " cannot be used to initialize.\n";
+					std::cout << "SCISL COMPILER ERROR: " << i.meta.funcName << " cannot infer type to be used to initialize.\n";
 					return false;
 				}
 				value* n = new value(createTemporary(t));
 				evalVal.insert({ SCISL_CAST_STRING(modified.val.val), n });
 			}
 
-			valid = evalVal.at(SCISL_CAST_STRING(modified.val.val)) != nullptr;
-			for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+			// valid means that the modified variable can be determined at compile time
+			bool valid = isValid(i, evalVal);
+
+			value*& v = evalVal.at(SCISL_CAST_STRING(modified.val.val));
+			if (valid)
 			{
-				arg& cur = i.instr.arguments.arguments[j];
-				if (cur.argType == argType::constant) continue;
-
-				if (cur.argType == argType::interop)
+				if (simulatable)
 				{
-					valid = false;
-					break;
-				}
-
-				value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-				if (val == nullptr)
-				{
-					valid = false;
-					break;
+					simulate(evalVal, i.instr.arguments, i.instr.func);
+					delete[] i.instr.arguments.arguments;
+					continue;
 				}
 			}
-
-			value* v = evalVal.at(SCISL_CAST_STRING(modified.val.val));
-			if (!valid && v != nullptr)
+			else if (v != nullptr)
 			{
-				if (initializes[(unsigned short)(i.meta.funcID)] == type::error)
+				if (!simulatable)
 				{
 					newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
 				}
 
 				delete v;
-				evalVal.at(SCISL_CAST_STRING(modified.val.val)) = nullptr;
-				newProcess.push_back(std::move(i));
-				
-				continue;
-			}
-
-			if (valid)
-			{
-				switch ((stlFuncs)(i.meta.funcID))
-				{
-				case stlFuncs::add: case stlFuncs::adde:
-				case stlFuncs::sub: case stlFuncs::sube:
-				case stlFuncs::mult: case stlFuncs::multe:
-				case stlFuncs::div: case stlFuncs::dive:
-				case stlFuncs::less: case stlFuncs::great:
-				case stlFuncs::equal: case stlFuncs::nequal:
-				case stlFuncs::chrat: case stlFuncs::chrset:
-				case stlFuncs::sstrlen: case stlFuncs::substr:
-				{
-					simulate(evalVal, i.instr.arguments, i.instr.func);
-					delete[] i.instr.arguments.arguments;
-					break;
-				}
-				default:
-					newProcess.push_back(std::move(i));
-					break;
-				}
-				continue;
+				v = nullptr;
 			}
 
 			newProcess.push_back(std::move(i));

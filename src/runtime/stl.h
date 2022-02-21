@@ -128,40 +128,42 @@ namespace scisl
 
 	#define SCISL_OP_NO_MOD 1
 	#define SCISL_OP_NO_JMP 2
+	#define SCISL_OP_INITIALIZES 4
+	#define SCISL_OP_SIMABLE 8
 
 	//ID, func, peep, args, argTypes, optimizerFlags
 	//args 0 is veriadic
 	const scislfuncMeta stlFuncMeta[(unsigned short)(stlFuncs::stlFuncCount)] =
 	{
-		{ (unsigned short)(stlFuncs::set), "SET", set, setPeep, 2, 2, "aa", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::add), "ADD", add, addPeep, 0, 2, "a", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::adde), "ADDE", adde, addePeep, 0, 2, "a", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::sub), "SUB", sub, subPeep, 3, 3, "ann", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::sube), "SUBE", sube, subePeep, 2, 2, "nn", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::mult), "MULT", mult, multPeep, 0, 2, "an", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::multe), "MULTE", multe, multePeep, 0, 2, "an", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::div), "DIV", div, divPeep, 3, 3, "ann", SCISL_OP_NO_JMP },
-		{ (unsigned short)(stlFuncs::dive), "DIVE", dive, divePeep, 2, 2, "nn", SCISL_OP_NO_JMP },
+		{ (unsigned short)(stlFuncs::set), "SET", set, setPeep, 2, 2, "aa", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::add), "ADD", add, addPeep, 0, 2, "a", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::adde), "ADDE", adde, addePeep, 0, 2, "a", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::sub), "SUB", sub, subPeep, 3, 3, "ann", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::sube), "SUBE", sube, subePeep, 2, 2, "nn", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::mult), "MULT", mult, multPeep, 0, 2, "an", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::multe), "MULTE", multe, multePeep, 0, 2, "an", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::div), "DIV", div, divPeep, 3, 3, "ann", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::dive), "DIVE", dive, divePeep, 2, 2, "nn", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
 		{ (unsigned short)(stlFuncs::print), "PRINT", print, printPeep, 0, 0, "a", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
 
-		{ (unsigned short)(stlFuncs::substr), "SUBSTR", substr, substrPeep, 4, 4, "ssii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::sstrlen), "STRLEN", sstrlen, strlenPeep, 2, 2, "ns", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::chrset), "CHRSET", chrset, chrsetPeep, 3, 3, "sii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::chrat), "CHRAT", chrat, chratPeep, 3, 3, "nsi", SCISL_OP_NO_JMP},
+		{ (unsigned short)(stlFuncs::substr), "SUBSTR", substr, substrPeep, 4, 4, "ssii", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::sstrlen), "STRLEN", sstrlen, strlenPeep, 2, 2, "ns", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::chrset), "CHRSET", chrset, chrsetPeep, 3, 3, "sii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::chrat), "CHRAT", chrat, chratPeep, 3, 3, "nsi", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
 
-		{ (unsigned short)(stlFuncs::less), "LESS", less, lessPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::great), "GREAT", great, greatPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::equal), "EQUAL", equal, equalPeep, 0, 3, "nnn", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::nequal), "NEQUAL", nequal, nequalPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
+		{ (unsigned short)(stlFuncs::less), "LESS", less, lessPeep, 3, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::great), "GREAT", great, greatPeep, 3, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::equal), "EQUAL", equal, equalPeep, 0, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::nequal), "NEQUAL", nequal, nequalPeep, 3, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
 
-		{ (unsigned short)(stlFuncs::land), "LAND", land, landPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::lor), "LOR", lor, lorPeep, 3, 3, "nnn", SCISL_OP_NO_JMP},
+		{ (unsigned short)(stlFuncs::land), "LAND", land, landPeep, 3, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::lor), "LOR", lor, lorPeep, 3, 3, "nnn", SCISL_OP_NO_JMP | SCISL_OP_INITIALIZES | SCISL_OP_SIMABLE },
 
-		{ (unsigned short)(stlFuncs::band), "BAND", band, bandPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::bor), "BOR", bor, borPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::bxor), "BXOR", bxor, bxorPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::lshift), "LSHIFT", lshift, lshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
-		{ (unsigned short)(stlFuncs::rshift), "RSHIFT", rshift, rshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP},
+		{ (unsigned short)(stlFuncs::band), "BAND", band, bandPeep, 2, 2, "ii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::bor), "BOR", bor, borPeep, 2, 2, "ii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::bxor), "BXOR", bxor, bxorPeep, 2, 2, "ii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::lshift), "LSHIFT", lshift, lshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
+		{ (unsigned short)(stlFuncs::rshift), "RSHIFT", rshift, rshiftPeep, 2, 2, "ii", SCISL_OP_NO_JMP | SCISL_OP_SIMABLE },
 
 		{ (unsigned short)(stlFuncs::label), "LABEL", nullptr, nullptr, 1, 1, "a", SCISL_OP_NO_MOD },
 		{ (unsigned short)(stlFuncs::jmp), "JMP", jmp, nullptr, 1, 1, "a", SCISL_OP_NO_MOD  },

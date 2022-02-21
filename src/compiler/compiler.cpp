@@ -243,22 +243,19 @@ namespace scisl
 			}
 
 			//variables
-			if (ctype.second == type::error)
+			if (ctype.second == type::error) // (variable hasn't been initialized yet)
 			{
-				type rtype = initializes[(unsigned short)(fID)];
-				if (fID == stlFuncs::set)
+				const type rtype = inferType(opt, strToType(things[i + 2], vars).second);
+				if (rtype == type::error)
 				{
-					std::string& next = things[i + 2];
-					rtype = strToType(next, vars).second;
-					if (rtype == type::error)
+					if (i == 0)
 					{
 						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
-						return { opt, false };
 					}
-				}
-				else if (rtype == type::error || i > 1)
-				{
-					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
+					else
+					{
+						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
+					}
 					return { opt, false };
 				}
 
