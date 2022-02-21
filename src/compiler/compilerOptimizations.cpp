@@ -4,6 +4,7 @@
 #include <map>
 
 #include "../runtime/stl.h"
+#include "../runtime/stlOptimizations.h"
 
 namespace scisl
 {
@@ -49,7 +50,7 @@ namespace scisl
 		return opt;
 	}
 
-	void simulate(std::map<std::string, value*>& vals, args& argz, scislFunc target)
+	inline void simulate(std::map<std::string, value*>& vals, args& argz, scislFunc target)
 	{
 		program fakeP;
 		std::vector<std::pair<std::string, value*>> virtualVars;
@@ -98,7 +99,7 @@ namespace scisl
 		}
 	}
 
-	bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
+	inline bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
 	{
 		for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
 		{
@@ -162,9 +163,9 @@ namespace scisl
 				continue;
 			}
 
-			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps are scary, invalidate everything once one is found
+			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps
 			{
-				if (isFunc(i.meta, stlFuncs::cjmp))
+				if (isFunc(i.meta, stlFuncs::cjmp)) //there is a chance a cjmp can be reduced which makes way for HUGE optimizations later
 				{
 					arg& c = i.instr.arguments.arguments[1];
 					if (c.argType == argType::variable)
@@ -201,9 +202,9 @@ namespace scisl
 				return false; //an error can be detected here
 			}
 
-			//these can modify
+
 			bool simulatable = (i.meta.optimizerFlags & SCISL_OP_SIMABLE);
-			if (!simulatable && !isSTLfunc((stlFuncs)(i.meta.funcID)))
+			if (!simulatable && !isSTLfunc((stlFuncs)(i.meta.funcID))) //non simulatble registered funcs (that modify)
 			{
 				invalidateVars(newProcess, evalVal);
 				newProcess.push_back(std::move(i));
@@ -211,9 +212,9 @@ namespace scisl
 			}
 
 			arg& modified = i.instr.arguments.arguments[0];
-			if (modified.argType != argType::variable)
+			if (modified.argType != argType::variable) //the modified var is registered
 			{
-				for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+				for (unsigned int j = 1; j < i.instr.arguments.argCount; j++) //apply our knowledge to the args
 				{
 					arg& cur = i.instr.arguments.arguments[j];
 
@@ -285,13 +286,13 @@ namespace scisl
 		}
 
 		process = std::move(newProcess);
-		for (precompInstr& i : process)
+		for (precompInstr& i : process) //run peephole on remaining instructions
 		{
 			scislPeephole& peep = i.meta.peep;
 			if (peep != nullptr) peep(i);
 		}
 
-		for (auto& i : evalVal)
+		for (auto& i : evalVal) //clear eval memory
 		{
 			delete i.second;
 		}
@@ -393,11 +394,7 @@ namespace scisl
 					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val));
 					if (i + 1 == loc)
 					{
-						instructions[i].instr.func = nullptr;
-						delete[] instructions[i].instr.arguments.arguments;
-						instructions[i].instr.arguments.arguments = nullptr;
-						instructions[i].instr.arguments.argCount = 0;
-						instructions[i].meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
+						toNOOP(instructions[i]);
 					}
 					else
 					{
@@ -409,11 +406,7 @@ namespace scisl
 					unsigned int loc = usedLabels.at(SCISL_CAST_STRING(label.val.val));
 					if (i + 1 == loc)
 					{
-						instructions[i].instr.func = nullptr;
-						delete[] instructions[i].instr.arguments.arguments;
-						instructions[i].instr.arguments.arguments = nullptr;
-						instructions[i].instr.arguments.argCount = 0;
-						instructions[i].meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
+						toNOOP(instructions[i]);
 					}
 				}
 			}
