@@ -100,7 +100,7 @@ namespace scisl
 
 	bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
 	{
-		for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+		for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
 		{
 			arg& cur = i.instr.arguments.arguments[j];
 			if (cur.argType == argType::constant) continue;
@@ -250,6 +250,19 @@ namespace scisl
 			value*& v = evalVal.at(SCISL_CAST_STRING(modified.val.val));
 			if (valid)
 			{
+				if (v == nullptr)
+				{
+					type t = inferType(i, i.instr.arguments.arguments[1].val.type);
+					if (t != type::error)
+					{
+						v = new value(createTemporary(t));
+					}
+					else
+					{
+						simulatable = false;
+					}
+				}
+
 				if (simulatable)
 				{
 					simulate(evalVal, i.instr.arguments, i.instr.func);
