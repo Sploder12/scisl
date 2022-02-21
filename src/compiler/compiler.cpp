@@ -201,9 +201,9 @@ namespace scisl
 		else
 		{
 			auto& funcs = getFuncTable();
-			if (funcs.contains(things[0]))
+			if (funcs.contains(things[0].substr(1)))
 			{
-				scislfuncMeta& mta = funcs.at(things[0]);
+				scislfuncMeta& mta = funcs.at(things[0].substr(1));
 
 				opt.meta = mta;
 			}

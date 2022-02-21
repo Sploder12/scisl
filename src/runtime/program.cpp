@@ -23,7 +23,7 @@ namespace scisl
 		{
 			if (i.second.fnc = func)
 			{
-				return i.first;
+				return '$' + i.first;
 			}
 		}
 

@@ -85,7 +85,6 @@ namespace scisl
 
 	void registerFunc(std::string id, scislFunc func, unsigned short argCount, unsigned short minArgs, std::string argTypes, unsigned int optimizerFlags, scislPeephole optimizer)
 	{
-		id = '$' + id;
 		registeredFunc tmp = { (unsigned short)(stlFuncs::stlFuncCount), id, func, optimizer, argCount, minArgs, argTypes, optimizerFlags};
 		interopFuncTable.insert({ id, std::move(tmp) });
 	}
