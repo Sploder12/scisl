@@ -213,19 +213,6 @@ namespace Scisl
 
 			delete prog;
 		}
-		TEST_METHOD(Joke)
-		{
-			scisl::removeAllVars();
-			scisl::registerFunc("﻿⠀⠀⠘⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡜⠀⠀⠀", help, 0);
-			scisl::program* prog = scisl::compile(FUNCTION_PATH "joke.scisl", false);
-
-			if (prog == nullptr) Assert::Fail();
-
-			prog->decompile(DECOMP_PATH "joke.scisl");
-			Assert::AreEqual(1337, prog->run());
-
-			delete prog;
-		}
 	};
 
 	TEST_CLASS(MATH)
