@@ -106,5 +106,11 @@
     <None Include="DecompiledScisl\MacroBranching.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
     </None>
+    <None Include="function\joke.scisl">
+      <Filter>Resource Files\function</Filter>
+    </None>
+    <None Include="DecompiledScisl\joke.scisl">
+      <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
   </ItemGroup>
 </Project>

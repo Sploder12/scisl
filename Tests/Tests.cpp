@@ -8,6 +8,11 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #define DECOMP_PATH "../../Tests/DecompiledScisl/"
 
+void help(scisl::program& process, const scisl::args& args)
+{
+	process.retVal = 1337;
+}
+
 namespace Scisl
 {
 	TEST_CLASS(SCRIPTING)
@@ -205,6 +210,19 @@ namespace Scisl
 
 			Assert::AreEqual(0, o);
 			Assert::AreEqual(std::string("54321"), line);
+
+			delete prog;
+		}
+		TEST_METHOD(Joke)
+		{
+			scisl::removeAllVars();
+			scisl::registerFunc("﻿⠀⠀⠘⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡜⠀⠀⠀", help, 0);
+			scisl::program* prog = scisl::compile(FUNCTION_PATH "joke.scisl", false);
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile(DECOMP_PATH "joke.scisl");
+			Assert::AreEqual(1337, prog->run());
 
 			delete prog;
 		}

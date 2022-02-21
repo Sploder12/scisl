@@ -1,4 +1,4 @@
-#include "compiler/compiler.h"
+﻿#include "compiler/compiler.h"
 #include "interoperability/tables.h"
 
 #include <iostream>

@@ -5,7 +5,7 @@
 
 namespace scisl
 {
-	program* compile(const char* filename);
+	program* compile(const char* filename, bool nullOnError = true);
 }
 
 #endif

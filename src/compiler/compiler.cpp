@@ -342,7 +342,7 @@ namespace scisl
 		}
 	}
 
-	program* compile(const char* filename)
+	program* compile(const char* filename, bool nullOnError)
 	{
 		std::ifstream file(filename);
 		if (file.is_open())
@@ -365,7 +365,22 @@ namespace scisl
 					continue;
 				}
 				file.close();
-				return nullptr;
+
+				if (nullOnError)
+				{
+					delete opt;
+					return nullptr;
+				}
+				else
+				{
+					finalize(instructions);
+					opt->instructions.reserve(instructions.size());
+					for (precompInstr& i : instructions)
+					{
+						opt->instructions.push_back(std::move(i.instr));
+					}
+					return opt;
+				}
 			}
 			file.close();
 
