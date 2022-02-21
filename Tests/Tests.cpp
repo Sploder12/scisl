@@ -84,6 +84,7 @@ namespace Scisl
 			Assert::AreEqual(-15, b1ret);
 			Assert::AreEqual(5, b2ret);
 		}
+
 		TEST_METHOD(UsingBreak)
 		{
 			scisl::removeAllVars();
@@ -128,16 +129,13 @@ namespace Scisl
 			delete prog;
 
 			Assert::AreEqual(25, r);
-		}
-	
-		
+		}	
 	};
 
 	TEST_CLASS(FUNCTION)
 	{
 	public:
 		#define FUNCTION_PATH "../../Tests/function/"
-
 		TEST_METHOD(ParseStr)
 		{
 			scisl::removeAllVars();
@@ -261,7 +259,7 @@ namespace Scisl
 			Assert::AreEqual(opt, 479001600);
 		}
 
-		TEST_METHOD(StringArray)
+		TEST_METHOD(StringAdd)
 		{
 			scisl::removeAllVars();
 			std::string name = "Bob";

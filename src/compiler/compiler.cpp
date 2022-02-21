@@ -180,11 +180,23 @@ namespace scisl
 			fID = strToFuncID(funcName);
 			if (fID >= stlFuncs::stlFuncCount)
 			{
-				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unknown STL function.\n";
-				return { opt, false };
+				auto& funcs = getFuncTable();
+				if (funcs.contains(things[0])) // Maybe they forgot the $, warn them
+				{
+					std::cout << "SCISL COMPILER WARNING: line:" << lineNum << '\t' << things[0] << " registered function not preceeded with $.\n";
+					scislfuncMeta& mta = funcs.at(things[0]);
+					opt.meta = mta;
+				}
+				else
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unknown STL function.\n";
+					return { opt, false };
+				}
 			}
-
-			opt.meta = stlFuncMeta[(unsigned short)(fID)];
+			else
+			{
+				opt.meta = stlFuncMeta[(unsigned short)(fID)];
+			}
 		}
 		else
 		{
