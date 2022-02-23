@@ -342,19 +342,50 @@ namespace scisl
 			break;
 		}
 	}
+	
+	void blockend(program& process, const args& args)
+	{
+		if (!process.callStack.empty())
+		{
+			process.curInstr = process.callStack.top();
+			process.callStack.pop();
+		}
+	}
+
+	void def(program& process, const args& args) //acts like a label but jumps to the end if not called
+	{
+		unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
+		process.curInstr = line;
+	}
+
+	void call(program& process, const args& args)
+	{
+		process.callStack.push(process.curInstr);
+		unsigned int line = *(unsigned int*)(args.arguments[0].val.val);
+		process.curInstr = line + 1;
+	}
 
 	void end(program& process, const args& args)
 	{
 		value& v = args.arguments[0].getValue();
 		process.curInstr = (unsigned int)(process.instructions.size());
 		process.retVal = SCISL_CAST_INT(v.val);
+		process.callStack = {};
 	}
 
 	void breakp(program& process, const args& args)
 	{
-		value& v = args.arguments[0].getValue();
-		process.broke = true;
-		process.retVal = SCISL_CAST_INT(v.val);
+		if (process.callStack.empty())
+		{
+			value& v = args.arguments[0].getValue();
+			process.broke = true;
+			process.retVal = SCISL_CAST_INT(v.val);
+		}
+		else //we're inside a function
+		{
+			process.curInstr = process.callStack.top();
+			process.callStack.pop();
+		}
 	}
 }
 #pragma warning(pop)

@@ -236,7 +236,7 @@ namespace scisl
 			arg* carg = &arguments.arguments[i];
 
 			//labels
-			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp))
+			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp || fID == stlFuncs::def  || fID == stlFuncs::call))
 			{
 				carg->argType = argType::constant;
 				carg->val.type = type::integer;
@@ -297,7 +297,7 @@ namespace scisl
 			scislPeephole peep = cur.meta.peep;
 			if (peep != nullptr) peep(cur);
 
-			if (isFunc(cur.meta, stlFuncs::label))
+			if (isFunc(cur.meta, stlFuncs::label) || isFunc(cur.meta, stlFuncs::def))
 			{
 				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val) , i });
 				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
@@ -327,11 +327,16 @@ namespace scisl
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
+			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp) || isFunc(cur.meta, stlFuncs::call))
 			{
 				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val)];
 				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
 				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
+			}
+			else if (isFunc(cur.meta, stlFuncs::def))
+			{
+				unsigned int loc = findBlockEnd(instructions, i);
+				SCISL_CAST_INT(cur.instr.arguments.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
 			}
 		}
 

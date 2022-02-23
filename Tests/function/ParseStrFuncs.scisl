@@ -1,0 +1,45 @@
+SET line $line
+SET curChr 0
+SET sLen 0
+STRLEN sLen line
+ADDE sLen 1
+
+DEF getNext
+	SET ret ""
+	= t 0
+	SET c 0
+	LABEL gchr
+		CHRAT t line curChr
+		+= curChr 1
+		SET d 0
+		SET m 0
+;				   44 is ','
+		EQUAL d t 44
+		EQUAL m curChr sLen
+		LOR d d m
+		CJMP nend d
+		ADDE ret " "
+		CHRSET ret t c
+		ADDE c 1
+	JMP gchr
+	LABEL nend
+endblock
+
+CALL getNext
+SET $first ret
+
+CALL getNext
+SET $second ret
+
+CALL getNext
+SET $third ret
+
+CALL getNext
+SET $fourth ret
+
+CALL getNext
+SET $fifth ret
+
+CALL getNext
+SET $last ret
+FINISH 0

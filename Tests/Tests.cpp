@@ -189,6 +189,54 @@ namespace Scisl
 			delete prog;
 		}
 
+		TEST_METHOD(ParseStrFuncs)
+		{
+			scisl::removeAllVars();
+			std::string line = "apple,orange,c++,scisl,1337,Flood";
+			scisl::registerVar("line", line);
+
+			std::string first = "";
+			std::string second = "";
+			std::string third = "";
+			std::string fourth = "";
+			std::string fifth = "";
+			std::string last = "";
+			scisl::registerVar("first", first);
+			scisl::registerVar("second", second);
+			scisl::registerVar("third", third);
+			scisl::registerVar("fourth", fourth);
+			scisl::registerVar("fifth", fifth);
+			scisl::registerVar("last", last);
+
+			scisl::program* prog = scisl::compile(FUNCTION_PATH "ParseStrFuncs.scisl");
+
+			if (prog == nullptr) Assert::Fail();
+
+			prog->decompile(DECOMP_PATH "ParseStrFuncs.scisl");
+			int o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("apple"), first);
+			Assert::AreEqual(std::string("orange"), second);
+			Assert::AreEqual(std::string("c++"), third);
+			Assert::AreEqual(std::string("scisl"), fourth);
+			Assert::AreEqual(std::string("1337"), fifth);
+			Assert::AreEqual(std::string("Flood"), last);
+
+			line = "1,2,3,4,5,6";
+			o = prog->run();
+
+			Assert::AreEqual(0, o);
+			Assert::AreEqual(std::string("1"), first);
+			Assert::AreEqual(std::string("2"), second);
+			Assert::AreEqual(std::string("3"), third);
+			Assert::AreEqual(std::string("4"), fourth);
+			Assert::AreEqual(std::string("5"), fifth);
+			Assert::AreEqual(std::string("6"), last);
+
+			delete prog;
+		}
+
 		TEST_METHOD(ReverseString)
 		{
 			scisl::removeAllVars();

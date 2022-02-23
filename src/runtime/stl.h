@@ -42,6 +42,10 @@ namespace scisl
 		label,
 		jmp,
 		cjmp,
+		blockend,
+
+		def,
+		call,
 
 		exit,
 		breakp,
@@ -79,6 +83,9 @@ namespace scisl
 		{ "MARK" },
 		{ "JUMP", "GOTO" },
 		{ "CJUMP", "CONDITIONALJMP", "CONDITIONALJUMP", "CGOTO", "CONDITIONALGOTO", "CONDITIONAL_JUMP" },
+		{ "BLOCK_END", "CLOSEBLOCK", "CLOSE_BLOCK", "ENDBLOCK", "END_BLOCK", "EB", "[]}" },
+		{ "DEFINE", "FNC", "FUNC", "FUNCTION"},
+		{ "RUN" },
 		{ "FINISH", "END" },
 		{ "HALT" },
 		{ "NOTHING" }
@@ -122,14 +129,15 @@ namespace scisl
 
 	void jmp(program& process, const args& args);
 	void cjmp(program& process, const args& args);
+	void blockend(program& process, const args& args);
+
+	void def(program& process, const args& args);
+	void call(program& process, const args& args);
 
 	void end(program& process, const args& args);
 	void breakp(program& process, const args& args);
 
-	#define SCISL_OP_NO_MOD 1
-	#define SCISL_OP_NO_JMP 2
-	#define SCISL_OP_INITIALIZES 4
-	#define SCISL_OP_SIMABLE 8
+
 
 	//ID, func, peep, args, argTypes, optimizerFlags
 	//args 0 is veriadic
@@ -168,6 +176,10 @@ namespace scisl
 		{ (unsigned short)(stlFuncs::label), "LABEL", nullptr, nullptr, 1, 1, "a", SCISL_OP_NO_MOD },
 		{ (unsigned short)(stlFuncs::jmp), "JMP", jmp, nullptr, 1, 1, "a", SCISL_OP_NO_MOD  },
 		{ (unsigned short)(stlFuncs::cjmp), "CJMP", cjmp, cjmpPeep, 2, 2, "an", SCISL_OP_NO_MOD  },
+		{ (unsigned short)(stlFuncs::blockend), "BLOCKEND", blockend, nullptr, 0, 0, "", SCISL_OP_NO_MOD  },
+
+		{ (unsigned short)(stlFuncs::def), "DEF", def, nullptr, 1, 1, "a", SCISL_OP_NO_MOD | SCISL_OP_BLOCK },
+		{ (unsigned short)(stlFuncs::call), "CALL", call, nullptr, 1, 1, "a", SCISL_OP_NO_MOD },
 
 		{ (unsigned short)(stlFuncs::exit), "EXIT", end, nullptr, 1, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP},
 		{ (unsigned short)(stlFuncs::breakp), "BREAK", breakp, nullptr, 1, 1, "i", SCISL_OP_NO_MOD | SCISL_OP_NO_JMP },
@@ -207,6 +219,10 @@ namespace scisl
 		type::integer,
 
 		type::error,
+		type::error,
+		type::error,
+		type::error,
+
 		type::error,
 		type::error,
 

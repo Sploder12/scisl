@@ -20,6 +20,8 @@ namespace scisl
 		return vars.size();
 	}
 
+	inline unsigned int findBlockEnd(std::vector<precompInstr>& instructions, unsigned int start);
+
 	type inferType(const precompInstr& instr, type nextArgType = type::error);
 
 	bool evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars);

@@ -6,6 +6,12 @@
 
 namespace scisl
 {
+	#define SCISL_OP_NO_MOD 1
+	#define SCISL_OP_NO_JMP 2
+	#define SCISL_OP_INITIALIZES 4
+	#define SCISL_OP_SIMABLE 8
+	#define SCISL_OP_BLOCK 16
+
 	inline void toNOOP(precompInstr& instruct);
 
 	void setPeep(precompInstr& instruct);

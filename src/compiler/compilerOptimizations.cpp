@@ -8,6 +8,24 @@
 
 namespace scisl
 {
+	inline unsigned int findBlockEnd(std::vector<precompInstr>& instructions, unsigned int start)
+	{
+		unsigned int dl = 1;
+		for (unsigned int i = start + 1; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+			{
+				dl++;
+			}
+			else if (isFunc(cur.meta, stlFuncs::blockend))
+			{
+				if (--dl == 0) return i;
+			}
+		}
+		return instructions.size();
+	}
+
 	type inferType(const precompInstr& instr, type nextArgType)
 	{
 		if (instr.meta.optimizerFlags & SCISL_OP_INITIALIZES)
@@ -366,7 +384,7 @@ namespace scisl
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::label))
+			if (isFunc(cur.meta, stlFuncs::label) || isFunc(cur.meta, stlFuncs::def))
 			{
 				std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
 				if (v == id)
@@ -474,7 +492,41 @@ namespace scisl
 					bool r = exploreBranch(instructions, reachedInstructions, idx);
 					if (!r) return false;
 				}
-				else if (isFunc(cur.meta, stlFuncs::exit))
+				else if (isFunc(cur.meta, stlFuncs::call))
+				{
+					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					unsigned int idx = findLabel(instructions, v);
+					if (idx >= instructions.size())
+					{
+						std::cout << "SCISL COMPILER ERROR: call uses undefined function " << v << ".\n";
+						return false;
+					}
+					else if (idx > branchIdx)
+					{
+						std::cout << "SCISL COMPILER ERROR: call to later function not allowed " << v << ".\n";
+						return false;
+					}
+					bool r = exploreBranch(instructions, reachedInstructions, idx + 1);
+					if (!r) return false;
+				}
+				else if (isFunc(cur.meta, stlFuncs::def))
+				{
+					unsigned int idx = findBlockEnd(instructions, branchIdx);
+					branchIdx = idx;
+				}
+				else if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+				{
+					bool r = exploreBranch(instructions, reachedInstructions, branchIdx);
+					if (!r) return false;
+					unsigned int idx = findBlockEnd(instructions, branchIdx);
+					branchIdx = idx;
+				}
+				else if (isFunc(cur.meta, stlFuncs::breakp))
+				{
+					unsigned int block = findBlockEnd(instructions, branchIdx);
+					if (block != instructions.size()) return true;
+				}
+				else if (isFunc(cur.meta, stlFuncs::exit) || isFunc(cur.meta, stlFuncs::blockend))
 				{
 					return true;
 				}

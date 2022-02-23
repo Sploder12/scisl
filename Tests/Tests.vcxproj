@@ -182,10 +182,12 @@
     <None Include="DecompiledScisl\MacroBranching.scisl" />
     <None Include="DecompiledScisl\Math.scisl" />
     <None Include="DecompiledScisl\ParseStr.scisl" />
+    <None Include="DecompiledScisl\ParseStrFuncs.scisl" />
     <None Include="DecompiledScisl\ReverseString.scisl" />
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
     <None Include="function\ParseStr.scisl" />
+    <None Include="function\ParseStrFuncs.scisl" />
     <None Include="function\ReverseString.scisl" />
     <None Include="math\Factorial12.scisl" />
     <None Include="math\Math.scisl" />
