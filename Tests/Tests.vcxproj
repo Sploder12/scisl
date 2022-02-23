@@ -186,6 +186,11 @@
     <None Include="DecompiledScisl\ReverseString.scisl" />
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
+    <None Include="errors\funcBeforeDef.scisl" />
+    <None Include="errors\malformedDef.scisl" />
+    <None Include="errors\undefinedFunc.scisl" />
+    <None Include="errors\undefinedLabel.scisl" />
+    <None Include="errors\undefinedVar.scisl" />
     <None Include="function\ParseStr.scisl" />
     <None Include="function\ParseStrFuncs.scisl" />
     <None Include="function\ReverseString.scisl" />

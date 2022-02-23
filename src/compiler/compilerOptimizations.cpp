@@ -396,7 +396,7 @@ namespace scisl
 		return (unsigned int)(instructions.size());
 	}
 
-	void removeUnusedLabels(std::vector<precompInstr>& instructions)
+	bool removeUnusedLabels(std::vector<precompInstr>& instructions)
 	{
 		std::map<std::string, unsigned int> usedLabels;
 		std::vector<precompInstr> remaining;
@@ -410,6 +410,12 @@ namespace scisl
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
 					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val));
+					if (loc == instructions.size())
+					{
+						std::cout << "SCISL COMPILER ERROR: reference to non-existant label " << SCISL_CAST_STRING(label.val.val) << ".\n";
+						return false;
+					}
+
 					if (i + 1 == loc)
 					{
 						toNOOP(instructions[i]);
@@ -446,6 +452,7 @@ namespace scisl
 			}
 		}
 		instructions = std::move(remaining);
+		return true;
 	}
 
 	template <typename T>

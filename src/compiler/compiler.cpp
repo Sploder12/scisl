@@ -286,7 +286,7 @@ namespace scisl
 		return { opt, typeCheck(opt) };
 	}
 
-	void finalize(std::vector<precompInstr>& instructions)
+	bool finalize(std::vector<precompInstr>& instructions)
 	{
 		std::vector<std::pair<std::string, value*>> remainingVars;
 		std::map<std::string, unsigned int> labels;
@@ -336,6 +336,16 @@ namespace scisl
 			else if (isFunc(cur.meta, stlFuncs::def))
 			{
 				unsigned int loc = findBlockEnd(instructions, i);
+				if (loc == instructions.size())
+				{
+					std::cout << "SCISL COMPILER ERROR: def has no block end.\n";
+					for (auto& t : remainingVars)
+					{
+						t.second->val = nullptr;
+						delete t.second;
+					}
+					return false;
+				}
 				SCISL_CAST_INT(cur.instr.arguments.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
 			}
 		}
@@ -345,6 +355,7 @@ namespace scisl
 			t.second->val = nullptr;
 			delete t.second;
 		}
+		return true;
 	}
 
 	program* compile(const char* filename)
@@ -377,14 +388,15 @@ namespace scisl
 			}
 			file.close();
 
-			removeUnusedLabels(instructions);
+			//@TODO fix memleak on error
+			if (!removeUnusedLabels(instructions)) return nullptr;
 			evaluateConstants(instructions, vars);
 			removeNOOP(instructions);
 			if (!removeUnreachableCode(instructions)) return nullptr;
 			removeUnusedVars(instructions);
 			removeUnusedLabels(instructions);
 
-			finalize(instructions);
+			if (!finalize(instructions)) return nullptr;
 			removeNOOP(instructions);
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)

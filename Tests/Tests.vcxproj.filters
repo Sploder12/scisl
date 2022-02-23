@@ -24,6 +24,9 @@
     <Filter Include="Source Files\include">
       <UniqueIdentifier>{1d972862-04eb-4b2e-9211-f4348b55d84e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\errors">
+      <UniqueIdentifier>{75ea56af-caec-4116-9a4e-8b2df073b09d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
@@ -111,6 +114,21 @@
     </None>
     <None Include="DecompiledScisl\ParseStrFuncs.scisl">
       <Filter>Resource Files\DecompiledScisl</Filter>
+    </None>
+    <None Include="errors\funcBeforeDef.scisl">
+      <Filter>Resource Files\errors</Filter>
+    </None>
+    <None Include="errors\undefinedFunc.scisl">
+      <Filter>Resource Files\errors</Filter>
+    </None>
+    <None Include="errors\undefinedLabel.scisl">
+      <Filter>Resource Files\errors</Filter>
+    </None>
+    <None Include="errors\undefinedVar.scisl">
+      <Filter>Resource Files\errors</Filter>
+    </None>
+    <None Include="errors\malformedDef.scisl">
+      <Filter>Resource Files\errors</Filter>
     </None>
   </ItemGroup>
 </Project>

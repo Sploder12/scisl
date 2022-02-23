@@ -1,0 +1,5 @@
+call cool
+
+def cool
+	print "nothing"
+endblock

@@ -1,0 +1,4 @@
+def cool
+	print "Nothing"
+
+call cool

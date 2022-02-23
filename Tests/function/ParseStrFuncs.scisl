@@ -6,7 +6,6 @@ ADDE sLen 1
 
 DEF getNext
 	SET ret ""
-	= t 0
 	SET c 0
 	LABEL gchr
 		CHRAT t line curChr

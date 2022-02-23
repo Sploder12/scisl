@@ -335,4 +335,64 @@ namespace Scisl
 			Assert::AreEqual(expected, opt);
 		}
 	};
+
+	TEST_CLASS(ERRORS)
+	{
+	public:
+		#define ERRORS_PATH "../../Tests/errors/"
+		TEST_METHOD(FuncBeforeDef)
+		{
+			scisl::removeAllVars();
+			
+			scisl::program* prog = scisl::compile(ERRORS_PATH "funcBeforeDef.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+
+		TEST_METHOD(MalformedDef)
+		{
+			scisl::removeAllVars();
+
+			scisl::program* prog = scisl::compile(ERRORS_PATH "malformedDef.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+
+		TEST_METHOD(UndefinedFunc)
+		{
+			scisl::removeAllVars();
+
+			scisl::program* prog = scisl::compile(ERRORS_PATH "undefinedFunc.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+
+		TEST_METHOD(UndefinedLabel)
+		{
+			scisl::removeAllVars();
+
+			scisl::program* prog = scisl::compile(ERRORS_PATH "undefinedLabel.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+
+		TEST_METHOD(UndefinedVar)
+		{
+			scisl::removeAllVars();
+
+			scisl::program* prog = scisl::compile(ERRORS_PATH "undefinedVar.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+	};
 }
