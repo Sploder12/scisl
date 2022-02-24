@@ -1,0 +1,5 @@
+print 0
+def fnc
+jmp outside
+endblock
+label outside

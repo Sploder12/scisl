@@ -95,7 +95,7 @@ namespace scisl
 			type atype = bi.instr.arguments.arguments[i].val.type;
 			if (!isRightType(curType, atype))
 			{
-				std::cout << "SCISL COMPILER ERROR: LINE: " << lineNum << ", Expected " << typeCharToStr(curType) << ", Got " << typeToStr(atype) << ".\n";
+				std::cout << "SCISL COMPILER ERROR: line: " << lineNum << ", Expected " << typeCharToStr(curType) << ", Got " << typeToStr(atype) << ".\n";
 				return false;
 			}
 		}
@@ -286,6 +286,23 @@ namespace scisl
 		return { opt, typeCheck(opt) };
 	}
 
+	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id, stlFuncs lblFnc = stlFuncs::label)
+	{
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (isFunc(cur.meta, lblFnc))
+			{
+				std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				if (v == id)
+				{
+					return i;
+				}
+			}
+		}
+		return (unsigned int)(instructions.size());
+	}
+
 	bool finalize(std::vector<precompInstr>& instructions)
 	{
 		std::vector<std::pair<std::string, value*>> remainingVars;
@@ -358,6 +375,61 @@ namespace scisl
 		return true;
 	}
 
+	bool detectErrors(std::vector<precompInstr>& instructions)
+	{
+		bool detected = false;
+		unsigned int curBlockStart = 0;
+		unsigned int curBlockEnd = instructions.size();
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+
+			if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+			{
+				unsigned int loc = findBlockEnd(instructions, i);
+				if (loc == instructions.size())
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no endblock.\n";
+					detected = true;
+				}
+				curBlockStart = i;
+				curBlockEnd = loc;
+			}
+
+			if (isFunc(cur.meta, stlFuncs::call))
+			{
+				std::string& str = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				unsigned int loc = findLabel(instructions, str, stlFuncs::def);
+				if (loc == instructions.size())
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no associated function.\n";
+					detected = true;
+				}
+				else if (i < loc)
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " cannot be before function definition.\n";
+					detected = true;
+				}
+			}
+			else if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
+			{
+				std::string& str = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				unsigned int loc = findLabel(instructions, str, stlFuncs::label);
+				if (loc == instructions.size())
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no associated label.\n";
+					detected = true;
+				}
+				else if (loc >= curBlockEnd || loc <= curBlockStart)
+				{
+					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " jumps outside current block.\n";
+					detected = true;
+				}
+			}
+		}
+		return detected;
+	}
+
 	program* compile(const char* filename)
 	{
 		std::ifstream file(filename);
@@ -388,15 +460,21 @@ namespace scisl
 			}
 			file.close();
 
-			//@TODO fix memleak on error
-			if (!removeUnusedLabels(instructions)) return nullptr;
-			evaluateConstants(instructions, vars);
+			bool err = detectErrors(instructions);
+			if (err)
+			{
+				delete opt;
+				return nullptr;
+			}
+
+			removeUnusedLabels(instructions);
+			if (!evaluateConstants(instructions, vars)) return nullptr;
 			removeNOOP(instructions);
-			if (!removeUnreachableCode(instructions)) return nullptr;
+			removeUnreachableCode(instructions);
 			removeUnusedVars(instructions);
 			removeUnusedLabels(instructions);
 
-			if (!finalize(instructions)) return nullptr;
+			finalize(instructions);
 			removeNOOP(instructions);
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)

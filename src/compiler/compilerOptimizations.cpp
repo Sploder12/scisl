@@ -396,7 +396,7 @@ namespace scisl
 		return (unsigned int)(instructions.size());
 	}
 
-	bool removeUnusedLabels(std::vector<precompInstr>& instructions)
+	void removeUnusedLabels(std::vector<precompInstr>& instructions)
 	{
 		std::map<std::string, unsigned int> usedLabels;
 		std::vector<precompInstr> remaining;
@@ -410,11 +410,6 @@ namespace scisl
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
 					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val));
-					if (loc == instructions.size())
-					{
-						std::cout << "SCISL COMPILER ERROR: reference to non-existant label " << SCISL_CAST_STRING(label.val.val) << ".\n";
-						return false;
-					}
 
 					if (i + 1 == loc)
 					{
@@ -452,7 +447,6 @@ namespace scisl
 			}
 		}
 		instructions = std::move(remaining);
-		return true;
 	}
 
 	template <typename T>
@@ -468,7 +462,7 @@ namespace scisl
 		return false;
 	}
 
-	bool exploreBranch(std::vector<precompInstr>& instructions, std::vector<unsigned int>& reachedInstructions, unsigned int branchIdx)
+	void exploreBranch(std::vector<precompInstr>& instructions, std::vector<unsigned int>& reachedInstructions, unsigned int branchIdx)
 	{
 		while (branchIdx < instructions.size())
 		{
@@ -480,41 +474,19 @@ namespace scisl
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
 					const unsigned int idx = findLabel(instructions, v);
-					if (idx >= instructions.size())
-					{
-						std::cout << "SCISL COMPILER ERROR: jmp uses undefined label " << v << ".\n";
-						return false;
-					}
 					return exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::cjmp))
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v);
-					if (idx >= instructions.size())
-					{
-						std::cout << "SCISL COMPILER ERROR: cjmp uses undefined label " << v << ".\n";
-						return false;
-					}
-					bool r = exploreBranch(instructions, reachedInstructions, idx);
-					if (!r) return false;
+					exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::call))
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v);
-					if (idx >= instructions.size())
-					{
-						std::cout << "SCISL COMPILER ERROR: call uses undefined function " << v << ".\n";
-						return false;
-					}
-					else if (idx > branchIdx)
-					{
-						std::cout << "SCISL COMPILER ERROR: call to later function not allowed " << v << ".\n";
-						return false;
-					}
-					bool r = exploreBranch(instructions, reachedInstructions, idx + 1);
-					if (!r) return false;
+					exploreBranch(instructions, reachedInstructions, idx + 1);
 				}
 				else if (isFunc(cur.meta, stlFuncs::def))
 				{
@@ -523,40 +495,36 @@ namespace scisl
 				}
 				else if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
 				{
-					bool r = exploreBranch(instructions, reachedInstructions, branchIdx);
-					if (!r) return false;
+					exploreBranch(instructions, reachedInstructions, branchIdx);
 					unsigned int idx = findBlockEnd(instructions, branchIdx);
 					branchIdx = idx;
 				}
 				else if (isFunc(cur.meta, stlFuncs::breakp))
 				{
 					unsigned int block = findBlockEnd(instructions, branchIdx);
-					if (block != instructions.size()) return true;
+					if (block != instructions.size()) return; //return if in a block
 				}
 				else if (isFunc(cur.meta, stlFuncs::exit) || isFunc(cur.meta, stlFuncs::blockend))
 				{
-					return true;
+					return;
 				}
 
 				branchIdx++;
 			}
 			else
 			{
-				return true;
+				return;
 			}
 		}
-		return true;
 	}
 
-	bool removeUnreachableCode(std::vector<precompInstr>& instructions)
+	void removeUnreachableCode(std::vector<precompInstr>& instructions)
 	{
 		std::vector<precompInstr> remaining;
 		std::vector<unsigned int> reachedInstructions;
 		reachedInstructions.reserve(instructions.size());
-		if (!exploreBranch(instructions, reachedInstructions, 0))
-		{
-			return false;
-		}
+
+		exploreBranch(instructions, reachedInstructions, 0);
 
 		remaining.reserve(reachedInstructions.size());
 		for (unsigned int i = 0; i < instructions.size(); i++)
@@ -568,6 +536,5 @@ namespace scisl
 		}
 
 		instructions = std::move(remaining);
-		return true;
 	}
 }

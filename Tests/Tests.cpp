@@ -351,6 +351,17 @@ namespace Scisl
 			delete prog;
 		}
 
+		TEST_METHOD(JumpOutBlock)
+		{
+			scisl::removeAllVars();
+
+			scisl::program* prog = scisl::compile(ERRORS_PATH "jumpOutBlock.scisl");
+
+			if (prog != nullptr) Assert::Fail();
+
+			delete prog;
+		}
+
 		TEST_METHOD(MalformedDef)
 		{
 			scisl::removeAllVars();

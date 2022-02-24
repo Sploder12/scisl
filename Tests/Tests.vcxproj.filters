@@ -130,5 +130,8 @@
     <None Include="errors\malformedDef.scisl">
       <Filter>Resource Files\errors</Filter>
     </None>
+    <None Include="errors\jumpOutBlock.scisl">
+      <Filter>Resource Files\errors</Filter>
+    </None>
   </ItemGroup>
 </Project>

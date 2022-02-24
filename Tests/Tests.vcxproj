@@ -187,6 +187,7 @@
     <None Include="DecompiledScisl\StrAdd.scisl" />
     <None Include="DecompiledScisl\TwoBalls.scisl" />
     <None Include="errors\funcBeforeDef.scisl" />
+    <None Include="errors\jumpOutBlock.scisl" />
     <None Include="errors\malformedDef.scisl" />
     <None Include="errors\undefinedFunc.scisl" />
     <None Include="errors\undefinedLabel.scisl" />

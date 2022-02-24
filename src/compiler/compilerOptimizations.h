@@ -30,9 +30,9 @@ namespace scisl
 
 	void removeUnusedVars(std::vector<precompInstr>& instructions);
 
-	bool removeUnusedLabels(std::vector<precompInstr>& instructions);
+	void removeUnusedLabels(std::vector<precompInstr>& instructions);
 
-	bool removeUnreachableCode(std::vector<precompInstr>& instructions);
+	void removeUnreachableCode(std::vector<precompInstr>& instructions);
 }
 
 #endif
