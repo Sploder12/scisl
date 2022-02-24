@@ -138,35 +138,26 @@ namespace scisl
 		return true;
 	}
 
-	inline bool handleNoMod(precompInstr& i, std::map<std::string, value*>& evalVal)
+	inline void handleNoMod(precompInstr& i, std::map<std::string, value*>& evalVal)
 	{
 		for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
 		{
 			arg& cur = i.instr.arguments.arguments[j];
 			if (cur.argType == argType::variable)
 			{
-				if (evalVal.contains(SCISL_CAST_STRING(cur.val.val)))
+				value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
+				if (val != nullptr)
 				{
-					value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
-					if (val != nullptr)
-					{
-						cur.argType = argType::constant;
-						delete (std::string*)(cur.val.val);
-						cur.val = *val;
-					}
-				}
-				else
-				{
-					std::cout << "SCISL COMPILER ERROR: variable " << SCISL_CAST_STRING(cur.val.val) << " referenced before being defined by SET by " << i.meta.funcName << ".\n";
-					return false;
+					cur.argType = argType::constant;
+					delete (std::string*)(cur.val.val);
+					cur.val = *val;
 				}
 			}
 		}
-		return true;
 	}
 
 	//done pretty early, essentially runs the program to figure out if things can be figured out ahead of time
-	bool evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars)
+	void evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<precompInstr> newProcess;
 		newProcess.reserve(process.size());
@@ -212,12 +203,9 @@ namespace scisl
 
 			if ((i.meta.optimizerFlags & SCISL_OP_NO_MOD) > 0) //doesn't modify anything, good!
 			{
-				if (handleNoMod(i, evalVal))
-				{
-					newProcess.push_back(std::move(i));
-					continue;
-				}
-				return false; //an error can be detected here
+				handleNoMod(i, evalVal);
+				newProcess.push_back(std::move(i));
+				continue;
 			}
 
 
@@ -254,11 +242,6 @@ namespace scisl
 			if (!evalVal.contains(SCISL_CAST_STRING(modified.val.val))) //initialization
 			{
 				type t = inferType(i, i.instr.arguments.arguments[1].val.type);
-				if (t == type::error)
-				{
-					std::cout << "SCISL COMPILER ERROR: " << i.meta.funcName << " cannot infer type to be used to initialize.\n";
-					return false;
-				}
 				value* n = new value(createTemporary(t));
 				evalVal.insert({ SCISL_CAST_STRING(modified.val.val), n });
 			}
@@ -314,7 +297,6 @@ namespace scisl
 		{
 			delete i.second;
 		}
-		return true;
 	}
 
 	void removeNOOP(std::vector<precompInstr>& instructions)

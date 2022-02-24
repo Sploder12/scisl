@@ -24,7 +24,7 @@ namespace scisl
 
 	type inferType(const precompInstr& instr, type nextArgType = type::error);
 
-	bool evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars);
+	void evaluateConstants(std::vector<precompInstr>& process, std::vector<std::pair<std::string, type>>& vars);
 
 	void removeNOOP(std::vector<precompInstr>& instructions);
 
