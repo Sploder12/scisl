@@ -286,24 +286,7 @@ namespace scisl
 		return { opt, typeCheck(opt) };
 	}
 
-	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id, stlFuncs lblFnc = stlFuncs::label)
-	{
-		for (unsigned int i = 0; i < instructions.size(); i++)
-		{
-			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, lblFnc))
-			{
-				std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-				if (v == id)
-				{
-					return i;
-				}
-			}
-		}
-		return (unsigned int)(instructions.size());
-	}
-
-	bool finalize(std::vector<precompInstr>& instructions)
+	void finalize(std::vector<precompInstr>& instructions)
 	{
 		std::vector<std::pair<std::string, value*>> remainingVars;
 		std::map<std::string, unsigned int> labels;
@@ -353,16 +336,6 @@ namespace scisl
 			else if (isFunc(cur.meta, stlFuncs::def))
 			{
 				unsigned int loc = findBlockEnd(instructions, i);
-				if (loc == instructions.size())
-				{
-					std::cout << "SCISL COMPILER ERROR: def has no block end.\n";
-					for (auto& t : remainingVars)
-					{
-						t.second->val = nullptr;
-						delete t.second;
-					}
-					return false;
-				}
 				SCISL_CAST_INT(cur.instr.arguments.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
 			}
 		}
@@ -372,7 +345,6 @@ namespace scisl
 			t.second->val = nullptr;
 			delete t.second;
 		}
-		return true;
 	}
 
 	bool detectErrors(std::vector<precompInstr>& instructions)
@@ -425,55 +397,6 @@ namespace scisl
 				{
 					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " jumps outside current block.\n";
 					detected = true;
-				}
-			}
-			else
-			{
-				unsigned int c = 0;
-				if (cur.meta.optimizerFlags & SCISL_OP_INITIALIZES)
-				{
-					c = 2;
-					arg& init = cur.instr.arguments.arguments[0];
-					if (!vars.contains(SCISL_CAST_STRING(init.val.val)))
-					{
-						arg& next = cur.instr.arguments.arguments[1];
-						type t = inferType(cur, next.val.type);
-						if (next.argType == argType::variable)
-						{
-							if (!vars.contains(SCISL_CAST_STRING(next.val.val)))
-							{
-								std::cout << "SCISL COMPILER ERROR: line" << i << "\t" << cur.meta.funcName << " uses undeclared variable " << SCISL_CAST_STRING(next.val.val) << ".\n";
-								detected = true;
-							}
-							else
-							{
-								t = vars.at(SCISL_CAST_STRING(next.val.val));
-							}
-						}
-
-						if (t == type::error)
-						{
-							std::cout << "SCISL COMPILER ERROR: line" << i << "\t" << cur.meta.funcName << " cannot infer type to be used to initialize.\n";
-							detected = true;
-						}
-						else
-						{
-							vars.insert({ SCISL_CAST_STRING(init.val.val), t });
-						}
-					}
-				}
-
-				for ( ; c < cur.instr.arguments.argCount; c++)
-				{
-					arg& v = cur.instr.arguments.arguments[c];
-					if (v.argType == argType::variable)
-					{
-						if (!vars.contains(SCISL_CAST_STRING(v.val.val)))
-						{
-							std::cout << "SCISL COMPILER ERROR: line" << i << "\t" << cur.meta.funcName << " uses undeclared variable " << SCISL_CAST_STRING(v.val.val) << ".\n";
-							detected = true;
-						}
-					}
 				}
 			}
 		}

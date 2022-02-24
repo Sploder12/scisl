@@ -23,7 +23,7 @@ namespace scisl
 				if (--dl == 0) return i;
 			}
 		}
-		return instructions.size();
+		return (unsigned int)(instructions.size());
 	}
 
 	type inferType(const precompInstr& instr, type nextArgType)
@@ -361,23 +361,6 @@ namespace scisl
 		instructions = std::move(remaining);
 	}
 
-	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id)
-	{
-		for (unsigned int i = 0; i < instructions.size(); i++)
-		{
-			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::label) || isFunc(cur.meta, stlFuncs::def))
-			{
-				std::string v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-				if (v == id)
-				{
-					return i;
-				}
-			}
-		}
-		return (unsigned int)(instructions.size());
-	}
-
 	void removeUnusedLabels(std::vector<precompInstr>& instructions)
 	{
 		std::map<std::string, unsigned int> usedLabels;
@@ -391,7 +374,7 @@ namespace scisl
 				arg& label = instructions[i].instr.arguments.arguments[0];
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
-					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val));
+					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val), stlFuncs::label);
 
 					if (i + 1 == loc)
 					{
@@ -455,19 +438,19 @@ namespace scisl
 				if (isFunc(cur.meta, stlFuncs::jmp))
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-					const unsigned int idx = findLabel(instructions, v);
+					const unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					return exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::cjmp))
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-					unsigned int idx = findLabel(instructions, v);
+					unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::call))
 				{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
-					unsigned int idx = findLabel(instructions, v);
+					unsigned int idx = findLabel(instructions, v, stlFuncs::def);
 					exploreBranch(instructions, reachedInstructions, idx + 1);
 				}
 				else if (isFunc(cur.meta, stlFuncs::def))

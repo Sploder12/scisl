@@ -20,6 +20,24 @@ namespace scisl
 		return vars.size();
 	}
 
+	enum class stlFuncs : unsigned short;
+	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id, stlFuncs lblFnc)
+	{
+		for (unsigned int i = 0; i < instructions.size(); i++)
+		{
+			precompInstr& cur = instructions[i];
+			if (cur.meta.funcID == (unsigned short)(lblFnc))
+			{
+				std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				if (v == id)
+				{
+					return i;
+				}
+			}
+		}
+		return (unsigned int)(instructions.size());
+	}
+
 	inline unsigned int findBlockEnd(std::vector<precompInstr>& instructions, unsigned int start);
 
 	type inferType(const precompInstr& instr, type nextArgType = type::error);
