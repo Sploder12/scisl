@@ -5,6 +5,6 @@ namespace scisl
 	void instruction::run(program& process)
 	{
 		if (func == nullptr) return;
-		func(process, arguments);
+		func(process, *this);
 	}
 }

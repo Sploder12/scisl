@@ -8,11 +8,6 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #define DECOMP_PATH "../../Tests/DecompiledScisl/"
 
-void help(scisl::program& process, const scisl::args& args)
-{
-	process.retVal = 1337;
-}
-
 namespace Scisl
 {
 	TEST_CLASS(SCRIPTING)

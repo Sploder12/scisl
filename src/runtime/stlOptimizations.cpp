@@ -7,9 +7,9 @@ namespace scisl
 	inline void toNOOP(precompInstr& instruct)
 	{
 		instruct.instr.func = nullptr;
-		delete[] instruct.instr.arguments.arguments;
-		instruct.instr.arguments.arguments = nullptr;
-		instruct.instr.arguments.argCount = 0;
+		delete[] instruct.instr.arguments;
+		instruct.instr.arguments = nullptr;
+		instruct.instr.argCount = 0;
 		instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
 	}
 
@@ -52,12 +52,12 @@ namespace scisl
 		std::vector<arg> realArgs;
 		for (unsigned int i = 0; i < startIDX; i++)
 		{
-			realArgs.push_back(std::move(instruct.instr.arguments.arguments[i]));
+			realArgs.push_back(std::move(instruct.instr.arguments[i]));
 		}
 
-		for (unsigned int i = startIDX; i < instruct.instr.arguments.argCount; i++)
+		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
 		{
-			arg& cur = instruct.instr.arguments.arguments[i];
+			arg& cur = instruct.instr.arguments[i];
 			if (cur.argType == argType::constant)
 			{
 				switch (cur.val.type)
@@ -107,12 +107,12 @@ namespace scisl
 			realArgs.push_back(std::move(cur));
 		}
 
-		delete[] instruct.instr.arguments.arguments;
-		instruct.instr.arguments.argCount = (unsigned char)(realArgs.size());
-		instruct.instr.arguments.arguments = new arg[realArgs.size()];
+		delete[] instruct.instr.arguments;
+		instruct.instr.argCount = (unsigned char)(realArgs.size());
+		instruct.instr.arguments = new arg[realArgs.size()];
 		for (unsigned int i = 0; i < realArgs.size(); i++)
 		{
-			instruct.instr.arguments.arguments[i] = std::move(realArgs[i]);
+			instruct.instr.arguments[i] = std::move(realArgs[i]);
 		}
 		firstStr.val = nullptr;
 		firstInt.val = nullptr;
@@ -124,12 +124,12 @@ namespace scisl
 		std::vector<arg> realArgs;
 		for (unsigned int i = 0; i < startIDX; i++)
 		{
-			realArgs.push_back(std::move(instruct.instr.arguments.arguments[i]));
+			realArgs.push_back(std::move(instruct.instr.arguments[i]));
 		}
 
-		for (unsigned int i = startIDX; i < instruct.instr.arguments.argCount; i++)
+		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
 		{
-			arg& cur = instruct.instr.arguments.arguments[i];
+			arg& cur = instruct.instr.arguments[i];
 			if (cur.argType == argType::constant)
 			{
 				switch (cur.val.type)
@@ -139,7 +139,7 @@ namespace scisl
 					break;
 				case type::floating:
 				{
-					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments.arguments[i].val.val);
+					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments[i].val.val);
 					if (val != identityVal)
 					{
 						realArgs.push_back(std::move(cur));
@@ -148,7 +148,7 @@ namespace scisl
 				}
 				case type::integer:
 				{
-					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments.arguments[i].val.val);
+					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments[i].val.val);
 					if (val != identityVal)
 					{
 						realArgs.push_back(std::move(cur));
@@ -161,18 +161,18 @@ namespace scisl
 			realArgs.push_back(std::move(cur));
 		}
 
-		delete[] instruct.instr.arguments.arguments;
-		instruct.instr.arguments.argCount = (unsigned char)(realArgs.size());
-		instruct.instr.arguments.arguments = new arg[realArgs.size()];
+		delete[] instruct.instr.arguments;
+		instruct.instr.argCount = (unsigned char)(realArgs.size());
+		instruct.instr.arguments = new arg[realArgs.size()];
 		for (unsigned int i = 0; i < realArgs.size(); i++)
 		{
-			instruct.instr.arguments.arguments[i] = std::move(realArgs[i]);
+			instruct.instr.arguments[i] = std::move(realArgs[i]);
 		}
 	}
 
 	inline bool settingConst(precompInstr& instruct)
 	{
-		if (instruct.instr.arguments.arguments[0].argType == argType::constant)
+		if (instruct.instr.arguments[0].argType == argType::constant)
 		{ //setting a constant
 			toNOOP(instruct);
 			return true;
@@ -184,8 +184,8 @@ namespace scisl
 	{
 		if (settingConst(instruct)) return;
 
-		arg& first = instruct.instr.arguments.arguments[0];
-		arg& second = instruct.instr.arguments.arguments[1];
+		arg& first = instruct.instr.arguments[0];
+		arg& second = instruct.instr.arguments[1];
 		if (first.argType == argType::variable && second.argType == argType::variable)
 		{
 			if (SCISL_CAST_STRING(first.val.val) == SCISL_CAST_STRING(second.val.val))
@@ -204,7 +204,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 0);
 
-		if (instruct.instr.arguments.argCount == 2)
+		if (instruct.instr.argCount == 2)
 		{
 			toSET(instruct);
 			return;
@@ -219,7 +219,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 0);
 
-		if (instruct.instr.arguments.argCount == 1)
+		if (instruct.instr.argCount == 1)
 		{
 			toNOOP(instruct);
 			return;
@@ -232,7 +232,7 @@ namespace scisl
 
 		removeIdentity(instruct, 2, 0);
 
-		if (instruct.instr.arguments.argCount == 2)
+		if (instruct.instr.argCount == 2)
 		{
 			toSET(instruct);
 			return;
@@ -245,7 +245,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 0);
 
-		if (instruct.instr.arguments.argCount == 1)
+		if (instruct.instr.argCount == 1)
 		{
 			toNOOP(instruct);
 			return;
@@ -260,7 +260,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 1);
 
-		if (instruct.instr.arguments.argCount == 2)
+		if (instruct.instr.argCount == 2)
 		{
 			toSET(instruct);
 			return;
@@ -275,7 +275,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 1);
 
-		if (instruct.instr.arguments.argCount == 1)
+		if (instruct.instr.argCount == 1)
 		{
 			toNOOP(instruct);
 			return;
@@ -288,7 +288,7 @@ namespace scisl
 
 		removeIdentity(instruct, 2, 1);
 
-		if (instruct.instr.arguments.argCount == 2)
+		if (instruct.instr.argCount == 2)
 		{
 			toSET(instruct);
 			return;
@@ -301,7 +301,7 @@ namespace scisl
 
 		removeIdentity(instruct, 1, 1);
 
-		if (instruct.instr.arguments.argCount == 1)
+		if (instruct.instr.argCount == 1)
 		{
 			toNOOP(instruct);
 			return;
@@ -390,7 +390,7 @@ namespace scisl
 
 	void cjmpPeep(precompInstr& instruct)
 	{
-		arg& cond = instruct.instr.arguments.arguments[1];
+		arg& cond = instruct.instr.arguments[1];
 		if (cond.argType == argType::constant)
 		{
 			value& v = cond.val;
@@ -399,14 +399,14 @@ namespace scisl
 			case type::integer:
 				if (SCISL_CAST_INT(v.val) > 0)
 				{
-					args t;
+					instruction t;
 					t.argCount = 1;
 					t.arguments = new arg[1];
-					t.arguments[0] = std::move(instruct.instr.arguments.arguments[0]);
+					t.arguments[0] = std::move(instruct.instr.arguments[0]);
 					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
 					instruct.instr.func = instruct.meta.fnc;
-					delete[] instruct.instr.arguments.arguments;
-					instruct.instr.arguments = t;
+					delete[] instruct.instr.arguments;
+					instruct.instr = t;
 				}
 				else
 				{
@@ -416,14 +416,14 @@ namespace scisl
 			case type::floating:
 				if (SCISL_CAST_FLOAT(v.val) > 0)
 				{
-					args t;
+					instruction t;
 					t.argCount = 1;
 					t.arguments = new arg[1];
-					t.arguments[0] = std::move(instruct.instr.arguments.arguments[0]);
+					t.arguments[0] = std::move(instruct.instr.arguments[0]);
 					instruct.meta = stlFuncMeta[(unsigned short)(stlFuncs::jmp)];
 					instruct.instr.func = instruct.meta.fnc;
-					delete[] instruct.instr.arguments.arguments;
-					instruct.instr.arguments = t;
+					delete[] instruct.instr.arguments;
+					instruct.instr = t;
 				}
 				else
 				{

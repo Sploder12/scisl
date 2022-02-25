@@ -42,9 +42,9 @@ namespace scisl
 				auto& cur = instructions[i];
 				std::string line = funcToStr(cur.func);
 
-				for (unsigned short j = 0; j < cur.arguments.argCount; j++)
+				for (unsigned short j = 0; j < cur.argCount; j++)
 				{
-					line += ' ' + cur.arguments.arguments[j].toString();
+					line += ' ' + cur.arguments[j].toString();
 				}
 
 				file << line;
@@ -91,9 +91,9 @@ namespace scisl
 		std::map<void*, type> varz;
 		for (instruction& i : instructions)
 		{
-			for (unsigned int j = 0; j < i.arguments.argCount; j++)
+			for (unsigned int j = 0; j < i.argCount; j++)
 			{
-				arg& cur = i.arguments.arguments[j];
+				arg& cur = i.arguments[j];
 				if (cur.argType == argType::variable)
 				{
 					if (!varz.contains(cur.val.val))
@@ -106,7 +106,7 @@ namespace scisl
 				}
 			}
 
-			delete[] i.arguments.arguments;
+			delete[] i.arguments;
 		}
 
 		for (auto& j : varz)

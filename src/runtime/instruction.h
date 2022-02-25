@@ -5,37 +5,35 @@
 
 namespace scisl
 {
-	struct arg;
 	struct program;
+	struct instruction;
+	typedef void (*scislFunc)(program&, const instruction&);
 
-	struct args
-	{
-		arg* arguments;
-		unsigned char argCount;
-	};
-
-	typedef void (*scislFunc)(program&, const args&);
-
+	struct arg;
 	struct instruction
 	{
 		scislFunc func;
-		args arguments;
+		arg* arguments;
+		unsigned char argCount;
 
 		void run(program& process);
 	};
 
 	struct precompInstr;
 	typedef void (*scislPeephole)(precompInstr&);
+	enum class stlFuncs : unsigned short;
+	enum class type : unsigned char;
 	struct scislfuncMeta
 	{
-		unsigned short funcID;
+		stlFuncs funcID;
 		std::string funcName;
 		scislFunc fnc;
 		scislPeephole peep;
 		unsigned int expectedArgs;
 		unsigned int minArgs;
 		std::string argTypes;
-		unsigned int optimizerFlags;
+		type initializes;
+		unsigned int flags;
 	};
 
 	struct precompInstr

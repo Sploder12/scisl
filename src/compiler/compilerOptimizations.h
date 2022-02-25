@@ -26,9 +26,9 @@ namespace scisl
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
-			if (cur.meta.funcID == (unsigned short)(lblFnc))
+			if (cur.meta.funcID == lblFnc)
 			{
-				std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				if (v == id)
 				{
 					return i;

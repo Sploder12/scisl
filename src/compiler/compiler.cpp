@@ -88,11 +88,11 @@ namespace scisl
 		if (tstr == "") return true;
 
 		char curType = 'a';
-		for (unsigned int i = 0; i < bi.instr.arguments.argCount; i++)
+		for (unsigned int i = 0; i < bi.instr.argCount; i++)
 		{
 			if (i < tstr.size()) curType = tstr[i];
 
-			type atype = bi.instr.arguments.arguments[i].val.type;
+			type atype = bi.instr.arguments[i].val.type;
 			if (!isRightType(curType, atype))
 			{
 				std::cout << "SCISL COMPILER ERROR: line: " << lineNum << ", Expected " << typeCharToStr(curType) << ", Got " << typeToStr(atype) << ".\n";
@@ -106,9 +106,9 @@ namespace scisl
 	{
 		precompInstr opt;
 		opt.meta = stlFuncMeta[(unsigned short)(stlFuncs::noop)];
-		opt.instr.arguments.argCount = opt.meta.expectedArgs;
+		opt.instr.argCount = opt.meta.expectedArgs;
 		opt.instr.func = opt.meta.fnc;
-		opt.instr.arguments.arguments = nullptr;
+		opt.instr.arguments = nullptr;
 		return opt;
 	}
 	
@@ -226,14 +226,13 @@ namespace scisl
 			return { opt, false }; //error
 		}
 
-		args& arguments = opt.instr.arguments;
-		arguments.arguments = new arg[argCount];
-		arguments.argCount = argCount;
+		opt.instr.arguments = new arg[argCount];
+		opt.instr.argCount = argCount;
 
 		for (unsigned char i = 0; i < argCount; i++)
 		{
 			std::string& cur = things[i + 1];
-			arg* carg = &arguments.arguments[i];
+			arg* carg = &opt.instr.arguments[i];
 
 			//labels
 			if (i == 0 && (fID == stlFuncs::label || fID == stlFuncs::jmp || fID == stlFuncs::cjmp || fID == stlFuncs::def  || fID == stlFuncs::call))
@@ -299,15 +298,15 @@ namespace scisl
 
 			if (isFunc(cur.meta, stlFuncs::label) || isFunc(cur.meta, stlFuncs::def))
 			{
-				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val) , i });
-				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
-				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(i);
+				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments[0].val.val) , i });
+				delete (std::string*)(cur.instr.arguments[0].val.val);
+				cur.instr.arguments[0].val.val = new SCISL_INT_PRECISION(i);
 				continue;
 			}
 
-			for (unsigned int j = 0; j < instructions[i].instr.arguments.argCount; j++)
+			for (unsigned int j = 0; j < instructions[i].instr.argCount; j++)
 			{
-				arg& cur = instructions[i].instr.arguments.arguments[j];
+				arg& cur = instructions[i].instr.arguments[j];
 				if (cur.argType == argType::variable)
 				{
 					unsigned short loc = (unsigned short)(findV(remainingVars, SCISL_CAST_STRING(cur.val.val)));
@@ -329,14 +328,14 @@ namespace scisl
 			precompInstr& cur = instructions[i];
 			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp) || isFunc(cur.meta, stlFuncs::call))
 			{
-				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val)];
-				delete (std::string*)(cur.instr.arguments.arguments[0].val.val);
-				cur.instr.arguments.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
+				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments[0].val.val)];
+				delete (std::string*)(cur.instr.arguments[0].val.val);
+				cur.instr.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
 			}
 			else if (isFunc(cur.meta, stlFuncs::def))
 			{
 				unsigned int loc = findBlockEnd(instructions, i);
-				SCISL_CAST_INT(cur.instr.arguments.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
+				SCISL_CAST_INT(cur.instr.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
 			}
 		}
 
@@ -352,12 +351,12 @@ namespace scisl
 		bool detected = false;
 		std::map<std::string, type> vars;
 		unsigned int curBlockStart = 0;
-		unsigned int curBlockEnd = instructions.size();
+		unsigned int curBlockEnd = (unsigned int)(instructions.size());
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
 
-			if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+			if (cur.meta.flags & SCISL_F_BLOCK)
 			{
 				unsigned int loc = findBlockEnd(instructions, i);
 				if (loc == instructions.size())
@@ -371,7 +370,7 @@ namespace scisl
 
 			if (isFunc(cur.meta, stlFuncs::call))
 			{
-				std::string& str = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				std::string& str = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				unsigned int loc = findLabel(instructions, str, stlFuncs::def);
 				if (loc == instructions.size())
 				{
@@ -386,7 +385,7 @@ namespace scisl
 			}
 			else if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
 			{
-				std::string& str = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+				std::string& str = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				unsigned int loc = findLabel(instructions, str, stlFuncs::label);
 				if (loc == instructions.size())
 				{

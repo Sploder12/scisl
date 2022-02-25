@@ -14,7 +14,7 @@ namespace scisl
 		for (unsigned int i = start + 1; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
-			if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+			if (cur.meta.flags & SCISL_F_BLOCK)
 			{
 				dl++;
 			}
@@ -28,9 +28,9 @@ namespace scisl
 
 	type inferType(const precompInstr& instr, type nextArgType)
 	{
-		if (instr.meta.optimizerFlags & SCISL_OP_INITIALIZES)
+		if (instr.meta.flags & SCISL_F_INITIALIZES)
 		{
-			type rtype = initializes[instr.meta.funcID];
+			type rtype = instr.meta.initializes;
 			if (rtype == type::error)
 			{
 				return nextArgType;
@@ -45,36 +45,37 @@ namespace scisl
 		precompInstr opt;
 		opt.meta = stlFuncMeta[(unsigned short)(stlFuncs::set)];
 		opt.instr.func = opt.meta.fnc;
-		opt.instr.arguments.argCount = 2;
-		opt.instr.arguments.arguments = new arg[2];
-		opt.instr.arguments.arguments[0].argType = argType::variable;
-		opt.instr.arguments.arguments[0].val.type = var->type;
-		opt.instr.arguments.arguments[0].val.val = new std::string(varName);
+		opt.instr.argCount = 2;
+		opt.instr.arguments = new arg[2];
+		opt.instr.arguments[0].argType = argType::variable;
+		opt.instr.arguments[0].val.type = var->type;
+		opt.instr.arguments[0].val.val = new std::string(varName);
 
-		opt.instr.arguments.arguments[1].argType = argType::constant;
-		opt.instr.arguments.arguments[1].val.type = var->type;
+		opt.instr.arguments[1].argType = argType::constant;
+		opt.instr.arguments[1].val.type = var->type;
 		switch (var->type)
 		{
 		case type::string:
-			opt.instr.arguments.arguments[1].val.val = new std::string(SCISL_CAST_STRING(var->val));
+			opt.instr.arguments[1].val.val = new std::string(SCISL_CAST_STRING(var->val));
 			break;
 		case type::integer:
-			opt.instr.arguments.arguments[1].val.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(var->val));
+			opt.instr.arguments[1].val.val = new SCISL_INT_PRECISION(SCISL_CAST_INT(var->val));
 			break;
 		case type::floating:
-			opt.instr.arguments.arguments[1].val.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(var->val));
+			opt.instr.arguments[1].val.val = new SCISL_FLOAT_PRECISION(SCISL_CAST_FLOAT(var->val));
 			break;
 		}
 		return opt;
 	}
 
-	inline void simulate(std::map<std::string, value*>& vals, args& argz, scislFunc target)
+	inline void simulate(std::map<std::string, value*>& vals, instruction& instr)
 	{
 		program fakeP;
 		std::vector<std::pair<std::string, value*>> virtualVars;
-		args fakeArgs;
-		fakeArgs.argCount = argz.argCount;
-		fakeArgs.arguments = new arg[argz.argCount];
+
+		instruction fakeArgs;
+		fakeArgs.argCount = instr.argCount;
+		fakeArgs.arguments = new arg[instr.argCount];
 
 		for (auto& v : vals)
 		{
@@ -84,9 +85,9 @@ namespace scisl
 			}
 		}
 
-		for (unsigned int i = 0; i < argz.argCount; i++)
+		for (unsigned int i = 0; i < instr.argCount; i++)
 		{
-			arg& cur = argz.arguments[i];
+			arg& cur = instr.arguments[i];
 			if (cur.argType == argType::variable)
 			{
 				fakeArgs.arguments[i].argType = argType::variable;
@@ -98,6 +99,7 @@ namespace scisl
 			fakeArgs.arguments[i] = cur;
 		}
 
+		scislFunc target = instr.func;
 		target(fakeP, fakeArgs);
 
 		delete[] fakeArgs.arguments;
@@ -119,9 +121,9 @@ namespace scisl
 
 	inline bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
 	{
-		for (unsigned int j = 1; j < i.instr.arguments.argCount; j++)
+		for (unsigned int j = 1; j < i.instr.argCount; j++)
 		{
-			arg& cur = i.instr.arguments.arguments[j];
+			arg& cur = i.instr.arguments[j];
 			if (cur.argType == argType::constant) continue;
 
 			if (cur.argType == argType::interop)
@@ -140,9 +142,9 @@ namespace scisl
 
 	inline void handleNoMod(precompInstr& i, std::map<std::string, value*>& evalVal)
 	{
-		for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+		for (unsigned int j = 0; j < i.instr.argCount; j++)
 		{
-			arg& cur = i.instr.arguments.arguments[j];
+			arg& cur = i.instr.arguments[j];
 			if (cur.argType == argType::variable)
 			{
 				value* val = evalVal.at(SCISL_CAST_STRING(cur.val.val));
@@ -168,15 +170,15 @@ namespace scisl
 		{
 			if (isFunc(i.meta, stlFuncs::noop)) //removes NOOP
 			{
-				delete[] i.instr.arguments.arguments;
+				delete[] i.instr.arguments;
 				continue;
 			}
 
-			if ((i.meta.optimizerFlags & SCISL_OP_NO_JMP) == 0) //jumps
+			if ((i.meta.flags & SCISL_F_NO_JMP) == 0) //jumps
 			{
 				if (isFunc(i.meta, stlFuncs::cjmp)) //there is a chance a cjmp can be reduced which makes way for HUGE optimizations later
 				{
-					arg& c = i.instr.arguments.arguments[1];
+					arg& c = i.instr.arguments[1];
 					if (c.argType == argType::variable)
 					{
 						if (evalVal.contains(SCISL_CAST_STRING(c.val.val)))
@@ -201,7 +203,7 @@ namespace scisl
 				continue;
 			}
 
-			if ((i.meta.optimizerFlags & SCISL_OP_NO_MOD) > 0) //doesn't modify anything, good!
+			if ((i.meta.flags & SCISL_F_NO_MOD) > 0) //doesn't modify anything, good!
 			{
 				handleNoMod(i, evalVal);
 				newProcess.push_back(std::move(i));
@@ -209,7 +211,7 @@ namespace scisl
 			}
 
 
-			bool simulatable = (i.meta.optimizerFlags & SCISL_OP_SIMABLE);
+			bool simulatable = (i.meta.flags & SCISL_F_SIMABLE);
 			if (!simulatable && !isSTLfunc((stlFuncs)(i.meta.funcID))) //non simulatble registered funcs (that modify)
 			{
 				invalidateVars(newProcess, evalVal);
@@ -217,12 +219,12 @@ namespace scisl
 				continue;
 			}
 
-			arg& modified = i.instr.arguments.arguments[0];
+			arg& modified = i.instr.arguments[0];
 			if (modified.argType != argType::variable) //the modified var is registered
 			{
-				for (unsigned int j = 1; j < i.instr.arguments.argCount; j++) //apply our knowledge to the args
+				for (unsigned int j = 1; j < i.instr.argCount; j++) //apply our knowledge to the args
 				{
-					arg& cur = i.instr.arguments.arguments[j];
+					arg& cur = i.instr.arguments[j];
 
 					if (cur.argType == argType::variable)
 					{
@@ -241,7 +243,7 @@ namespace scisl
 
 			if (!evalVal.contains(SCISL_CAST_STRING(modified.val.val))) //initialization
 			{
-				type t = inferType(i, i.instr.arguments.arguments[1].val.type);
+				type t = inferType(i, i.instr.arguments[1].val.type);
 				value* n = new value(createTemporary(t));
 				evalVal.insert({ SCISL_CAST_STRING(modified.val.val), n });
 			}
@@ -254,7 +256,7 @@ namespace scisl
 			{
 				if (v == nullptr)
 				{
-					type t = inferType(i, i.instr.arguments.arguments[1].val.type);
+					type t = inferType(i, i.instr.arguments[1].val.type);
 					if (t != type::error)
 					{
 						v = new value(createTemporary(t));
@@ -267,8 +269,8 @@ namespace scisl
 
 				if (simulatable)
 				{
-					simulate(evalVal, i.instr.arguments, i.instr.func);
-					delete[] i.instr.arguments.arguments;
+					simulate(evalVal, i.instr);
+					delete[] i.instr.arguments;
 					continue;
 				}
 			}
@@ -311,7 +313,7 @@ namespace scisl
 			}
 			else
 			{
-				delete[] i.instr.arguments.arguments;
+				delete[] i.instr.arguments;
 			}
 		}
 		instructions = std::move(remaining);
@@ -325,9 +327,9 @@ namespace scisl
 
 		for (precompInstr& i : instructions)
 		{
-			for (unsigned int j = 0; j < i.instr.arguments.argCount; j++)
+			for (unsigned int j = 0; j < i.instr.argCount; j++)
 			{
-				arg& cur = i.instr.arguments.arguments[j];
+				arg& cur = i.instr.arguments[j];
 				if (cur.argType == argType::variable)
 				{
 					if (varCount.contains(SCISL_CAST_STRING(cur.val.val)))
@@ -346,12 +348,12 @@ namespace scisl
 		{
 			if (isFunc(i.meta, stlFuncs::set))
 			{
-				arg& cur = i.instr.arguments.arguments[0];
+				arg& cur = i.instr.arguments[0];
 				if (cur.argType == argType::variable)
 				{
 					if (varCount.at(SCISL_CAST_STRING(cur.val.val)) == 1)
 					{
-						delete[] i.instr.arguments.arguments;
+						delete[] i.instr.arguments;
 						continue;
 					}
 				}
@@ -371,7 +373,7 @@ namespace scisl
 		{
 			if (isFunc(instructions[i].meta, stlFuncs::jmp) || isFunc(instructions[i].meta, stlFuncs::cjmp))
 			{
-				arg& label = instructions[i].instr.arguments.arguments[0];
+				arg& label = instructions[i].instr.arguments[0];
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
 					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val), stlFuncs::label);
@@ -400,7 +402,7 @@ namespace scisl
 		{
 			if (isFunc(i.meta, stlFuncs::label))
 			{
-				arg& label = i.instr.arguments.arguments[0];
+				arg& label = i.instr.arguments[0];
 				if (usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
 					remaining.push_back(std::move(i));
@@ -437,19 +439,19 @@ namespace scisl
 				reachedInstructions.push_back(branchIdx);
 				if (isFunc(cur.meta, stlFuncs::jmp))
 				{
-					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					const unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					return exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::cjmp))
 				{
-					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					exploreBranch(instructions, reachedInstructions, idx);
 				}
 				else if (isFunc(cur.meta, stlFuncs::call))
 				{
-					std::string& v = SCISL_CAST_STRING(cur.instr.arguments.arguments[0].val.val);
+					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v, stlFuncs::def);
 					exploreBranch(instructions, reachedInstructions, idx + 1);
 				}
@@ -458,7 +460,7 @@ namespace scisl
 					unsigned int idx = findBlockEnd(instructions, branchIdx);
 					branchIdx = idx;
 				}
-				else if (cur.meta.optimizerFlags & SCISL_OP_BLOCK)
+				else if (cur.meta.flags & SCISL_F_BLOCK)
 				{
 					exploreBranch(instructions, reachedInstructions, branchIdx);
 					unsigned int idx = findBlockEnd(instructions, branchIdx);
