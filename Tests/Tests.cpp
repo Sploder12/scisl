@@ -287,7 +287,6 @@ namespace Scisl
 			Assert::AreEqual(s, first - second);
 			Assert::AreEqual(m, first * second);
 			Assert::AreEqual(d, first / second);
-			
 		}
 
 		TEST_METHOD(Factorial12)

@@ -42,5 +42,4 @@ namespace scisl
 		~arg();
 	};
 }
-
 #endif

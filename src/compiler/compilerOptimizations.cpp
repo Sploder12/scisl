@@ -437,43 +437,50 @@ namespace scisl
 			{
 				precompInstr& cur = instructions[branchIdx];
 				reachedInstructions.push_back(branchIdx);
-				if (isFunc(cur.meta, stlFuncs::jmp))
+				switch (cur.meta.funcID)
 				{
+				case stlFuncs::jmp:
+					{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					const unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					return exploreBranch(instructions, reachedInstructions, idx);
-				}
-				else if (isFunc(cur.meta, stlFuncs::cjmp))
-				{
+					}
+				case stlFuncs::cjmp:
+					{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					exploreBranch(instructions, reachedInstructions, idx);
-				}
-				else if (isFunc(cur.meta, stlFuncs::call))
-				{
+					break;
+					}
+				case stlFuncs::call:
+					{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 					unsigned int idx = findLabel(instructions, v, stlFuncs::def);
 					exploreBranch(instructions, reachedInstructions, idx + 1);
-				}
-				else if (isFunc(cur.meta, stlFuncs::def))
-				{
+					break;
+					}
+				case stlFuncs::def:
+					{
 					unsigned int idx = findBlockEnd(instructions, branchIdx);
 					branchIdx = idx;
-				}
-				else if (cur.meta.flags & SCISL_F_BLOCK)
-				{
-					exploreBranch(instructions, reachedInstructions, branchIdx);
-					unsigned int idx = findBlockEnd(instructions, branchIdx);
-					branchIdx = idx;
-				}
-				else if (isFunc(cur.meta, stlFuncs::breakp))
-				{
+					break;
+					}
+				case stlFuncs::breakp:
+					{
 					unsigned int block = findBlockEnd(instructions, branchIdx);
 					if (block != instructions.size()) return; //return if in a block
-				}
-				else if (isFunc(cur.meta, stlFuncs::exit) || isFunc(cur.meta, stlFuncs::blockend))
-				{
+					break;
+					}
+				case stlFuncs::exit:
+				case stlFuncs::blockend:
 					return;
+				default:
+					if (cur.meta.flags & SCISL_F_BLOCK)
+					{
+						exploreBranch(instructions, reachedInstructions, branchIdx);
+						unsigned int idx = findBlockEnd(instructions, branchIdx);
+						branchIdx = idx;
+					}
 				}
 
 				branchIdx++;
