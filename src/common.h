@@ -76,7 +76,6 @@ namespace scisl
 		bool operator>(value& other);
 		bool operator==(value& other);
 		bool operator==(SCISL_INT_PRECISION other);
-		bool operator!=(value& other);
 
 		bool operator&&(value& other);
 		bool operator||(value& other);

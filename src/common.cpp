@@ -639,47 +639,6 @@ namespace scisl
 		}
 	}
 
-	bool value::operator!=(value& other)
-	{
-		switch (this->type)
-		{
-		case type::string:
-			switch (other.type)
-			{
-			case type::string:
-				return SCISL_CAST_STRING(this->val) != SCISL_CAST_STRING(other.val);
-			default:
-				return true;
-			}
-		case type::integer:
-			switch (other.type)
-			{
-			case type::string:
-				return true;
-			case type::integer:
-				return SCISL_CAST_INT(this->val) != SCISL_CAST_INT(other.val);
-			case type::floating:
-				return SCISL_CAST_INT(this->val) != SCISL_CAST_FLOAT(other.val);
-			default:
-				return true;
-			}
-		case type::floating:
-			switch (other.type)
-			{
-			case type::string:
-				return true;
-			case type::integer:
-				return SCISL_CAST_FLOAT(this->val) != SCISL_CAST_INT(other.val);
-			case type::floating:
-				return SCISL_CAST_FLOAT(this->val) != SCISL_CAST_FLOAT(other.val);
-			default:
-				return true;
-			}
-		default:
-			return true;
-		}
-	}
-
 	value::~value()
 	{
 		switch (this->type)
