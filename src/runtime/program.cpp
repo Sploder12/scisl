@@ -19,11 +19,11 @@ namespace scisl
 		}
 
 		auto& t = getFuncTable();
-		for (auto& i : t)
+		for (auto& [id, fnc] : t)
 		{
-			if (i.second.fnc = func)
+			if (fnc.fnc = func)
 			{
-				return '$' + i.first;
+				return '$' + id;
 			}
 		}
 
@@ -109,24 +109,22 @@ namespace scisl
 			delete[] i.arguments;
 		}
 
-		for (auto& j : varz)
+		for (auto& [val, type] : varz)
 		{
-
-			switch (j.second)
+			switch (type)
 			{
 			case type::string:
-				delete (std::string*)(j.first);
+				delete (std::string*)(val);
 				break;
 			case type::integer:
-				delete (SCISL_INT_PRECISION*)(j.first);
+				delete (SCISL_INT_PRECISION*)(val);
 				break;
 			case type::floating:
-				delete (SCISL_FLOAT_PRECISION*)(j.first);
+				delete (SCISL_FLOAT_PRECISION*)(val);
 				break;
 			default:
 				break;
 			}
-
 		}
 	}
 }

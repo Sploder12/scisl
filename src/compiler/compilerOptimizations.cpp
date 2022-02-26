@@ -77,11 +77,11 @@ namespace scisl
 		fakeArgs.argCount = instr.argCount;
 		fakeArgs.arguments = new arg[instr.argCount];
 
-		for (auto& v : vals)
+		for (auto& [name, value] : vals)
 		{
-			if (v.second != nullptr)
+			if (value != nullptr)
 			{
-				virtualVars.push_back({ v.first, v.second });
+				virtualVars.push_back({ name, value });
 			}
 		}
 
@@ -90,10 +90,11 @@ namespace scisl
 			arg& cur = instr.arguments[i];
 			if (cur.argType == argType::variable)
 			{
+				auto& [id, value] = virtualVars[findV(virtualVars, SCISL_CAST_STRING(cur.val.val))];
 				fakeArgs.arguments[i].argType = argType::variable;
 				fakeArgs.arguments[i].finalized = true;
-				fakeArgs.arguments[i].val.val = virtualVars[findV(virtualVars, SCISL_CAST_STRING(cur.val.val))].second->val;
-				fakeArgs.arguments[i].val.type = virtualVars[findV(virtualVars, SCISL_CAST_STRING(cur.val.val))].second->type;
+				fakeArgs.arguments[i].val.val = value->val;
+				fakeArgs.arguments[i].val.type = value->type;
 				continue;
 			}
 			fakeArgs.arguments[i] = cur;
@@ -108,14 +109,14 @@ namespace scisl
 
 	inline void invalidateVars(std::vector<precompInstr>& newProcess, std::map<std::string, value*>& evalVal)
 	{
-		for (std::pair<const std::string, value*>& var : evalVal)
+		for (auto& [id, var] : evalVal)
 		{
-			if (var.second != nullptr)
+			if (var != nullptr)
 			{
-				newProcess.push_back(setInstr(var.first, var.second));
+				newProcess.push_back(setInstr(id, var));
 			}
-			delete var.second;
-			var.second = nullptr;
+			delete var;
+			var = nullptr;
 		}
 	}
 
@@ -295,9 +296,9 @@ namespace scisl
 			if (peep != nullptr) peep(i);
 		}
 
-		for (auto& i : evalVal) //clear eval memory
+		for (auto& [id, var] : evalVal) //clear eval memory
 		{
-			delete i.second;
+			delete var;
 		}
 	}
 
@@ -346,7 +347,7 @@ namespace scisl
 
 		for (precompInstr& i : instructions)
 		{
-			if (isFunc(i.meta, stlFuncs::set))
+			if (i.meta.flags & SCISL_F_NJIS)
 			{
 				arg& cur = i.instr.arguments[0];
 				if (cur.argType == argType::variable)
@@ -448,26 +449,26 @@ namespace scisl
 				case stlFuncs::cjmp:
 					{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
-					unsigned int idx = findLabel(instructions, v, stlFuncs::label);
+					const unsigned int idx = findLabel(instructions, v, stlFuncs::label);
 					exploreBranch(instructions, reachedInstructions, idx);
 					break;
 					}
 				case stlFuncs::call:
 					{
 					std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
-					unsigned int idx = findLabel(instructions, v, stlFuncs::def);
+					const unsigned int idx = findLabel(instructions, v, stlFuncs::def);
 					exploreBranch(instructions, reachedInstructions, idx + 1);
 					break;
 					}
 				case stlFuncs::def:
 					{
-					unsigned int idx = findBlockEnd(instructions, branchIdx);
+					const unsigned int idx = findBlockEnd(instructions, branchIdx);
 					branchIdx = idx;
 					break;
 					}
 				case stlFuncs::breakp:
 					{
-					unsigned int block = findBlockEnd(instructions, branchIdx);
+					const unsigned int block = findBlockEnd(instructions, branchIdx);
 					if (block != instructions.size()) return; //return if in a block
 					break;
 					}
@@ -478,7 +479,7 @@ namespace scisl
 					if (cur.meta.flags & SCISL_F_BLOCK)
 					{
 						exploreBranch(instructions, reachedInstructions, branchIdx);
-						unsigned int idx = findBlockEnd(instructions, branchIdx);
+						const unsigned int idx = findBlockEnd(instructions, branchIdx);
 						branchIdx = idx;
 					}
 				}

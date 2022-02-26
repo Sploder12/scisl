@@ -243,18 +243,18 @@ namespace scisl
 				continue;
 			}
 
-			std::pair<argType, type> ctype = strToType(cur, vars);
-			carg->argType = ctype.first;
-			carg->val.type = ctype.second;
+			auto [argType, valType] = strToType(cur, vars);
+			carg->argType = argType;
+			carg->val.type = valType;
 
-			if (ctype.first == argType::interop && ctype.second == type::error)
+			if (argType == argType::interop && valType == type::error)
 			{
 				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing unregistered variable/macro " << cur << ".\n";
 				return { opt, false };
 			}
 
 			//variables
-			if (ctype.second == type::error) // (variable hasn't been initialized yet)
+			if (valType == type::error) // (variable hasn't been initialized yet)
 			{
 				const type rtype = inferType(opt, strToType(things[i + 2], vars).second);
 				if (rtype == type::error)
@@ -339,10 +339,10 @@ namespace scisl
 			}
 		}
 
-		for (auto& t : remainingVars)
+		for (auto& [id, var] : remainingVars)
 		{
-			t.second->val = nullptr;
-			delete t.second;
+			var->val = nullptr;
+			delete var;
 		}
 	}
 
@@ -418,10 +418,10 @@ namespace scisl
 			while (std::getline(file, line))
 			{
 				lineNum++;
-				auto o = parseInstr(line, vars);
-				if (o.second)
+				auto [instr, worked] = parseInstr(line, vars);
+				if (worked)
 				{
-					instructions.push_back(std::move(o.first));
+					instructions.push_back(std::move(instr));
 				}
 				else
 				{
