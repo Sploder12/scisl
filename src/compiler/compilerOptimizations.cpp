@@ -106,7 +106,6 @@ namespace scisl
 		delete[] fakeArgs.arguments;
 	}
 
-
 	inline void invalidateVars(std::vector<precompInstr>& newProcess, std::unordered_map<std::string, value*>& evalVal)
 	{
 		for (auto& [id, var] : evalVal)
@@ -182,9 +181,10 @@ namespace scisl
 					arg& c = i.instr.arguments[1];
 					if (c.argType == argType::variable)
 					{
-						if (evalVal.contains(SCISL_CAST_STRING(c.val.val)))
+						const auto it = evalVal.find(SCISL_CAST_STRING(c.val.val));
+						if (it != evalVal.end())
 						{
-							value* val = evalVal.at(SCISL_CAST_STRING(c.val.val));
+							value* val = (*it).second;
 							if (val != nullptr)
 							{
 								c.argType = argType::constant;
@@ -246,7 +246,7 @@ namespace scisl
 			{
 				type t = inferType(i, i.instr.arguments[1].val.type);
 				value* n = new value(createTemporary(t));
-				evalVal.insert({ SCISL_CAST_STRING(modified.val.val), n });
+				evalVal.emplace(SCISL_CAST_STRING(modified.val.val), n);
 			}
 
 			// valid means that the modified variable can be determined at compile time
@@ -328,18 +328,18 @@ namespace scisl
 
 		for (precompInstr& i : instructions)
 		{
-			for (unsigned int j = 0; j < i.instr.argCount; j++)
+			for (const arg& cur : i)
 			{
-				arg& cur = i.instr.arguments[j];
 				if (cur.argType == argType::variable)
 				{
-					if (varCount.contains(SCISL_CAST_STRING(cur.val.val)))
+					auto it = varCount.find(SCISL_CAST_STRING(cur.val.val));
+					if (it != varCount.end())
 					{
-						varCount.at(SCISL_CAST_STRING(cur.val.val)) += 1;
+						(*it).second += 1;
 					}
 					else
 					{
-						varCount.insert({ SCISL_CAST_STRING(cur.val.val), 1 });
+						varCount.emplace(SCISL_CAST_STRING(cur.val.val), 1 );
 					}
 				}
 			}
@@ -378,7 +378,8 @@ namespace scisl
 			case stlFuncs::cjmp:
 			{
 				arg& label = instructions[i].instr.arguments[0];
-				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
+				auto it = usedLabels.find(SCISL_CAST_STRING(label.val.val));
+				if (it == usedLabels.end())
 				{
 					unsigned int loc = findLabel(instructions, SCISL_CAST_STRING(label.val.val), stlFuncs::label);
 
@@ -388,13 +389,12 @@ namespace scisl
 					}
 					else
 					{
-						usedLabels.insert({ SCISL_CAST_STRING(label.val.val), loc });
+						usedLabels.emplace(SCISL_CAST_STRING(label.val.val), loc);
 					}
 				}
 				else
 				{
-					unsigned int loc = usedLabels.at(SCISL_CAST_STRING(label.val.val));
-					if (i + 1 == loc)
+					if (i + 1 == (*it).second)
 					{
 						toNOOP(instructions[i]);
 					}
@@ -424,26 +424,14 @@ namespace scisl
 		instructions = std::move(remaining);
 	}
 
-	template <typename T>
-	inline bool vecContains(std::vector<T>& vec, T& obj)
-	{
-		for (T& o : vec)
-		{
-			if (obj == o)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	void exploreBranch(std::vector<precompInstr>& instructions, std::vector<unsigned int>& reachedInstructions, unsigned int branchIdx)
+	void exploreBranch(const std::vector<precompInstr>& instructions, std::vector<unsigned int>& reachedInstructions, unsigned int branchIdx)
 	{
 		while (branchIdx < instructions.size())
 		{
-			if (!vecContains(reachedInstructions, branchIdx))
+			const auto it = std::find(reachedInstructions.begin(), reachedInstructions.end(), branchIdx);
+			if (it == reachedInstructions.end())
 			{
-				precompInstr& cur = instructions[branchIdx];
+				const precompInstr& cur = instructions[branchIdx];
 				reachedInstructions.emplace_back(branchIdx);
 				switch (cur.meta.funcID)
 				{
@@ -511,7 +499,8 @@ namespace scisl
 		remaining.reserve(reachedInstructions.size());
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			if (vecContains(reachedInstructions, i))
+			const auto it = std::find(reachedInstructions.begin(), reachedInstructions.end(), i);
+			if (it != reachedInstructions.end())
 			{
 				remaining.emplace_back(std::move(instructions[i]));
 			}

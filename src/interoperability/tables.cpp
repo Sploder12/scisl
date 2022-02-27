@@ -34,9 +34,10 @@ namespace scisl
 
 	void updateVar(std::string id, SCISL_INT_PRECISION& var)
 	{
-		if (interopTable.contains(id))
+		const auto it = interopTable.find(id);
+		if (it != interopTable.end())
 		{
-			registeredVar* v = interopTable.at(id);
+			registeredVar* v = (*it).second;
 			v->type = type::integer;
 			v->val = &var;
 		}
@@ -44,9 +45,10 @@ namespace scisl
 
 	void updateVar(std::string id, SCISL_FLOAT_PRECISION& var)
 	{
-		if (interopTable.contains(id))
+		const auto it = interopTable.find(id);
+		if (it != interopTable.end())
 		{
-			registeredVar* v = interopTable.at(id);
+			registeredVar* v = (*it).second;
 			v->type = type::floating;
 			v->val = &var;
 		}
@@ -54,9 +56,10 @@ namespace scisl
 
 	void updateVar(std::string id, std::string& var)
 	{
-		if (interopTable.contains(id))
+		const auto it = interopTable.find(id);
+		if (it != interopTable.end())
 		{
-			registeredVar* v = interopTable.at(id);
+			registeredVar* v = (*it).second;
 			v->type = type::string;
 			v->val = &var;
 		}
@@ -64,12 +67,13 @@ namespace scisl
 
 	void removeVar(std::string id)
 	{
-		if (interopTable.contains(id))
+		const auto it = interopTable.find(id);
+		if (it != interopTable.end())
 		{
-			registeredVar* v = interopTable.at(id);
+			registeredVar* v = (*it).second;
 			v->val = nullptr;
 			delete v;
-			interopTable.erase(id);
+			interopTable.erase(it);
 		}
 	}
 

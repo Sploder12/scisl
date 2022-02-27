@@ -28,8 +28,7 @@ namespace scisl
 
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
 		{
-			const std::vector<std::string>& aliases = funcAliases[i];
-			for (const std::string& s : aliases)
+			for (const char* const& s : funcAliases[i])
 			{
 				if (str == s)
 				{

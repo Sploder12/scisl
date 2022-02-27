@@ -89,43 +89,24 @@ namespace scisl
 
 	program::~program()
 	{
-		std::unordered_map<void*, type> varz;
+		std::vector<void*> varz;
+		varz.reserve(instructions.size()); //We're going to assume worst case which is one init per instructions
+
 		for (instruction& i : instructions)
 		{
-			for (unsigned int j = 0; j < i.argCount; j++)
+			for (arg& cur : i) //we need to make sure we're not deleting vars twice
 			{
-				arg& cur = i.arguments[j];
 				if (cur.argType == argType::variable)
 				{
-					if (!varz.contains(cur.val.val))
+					if (std::find(varz.begin(), varz.end(), cur.val.val) == varz.end())
 					{
-						varz.insert({ cur.val.val, cur.val.type});
+						varz.emplace_back(cur.val.val);
+						cur.argType = argType::constant; //let the delete[] handle it
 					}
-					cur.val.val = nullptr;
-					cur.val.type = type::error;
-					continue;
 				}
 			}
 
 			delete[] i.arguments;
-		}
-
-		for (auto& [val, type] : varz)
-		{
-			switch (type)
-			{
-			case type::string:
-				delete (std::string*)(val);
-				break;
-			case type::integer:
-				delete (SCISL_INT_PRECISION*)(val);
-				break;
-			case type::floating:
-				delete (SCISL_FLOAT_PRECISION*)(val);
-				break;
-			default:
-				break;
-			}
 		}
 	}
 }

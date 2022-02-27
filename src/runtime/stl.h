@@ -54,7 +54,7 @@ namespace scisl
 		stlFuncCount
 	};
 
-	const std::vector<std::string> funcAliases[(unsigned short)(stlFuncs::stlFuncCount)] =
+	const std::vector<const char*> funcAliases[(unsigned short)(stlFuncs::stlFuncCount)] =
 	{
 		{ "VAR", "LET", "=" },
 		{ "PLUS", "+" },

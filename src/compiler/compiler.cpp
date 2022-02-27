@@ -122,12 +122,13 @@ namespace scisl
 		case '#': //preprocessor
 		{
 			auto& macros = getMacroTable();
-			std::string&& key = str.substr(1, str.size() - 1);
-			if (!macros.contains(key))
+			const std::string& key = str.substr(1, str.size() - 1);
+			auto it = macros.find(key);
+			if (it == macros.end())
 			{
 				return { argType::interop, type::error };
 			}
-			str = macros.at(key);
+			str = (*it).second;
 			return strToType(str, vars); //note that you can create an infinite loop with macros
 		}
 		case '0': case '1': case '2': case '3': case '4':
@@ -144,11 +145,12 @@ namespace scisl
 		{
 			auto& vTable = getVarTable();
 			std::string&& key = str.substr(1, str.size() - 1);
-			if (!vTable.contains(key))
+			auto it = vTable.find(key);
+			if (it == vTable.end())
 			{
 				return { argType::interop, type::error };
 			}
-			return { argType::interop, vTable.at(key)->type };
+			return { argType::interop, (*it).second->type };
 		}
 		default: //variables
 			{
@@ -185,11 +187,11 @@ namespace scisl
 			if (fID >= stlFuncs::stlFuncCount)
 			{
 				auto& funcs = getFuncTable();
-				if (funcs.contains(things[0])) // Maybe they forgot the $, warn them
+				auto it = funcs.find(things[0]);
+				if (it != funcs.end()) // Maybe they forgot the $, warn them
 				{
 					std::cout << "SCISL COMPILER WARNING: line:" << lineNum << '\t' << things[0] << " registered function not preceeded with $.\n";
-					scislfuncMeta& mta = funcs.at(things[0]);
-					opt.meta = mta;
+					opt.meta = (*it).second;
 				}
 				else
 				{
@@ -207,11 +209,10 @@ namespace scisl
 		else
 		{
 			auto& funcs = getFuncTable();
-			if (funcs.contains(things[0].substr(1)))
+			auto it = funcs.find(things[0].substr(1));
+			if (it != funcs.end())
 			{
-				scislfuncMeta& mta = funcs.at(things[0].substr(1));
-
-				opt.meta = mta;
+				opt.meta = (*it).second;
 			}
 			else
 			{
@@ -326,7 +327,7 @@ namespace scisl
 			case stlFuncs::label:
 			case stlFuncs::def:
 				{
-				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments[0].val.val) , i });
+				labels.emplace(SCISL_CAST_STRING(cur.instr.arguments[0].val.val) , i);
 				delete (std::string*)(cur.instr.arguments[0].val.val);
 				cur.instr.arguments[0].val.val = new SCISL_INT_PRECISION(i);
 				break;

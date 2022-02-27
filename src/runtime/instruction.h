@@ -1,6 +1,8 @@
 #ifndef SCISL_INSTR_H
 #define SCISL_INSTR_H
 
+#include "args.h"
+
 #include <string>
 
 namespace scisl
@@ -9,7 +11,6 @@ namespace scisl
 	struct instruction;
 	typedef void (*scislFunc)(program&, const instruction&);
 
-	struct arg;
 	struct instruction
 	{
 		scislFunc func;
@@ -17,6 +18,16 @@ namespace scisl
 		unsigned char argCount;
 
 		void run(program& process);
+
+		arg* begin() noexcept
+		{
+			return arguments;
+		};
+
+		arg* end() noexcept
+		{
+			return arguments + argCount;
+		}
 	};
 
 	struct precompInstr;
@@ -40,6 +51,16 @@ namespace scisl
 	{
 		instruction instr;
 		scislfuncMeta meta;
+
+		arg* begin() noexcept
+		{
+			return instr.begin();
+		};
+
+		arg* end() noexcept
+		{
+			return instr.end();
+		}
 	};
 
 
