@@ -1,24 +1,24 @@
 #include "compilerOptimizations.h"
 
 #include <iostream>
-#include <map>
+#include <unordered_map>
 
 #include "../runtime/stl.h"
 #include "../runtime/stlOptimizations.h"
 
 namespace scisl
 {
-	inline unsigned int findBlockEnd(std::vector<precompInstr>& instructions, unsigned int start)
+	inline unsigned int findBlockEnd(const std::vector<precompInstr>& instructions, unsigned int start)
 	{
 		unsigned int dl = 1;
 		for (unsigned int i = start + 1; i < instructions.size(); i++)
 		{
-			precompInstr& cur = instructions[i];
+			const precompInstr& cur = instructions[i];
 			if (cur.meta.flags & SCISL_F_BLOCK)
 			{
 				dl++;
 			}
-			else if (isFunc(cur.meta, stlFuncs::blockend))
+			else if (cur.meta.funcID == stlFuncs::blockend)
 			{
 				if (--dl == 0) return i;
 			}
@@ -68,7 +68,7 @@ namespace scisl
 		return opt;
 	}
 
-	inline void simulate(std::map<std::string, value*>& vals, instruction& instr)
+	inline void simulate(std::unordered_map<std::string, value*>& vals, instruction& instr)
 	{
 		program fakeP;
 		std::vector<std::pair<std::string, value*>> virtualVars;
@@ -81,7 +81,7 @@ namespace scisl
 		{
 			if (value != nullptr)
 			{
-				virtualVars.push_back({ name, value });
+				virtualVars.emplace_back(name, value);
 			}
 		}
 
@@ -107,20 +107,20 @@ namespace scisl
 	}
 
 
-	inline void invalidateVars(std::vector<precompInstr>& newProcess, std::map<std::string, value*>& evalVal)
+	inline void invalidateVars(std::vector<precompInstr>& newProcess, std::unordered_map<std::string, value*>& evalVal)
 	{
 		for (auto& [id, var] : evalVal)
 		{
 			if (var != nullptr)
 			{
-				newProcess.push_back(setInstr(id, var));
+				newProcess.emplace_back(setInstr(id, var));
 			}
 			delete var;
 			var = nullptr;
 		}
 	}
 
-	inline bool isValid(const precompInstr& i, std::map<std::string, value*>& evalVal)
+	inline bool isValid(const precompInstr& i, std::unordered_map<std::string, value*>& evalVal)
 	{
 		for (unsigned int j = 1; j < i.instr.argCount; j++)
 		{
@@ -141,7 +141,7 @@ namespace scisl
 		return true;
 	}
 
-	inline void handleNoMod(precompInstr& i, std::map<std::string, value*>& evalVal)
+	inline void handleNoMod(precompInstr& i, std::unordered_map<std::string, value*>& evalVal)
 	{
 		for (unsigned int j = 0; j < i.instr.argCount; j++)
 		{
@@ -165,11 +165,11 @@ namespace scisl
 		std::vector<precompInstr> newProcess;
 		newProcess.reserve(process.size());
 
-		std::map<std::string, value*> evalVal;
+		std::unordered_map<std::string, value*> evalVal;
 
 		for (precompInstr& i : process)
 		{
-			if (isFunc(i.meta, stlFuncs::noop)) //removes NOOP
+			if (i.meta.funcID == stlFuncs::noop) //removes NOOP
 			{
 				delete[] i.instr.arguments;
 				continue;
@@ -177,7 +177,7 @@ namespace scisl
 
 			if ((i.meta.flags & SCISL_F_NO_JMP) == 0) //jumps
 			{
-				if (isFunc(i.meta, stlFuncs::cjmp)) //there is a chance a cjmp can be reduced which makes way for HUGE optimizations later
+				if (i.meta.funcID == stlFuncs::cjmp) //there is a chance a cjmp can be reduced which makes way for HUGE optimizations later
 				{
 					arg& c = i.instr.arguments[1];
 					if (c.argType == argType::variable)
@@ -192,7 +192,7 @@ namespace scisl
 								c.val = *val;
 								if (c.val == 0)
 								{
-									newProcess.push_back(std::move(i));
+									newProcess.emplace_back(std::move(i));
 									continue;
 								}
 							}
@@ -200,23 +200,23 @@ namespace scisl
 					}
 				}
 				invalidateVars(newProcess, evalVal); //invalidate everything
-				newProcess.push_back(std::move(i));
+				newProcess.emplace_back(std::move(i));
 				continue;
 			}
 
 			if ((i.meta.flags & SCISL_F_NO_MOD) > 0) //doesn't modify anything, good!
 			{
 				handleNoMod(i, evalVal);
-				newProcess.push_back(std::move(i));
+				newProcess.emplace_back(std::move(i));
 				continue;
 			}
 
 
 			bool simulatable = (i.meta.flags & SCISL_F_SIMABLE);
-			if (!simulatable && !isSTLfunc((stlFuncs)(i.meta.funcID))) //non simulatble registered funcs (that modify)
+			if (!simulatable && !isSTLfunc(i.meta.funcID)) //non simulatble registered funcs (that modify)
 			{
 				invalidateVars(newProcess, evalVal);
-				newProcess.push_back(std::move(i));
+				newProcess.emplace_back(std::move(i));
 				continue;
 			}
 
@@ -238,7 +238,7 @@ namespace scisl
 						}
 					}
 				}
-				newProcess.push_back(std::move(i));
+				newProcess.emplace_back(std::move(i));
 				continue;
 			}
 
@@ -279,14 +279,14 @@ namespace scisl
 			{
 				if (!simulatable)
 				{
-					newProcess.push_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
+					newProcess.emplace_back(setInstr(SCISL_CAST_STRING(modified.val.val), v));
 				}
 
 				delete v;
 				v = nullptr;
 			}
 
-			newProcess.push_back(std::move(i));
+			newProcess.emplace_back(std::move(i));
 		}
 
 		process = std::move(newProcess);
@@ -308,9 +308,9 @@ namespace scisl
 		remaining.reserve(instructions.size());
 		for (precompInstr& i : instructions)
 		{
-			if (!isFunc(i.meta, stlFuncs::noop))
+			if (i.meta.funcID != stlFuncs::noop)
 			{
-				remaining.push_back(std::move(i));
+				remaining.emplace_back(std::move(i));
 			}
 			else
 			{
@@ -322,7 +322,7 @@ namespace scisl
 
 	void removeUnusedVars(std::vector<precompInstr>& instructions)
 	{
-		std::map<std::string, unsigned int> varCount;
+		std::unordered_map<std::string, unsigned int> varCount;
 		std::vector<precompInstr> remaining;
 		remaining.reserve(instructions.size());
 
@@ -359,20 +359,23 @@ namespace scisl
 					}
 				}
 			}
-			remaining.push_back(std::move(i));
+			remaining.emplace_back(std::move(i));
 		}
 		instructions = std::move(remaining);
 	}
 
 	void removeUnusedLabels(std::vector<precompInstr>& instructions)
 	{
-		std::map<std::string, unsigned int> usedLabels;
+		std::unordered_map<std::string, unsigned int> usedLabels;
 		std::vector<precompInstr> remaining;
 		remaining.reserve(instructions.size());
 
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			if (isFunc(instructions[i].meta, stlFuncs::jmp) || isFunc(instructions[i].meta, stlFuncs::cjmp))
+			switch (instructions[i].meta.funcID)
+			{
+			case stlFuncs::jmp:
+			case stlFuncs::cjmp:
 			{
 				arg& label = instructions[i].instr.arguments[0];
 				if (!usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
@@ -396,22 +399,26 @@ namespace scisl
 						toNOOP(instructions[i]);
 					}
 				}
+				break;
+			}
+			default:
+				break;
 			}
 		}
 
 		for (precompInstr& i : instructions)
 		{
-			if (isFunc(i.meta, stlFuncs::label))
+			if (i.meta.funcID == stlFuncs::label)
 			{
 				arg& label = i.instr.arguments[0];
 				if (usedLabels.contains(SCISL_CAST_STRING(label.val.val)))
 				{
-					remaining.push_back(std::move(i));
+					remaining.emplace_back(std::move(i));
 				}
 			}
 			else
 			{
-				remaining.push_back(std::move(i));
+				remaining.emplace_back(std::move(i));
 			}
 		}
 		instructions = std::move(remaining);
@@ -437,7 +444,7 @@ namespace scisl
 			if (!vecContains(reachedInstructions, branchIdx))
 			{
 				precompInstr& cur = instructions[branchIdx];
-				reachedInstructions.push_back(branchIdx);
+				reachedInstructions.emplace_back(branchIdx);
 				switch (cur.meta.funcID)
 				{
 				case stlFuncs::jmp:
@@ -506,7 +513,7 @@ namespace scisl
 		{
 			if (vecContains(reachedInstructions, i))
 			{
-				remaining.push_back(std::move(instructions[i]));
+				remaining.emplace_back(std::move(instructions[i]));
 			}
 		}
 

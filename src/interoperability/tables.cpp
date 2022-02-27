@@ -85,8 +85,8 @@ namespace scisl
 
 	void registerFunc(std::string id, scislFunc func, unsigned short argCount, unsigned short minArgs, std::string argTypes, type initializes, unsigned int flags, scislPeephole optimizer)
 	{
-		registeredFunc tmp = { stlFuncs::stlFuncCount, id, func, optimizer, argCount, minArgs, argTypes, initializes, flags};
-		interopFuncTable.insert({ id, std::move(tmp) });
+		registeredFunc&& tmp = { stlFuncs::stlFuncCount, id, func, optimizer, argCount, minArgs, argTypes, initializes, flags};
+		interopFuncTable.insert({ id, tmp });
 	}
 
 	void defineMacro(std::string id, std::string value)

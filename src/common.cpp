@@ -216,7 +216,7 @@ namespace scisl
 				{
 					tmpSum += tmp;
 				}
-				SCISL_CAST_STRING(this->val) = tmpSum;
+				SCISL_CAST_STRING(this->val) = std::move(tmpSum);
 				break;
 			}
 			default:

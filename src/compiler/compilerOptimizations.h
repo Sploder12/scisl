@@ -8,7 +8,7 @@
 namespace scisl
 {
 	template <typename T>
-	inline size_t findV(std::vector<std::pair<std::string, T>>& vars, std::string& cur)
+	inline size_t findV(const std::vector<std::pair<std::string, T>>& vars, const std::string& cur)
 	{
 		for (unsigned short i = 0; i < vars.size(); i++)
 		{
@@ -21,24 +21,25 @@ namespace scisl
 	}
 
 	enum class stlFuncs : unsigned short;
-	inline unsigned int findLabel(std::vector<precompInstr>& instructions, std::string id, stlFuncs lblFnc)
+	inline unsigned int findLabel(const std::vector<precompInstr>& instructions, const std::string& id, stlFuncs lblFnc)
 	{
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			precompInstr& cur = instructions[i];
+			const precompInstr& cur = instructions[i];
 			if (cur.meta.funcID == lblFnc)
 			{
-				std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
+				const std::string& v = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				if (v == id)
 				{
 					return i;
 				}
 			}
 		}
+
 		return (unsigned int)(instructions.size());
 	}
 
-	inline unsigned int findBlockEnd(std::vector<precompInstr>& instructions, unsigned int start);
+	inline unsigned int findBlockEnd(const std::vector<precompInstr>& instructions, unsigned int start);
 
 	type inferType(const precompInstr& instr, type nextArgType = type::error);
 

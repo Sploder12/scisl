@@ -4,16 +4,16 @@
 #include "../common.h"
 #include "../runtime/program.h"
 
-#include <map>
+#include <unordered_map>
 
 namespace scisl
 {
 	typedef value registeredVar;
 	typedef scislfuncMeta registeredFunc;
 
-	typedef std::map<std::string, registeredVar*> varTable;
-	typedef std::map<std::string, registeredFunc> funcTable;
-	typedef std::map<std::string, std::string> macroTable;
+	typedef std::unordered_map<std::string, registeredVar*> varTable;
+	typedef std::unordered_map<std::string, registeredFunc> funcTable;
+	typedef std::unordered_map<std::string, std::string> macroTable;
 
 	void registerVar(std::string id, SCISL_INT_PRECISION& var);
 	void registerVar(std::string id, SCISL_FLOAT_PRECISION& var);

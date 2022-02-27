@@ -40,7 +40,7 @@ namespace scisl
 			for (unsigned int i = 0; i < instructions.size(); i++)
 			{
 				auto& cur = instructions[i];
-				std::string line = funcToStr(cur.func);
+				std::string&& line = funcToStr(cur.func);
 
 				for (unsigned short j = 0; j < cur.argCount; j++)
 				{
@@ -62,7 +62,8 @@ namespace scisl
 
 	SCISL_INT_PRECISION program::run(bool ignoreBreaks)
 	{
-		if (curInstr >= instructions.size())
+		size_t size = instructions.size();
+		if (curInstr >= size)
 		{
 			curInstr = 0;
 		}
@@ -70,7 +71,7 @@ namespace scisl
 		broke = false;
 		if (ignoreBreaks)
 		{
-			while (curInstr < instructions.size())
+			while (curInstr < size)
 			{
 				step();
 			}
@@ -78,7 +79,7 @@ namespace scisl
 		}
 		else 
 		{
-			while (curInstr < instructions.size() && !broke)
+			while (curInstr < size && !broke)
 			{
 				step();
 			}
@@ -88,7 +89,7 @@ namespace scisl
 
 	program::~program()
 	{
-		std::map<void*, type> varz;
+		std::unordered_map<void*, type> varz;
 		for (instruction& i : instructions)
 		{
 			for (unsigned int j = 0; j < i.argCount; j++)

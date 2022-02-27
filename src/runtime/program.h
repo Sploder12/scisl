@@ -13,10 +13,10 @@ namespace scisl
 	struct program
 	{
 		std::vector<instruction> instructions;
+		std::stack<unsigned int> callStack = {}; // used for functions
 		unsigned int curInstr = 0;
 		SCISL_INT_PRECISION retVal = 0;
 		bool broke = false;
-		std::stack<unsigned int> callStack = {}; // used for functions
 
 		void decompile(const char* filename);
 

@@ -14,6 +14,9 @@ namespace scisl
 	std::vector<std::string> splitLine(const std::string& line, const char delim = ' ')
 	{
 		std::vector<std::string> opt;
+		const size_t count = std::count(line.begin(), line.end(), delim);
+		opt.reserve(count + 1); //it is faster to count and reserve than to just iterate.
+
 		std::string tmp = "";
 		bool inQuote = false;
 		for (char c : line)
@@ -22,13 +25,13 @@ namespace scisl
 
 			if (c == delim && !inQuote)
 			{
-				opt.push_back(tmp);
+				opt.emplace_back(std::move(tmp));
 				tmp = "";
 				continue;
 			}
 			tmp += c;
 		}
-		if (tmp != "") opt.push_back(tmp);
+		if (tmp != "") opt.emplace_back(std::move(tmp));
 		return opt;
 	}
 
@@ -119,7 +122,7 @@ namespace scisl
 		case '#': //preprocessor
 		{
 			auto& macros = getMacroTable();
-			std::string key = str.substr(1, str.size() - 1);
+			std::string&& key = str.substr(1, str.size() - 1);
 			if (!macros.contains(key))
 			{
 				return { argType::interop, type::error };
@@ -140,7 +143,7 @@ namespace scisl
 		case '$': //interops
 		{
 			auto& vTable = getVarTable();
-			std::string key = str.substr(1, str.size() - 1);
+			std::string&& key = str.substr(1, str.size() - 1);
 			if (!vTable.contains(key))
 			{
 				return { argType::interop, type::error };
@@ -160,17 +163,18 @@ namespace scisl
 		}
 	}
 
-	std::pair<precompInstr, bool> parseInstr(std::string& line, std::vector<std::pair<std::string, type>>& vars)
+	#define ERR_MSG_H(lineNum) "SCISL COMPILER ERROR: line:" << lineNum << '\t'
+	precompInstr parseInstr(const std::string& line, std::vector<std::pair<std::string, type>>& vars)
 	{
 		std::vector<std::string> things = splitLine(line);
 		unsigned char argCount = (unsigned char)(things.size() - 1);
 		if (line == "" || line == "\t" || line[0] == ';')
 		{
-			return {noopInstr(), true};
+			return noopInstr();
 		}
 
-		auto start = things[0].find_first_not_of('\t');
-		std::string funcName = things[0].substr(start, things[0].size() - start);
+		size_t start = things[0].find_first_not_of('\t');
+		std::string&& funcName = things[0].substr(start, things[0].size() - start);
 		stlFuncs fID = stlFuncs::stlFuncCount;
 		precompInstr opt;
 
@@ -189,8 +193,10 @@ namespace scisl
 				}
 				else
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unknown STL function.\n";
-					return { opt, false };
+					std::cout << ERR_MSG_H(lineNum) << things[0] << " unknown STL function.\n";
+					precompInstr&& tmp = noopInstr();
+					tmp.meta.funcName = "";
+					return tmp;
 				}
 			}
 			else
@@ -209,21 +215,27 @@ namespace scisl
 			}
 			else
 			{
-				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " unregistered function.\n";
-				return { opt, false };
+				std::cout << ERR_MSG_H(lineNum) << things[0] << " unregistered function.\n";
+				precompInstr&& tmp = noopInstr();
+				tmp.meta.funcName = "";
+				return tmp;
 			}
 		}
 
 		if (opt.meta.expectedArgs != 0 && opt.meta.expectedArgs != argCount)
 		{
-			std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
-			return { opt, false }; //error
+			std::cout << ERR_MSG_H(lineNum) << things[0] << " expects " << opt.meta.expectedArgs << " args, got " << (int)(argCount) << ".\n";
+			precompInstr&& tmp = noopInstr();
+			tmp.meta.funcName = "";
+			return tmp;
 		}
 
 		if (argCount < opt.meta.minArgs)
 		{
-			std::cout << "SCISL COMPILER ERROR: line:" << lineNum << '\t' << things[0] << " needs at least " << opt.meta.minArgs << " args, got " << (int)(argCount) << ".\n";
-			return { opt, false }; //error
+			std::cout << ERR_MSG_H(lineNum) << things[0] << " needs at least " << opt.meta.minArgs << " args, got " << (int)(argCount) << ".\n";
+			precompInstr&& tmp = noopInstr();
+			tmp.meta.funcName = "";
+			return tmp;
 		}
 
 		opt.instr.arguments = new arg[argCount];
@@ -249,8 +261,10 @@ namespace scisl
 
 			if (argType == argType::interop && valType == type::error)
 			{
-				std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing unregistered variable/macro " << cur << ".\n";
-				return { opt, false };
+				std::cout << ERR_MSG_H(lineNum) << "Using unregistered variable/macro " << cur << ".\n";
+				precompInstr&& tmp = noopInstr();
+				tmp.meta.funcName = "";
+				return tmp;
 			}
 
 			//variables
@@ -261,18 +275,20 @@ namespace scisl
 				{
 					if (i == 0)
 					{
-						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tInitializing variable with undeclared variable.\n";
+						std::cout << ERR_MSG_H(lineNum) << "Initializing variable with undeclared variable.\n";
 					}
 					else
 					{
-						std::cout << "SCISL COMPILER ERROR: line:" << lineNum << "\tUsing undeclared variable " << cur << ".\n";
+						std::cout << ERR_MSG_H(lineNum) << "Using undeclared variable " << cur << ".\n";
 					}
-					return { opt, false };
+					precompInstr&& tmp = noopInstr();
+					tmp.meta.funcName = "";
+					return tmp;
 				}
 
 				carg->val.type = rtype;
 				carg->val.val = new std::string(cur);
-				vars.push_back({ cur, carg->val.type });
+				vars.emplace_back(cur, carg->val.type);
 				continue;
 			}
 			*carg = cur; //everything else
@@ -282,43 +298,56 @@ namespace scisl
 		opt.instr.func = opt.meta.fnc;
 		auto& peep = opt.meta.peep;
 		if (peep != nullptr) peep(opt);
-		return { opt, typeCheck(opt) };
+		if (typeCheck(opt))
+		{
+			return opt;
+		}
+		else
+		{
+			precompInstr&& tmp = noopInstr();
+			tmp.meta.funcName = "";
+			return tmp;
+		}
 	}
 
 	void finalize(std::vector<precompInstr>& instructions)
 	{
 		std::vector<std::pair<std::string, value*>> remainingVars;
-		std::map<std::string, unsigned int> labels;
+		std::unordered_map<std::string, unsigned int> labels;
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
 
-			scislPeephole peep = cur.meta.peep;
+			scislPeephole& peep = cur.meta.peep;
 			if (peep != nullptr) peep(cur);
 
-			if (isFunc(cur.meta, stlFuncs::label) || isFunc(cur.meta, stlFuncs::def))
+			switch (cur.meta.funcID)
 			{
+			case stlFuncs::label:
+			case stlFuncs::def:
+				{
 				labels.insert({ SCISL_CAST_STRING(cur.instr.arguments[0].val.val) , i });
 				delete (std::string*)(cur.instr.arguments[0].val.val);
 				cur.instr.arguments[0].val.val = new SCISL_INT_PRECISION(i);
-				continue;
-			}
-
-			for (unsigned int j = 0; j < instructions[i].instr.argCount; j++)
-			{
-				arg& cur = instructions[i].instr.arguments[j];
-				if (cur.argType == argType::variable)
+				break;
+				}
+			default:
+				for (unsigned int j = 0; j < instructions[i].instr.argCount; j++)
 				{
-					unsigned short loc = (unsigned short)(findV(remainingVars, SCISL_CAST_STRING(cur.val.val)));
-					if (loc == remainingVars.size())
+					arg& cur = instructions[i].instr.arguments[j];
+					if (cur.argType == argType::variable)
 					{
-						value* space = new value(createTemporary(cur.val.type));
-						remainingVars.push_back({ SCISL_CAST_STRING(cur.val.val), space });
-					}
+						unsigned short loc = (unsigned short)(findV(remainingVars, SCISL_CAST_STRING(cur.val.val)));
+						if (loc == remainingVars.size())
+						{
+							value* space = new value(createTemporary(cur.val.type));
+							remainingVars.emplace_back(SCISL_CAST_STRING(cur.val.val), space);
+						}
 
-					delete (std::string*)(cur.val.val);
-					cur.val.val = remainingVars[loc].second->val;
-					cur.finalized = true;
+						delete (std::string*)(cur.val.val);
+						cur.val.val = remainingVars[loc].second->val;
+						cur.finalized = true;
+					}
 				}
 			}
 		}
@@ -326,16 +355,25 @@ namespace scisl
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
 			precompInstr& cur = instructions[i];
-			if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp) || isFunc(cur.meta, stlFuncs::call))
+			switch (cur.meta.funcID)
 			{
+			case stlFuncs::jmp:
+			case stlFuncs::cjmp:
+			case stlFuncs::call:
+				{
 				unsigned int loc = labels[SCISL_CAST_STRING(cur.instr.arguments[0].val.val)];
 				delete (std::string*)(cur.instr.arguments[0].val.val);
 				cur.instr.arguments[0].val.val = new SCISL_INT_PRECISION(loc);
-			}
-			else if (isFunc(cur.meta, stlFuncs::def))
-			{
+				break;
+				}
+			case stlFuncs::def:
+				{
 				unsigned int loc = findBlockEnd(instructions, i);
 				SCISL_CAST_INT(cur.instr.arguments[0].val.val) = SCISL_INT_PRECISION(loc);
+				break;
+				}
+			default:
+				break;
 			}
 		}
 
@@ -346,55 +384,55 @@ namespace scisl
 		}
 	}
 
-	bool detectErrors(std::vector<precompInstr>& instructions)
+	bool detectErrors(const std::vector<precompInstr>& instructions)
 	{
 		bool detected = false;
-		std::map<std::string, type> vars;
+		std::unordered_map<std::string, type> vars;
 		unsigned int curBlockStart = 0;
 		unsigned int curBlockEnd = (unsigned int)(instructions.size());
 		for (unsigned int i = 0; i < instructions.size(); i++)
 		{
-			precompInstr& cur = instructions[i];
+			const precompInstr& cur = instructions[i];
 
 			if (cur.meta.flags & SCISL_F_BLOCK)
 			{
 				unsigned int loc = findBlockEnd(instructions, i);
 				if (loc == instructions.size())
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no endblock.\n";
+					std::cout << ERR_MSG_H(i) << cur.meta.funcName << " has no endblock.\n";
 					detected = true;
 				}
 				curBlockStart = i;
 				curBlockEnd = loc;
 			}
 
-			if (isFunc(cur.meta, stlFuncs::call))
+			if (cur.meta.funcID == stlFuncs::call)
 			{
 				std::string& str = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				unsigned int loc = findLabel(instructions, str, stlFuncs::def);
 				if (loc == instructions.size())
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no associated function.\n";
+					std::cout << ERR_MSG_H(i) << cur.meta.funcName << " has no associated function.\n";
 					detected = true;
 				}
 				else if (i < loc)
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " cannot be before function definition.\n";
+					std::cout << ERR_MSG_H(i) << cur.meta.funcName << " cannot be used before function definition.\n";
 					detected = true;
 				}
 			}
-			else if (isFunc(cur.meta, stlFuncs::jmp) || isFunc(cur.meta, stlFuncs::cjmp))
+			else if (cur.meta.funcID == stlFuncs::jmp || cur.meta.funcID == stlFuncs::cjmp)
 			{
 				std::string& str = SCISL_CAST_STRING(cur.instr.arguments[0].val.val);
 				unsigned int loc = findLabel(instructions, str, stlFuncs::label);
 				if (loc == instructions.size())
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " has no associated label.\n";
+					std::cout << ERR_MSG_H(i) << cur.meta.funcName << " has no associated label.\n";
 					detected = true;
 				}
 				else if (loc >= curBlockEnd || loc <= curBlockStart)
 				{
-					std::cout << "SCISL COMPILER ERROR: line:" << i << "\t" << cur.meta.funcName << " jumps outside current block.\n";
+					std::cout << ERR_MSG_H(i) << cur.meta.funcName << " jumps outside current block.\n";
 					detected = true;
 				}
 			}
@@ -413,15 +451,19 @@ namespace scisl
 
 			std::vector<precompInstr> instructions;
 			std::vector<std::pair<std::string, type>> vars = {};
+		
+			const size_t lines = std::count(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), '\n');
+			instructions.reserve(lines + 1); // this is faster than not reserving
+			file.seekg(0);
 
 			lineNum = 0;
 			while (std::getline(file, line))
 			{
 				lineNum++;
-				auto [instr, worked] = parseInstr(line, vars);
-				if (worked)
+				precompInstr&& instr = parseInstr(line, vars);
+				if (instr.meta.funcName != "")
 				{
-					instructions.push_back(std::move(instr));
+					instructions.emplace_back(std::move(instr));
 				}
 				else
 				{
@@ -451,7 +493,7 @@ namespace scisl
 			opt->instructions.reserve(instructions.size());
 			for (precompInstr& i : instructions)
 			{
-				opt->instructions.push_back(std::move(i.instr));
+				opt->instructions.emplace_back(std::move(i.instr));
 			}
 
 			return opt;

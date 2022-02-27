@@ -94,7 +94,6 @@ namespace scisl
 
 	bool isSTLfunc(stlFuncs fnc);
 	bool isFunc(scislFunc func, stlFuncs fnc);
-	bool isFunc(scislfuncMeta meta, stlFuncs fnc);
 	stlFuncs strToFuncID(const std::string& str);
 
 

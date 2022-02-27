@@ -16,11 +16,6 @@ namespace scisl
 		return func == stlFuncMeta[(unsigned short)(fnc)].fnc;
 	}
 
-	bool isFunc(scislfuncMeta meta, stlFuncs fnc)
-	{
-		return (stlFuncs)(meta.funcID) == fnc;
-	}
-
 	stlFuncs strToFuncID(const std::string& str)
 	{
 		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)

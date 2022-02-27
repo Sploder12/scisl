@@ -52,7 +52,7 @@ namespace scisl
 		std::vector<arg> realArgs;
 		for (unsigned int i = 0; i < startIDX; i++)
 		{
-			realArgs.push_back(std::move(instruct.instr.arguments[i]));
+			realArgs.emplace_back(std::move(instruct.instr.arguments[i]));
 		}
 
 		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
@@ -67,7 +67,7 @@ namespace scisl
 					if (firstStr.val == nullptr)
 					{
 						firstStr.val = cur.val.val;
-						realArgs.push_back(std::move(cur));
+						realArgs.emplace_back(std::move(cur));
 						break;
 					}
 
@@ -80,7 +80,7 @@ namespace scisl
 					if (firstInt.val == nullptr)
 					{
 						firstInt.val = cur.val.val;
-						realArgs.push_back(std::move(cur));
+						realArgs.emplace_back(std::move(cur));
 						break;
 					}
 
@@ -92,7 +92,7 @@ namespace scisl
 					if (firstFloat.val == nullptr)
 					{
 						firstFloat.val = cur.val.val;
-						realArgs.push_back(std::move(cur));
+						realArgs.emplace_back(std::move(cur));
 						break;
 					}
 
@@ -104,7 +104,7 @@ namespace scisl
 				}
 				continue;
 			}
-			realArgs.push_back(std::move(cur));
+			realArgs.emplace_back(std::move(cur));
 		}
 
 		delete[] instruct.instr.arguments;
@@ -124,7 +124,7 @@ namespace scisl
 		std::vector<arg> realArgs;
 		for (unsigned int i = 0; i < startIDX; i++)
 		{
-			realArgs.push_back(std::move(instruct.instr.arguments[i]));
+			realArgs.emplace_back(std::move(instruct.instr.arguments[i]));
 		}
 
 		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
@@ -135,14 +135,14 @@ namespace scisl
 				switch (cur.val.type)
 				{
 				case type::string:
-					realArgs.push_back(std::move(cur));
+					realArgs.emplace_back(std::move(cur));
 					break;
 				case type::floating:
 				{
 					SCISL_FLOAT_PRECISION val = SCISL_CAST_FLOAT(instruct.instr.arguments[i].val.val);
 					if (val != identityVal)
 					{
-						realArgs.push_back(std::move(cur));
+						realArgs.emplace_back(std::move(cur));
 					}
 					break;
 				}
@@ -151,14 +151,14 @@ namespace scisl
 					SCISL_INT_PRECISION val = SCISL_CAST_INT(instruct.instr.arguments[i].val.val);
 					if (val != identityVal)
 					{
-						realArgs.push_back(std::move(cur));
+						realArgs.emplace_back(std::move(cur));
 					}
 					break;
 				}
 				}
 				continue;
 			}
-			realArgs.push_back(std::move(cur));
+			realArgs.emplace_back(std::move(cur));
 		}
 
 		delete[] instruct.instr.arguments;
