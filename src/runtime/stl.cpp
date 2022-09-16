@@ -6,7 +6,7 @@
 #pragma warning(disable : 4244)
 namespace scisl
 {
-	constexpr bool isSTLfunc(stlFuncs fnc)
+	bool isSTLfunc(stlFuncs fnc)
 	{
 		return fnc != stlFuncs::stlFuncCount;
 	}
