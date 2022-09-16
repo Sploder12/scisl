@@ -458,6 +458,7 @@ namespace scisl
 				case stlFuncs::def:
 					{
 					const unsigned int idx = findBlockEnd(instructions, branchIdx);
+					reachedInstructions.emplace_back(idx);
 					branchIdx = idx;
 					break;
 					}
@@ -475,6 +476,7 @@ namespace scisl
 					{
 						exploreBranch(instructions, reachedInstructions, branchIdx);
 						const unsigned int idx = findBlockEnd(instructions, branchIdx);
+						reachedInstructions.emplace_back(idx);
 						branchIdx = idx;
 					}
 				}

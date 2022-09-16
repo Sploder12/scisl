@@ -209,7 +209,7 @@ namespace scisl
 		else
 		{
 			auto& funcs = getFuncTable();
-			auto it = funcs.find(things[0].substr(1));
+			auto it = funcs.find(funcName.substr(1));
 			if (it != funcs.end())
 			{
 				opt.meta = (*it).second;
@@ -405,6 +405,11 @@ namespace scisl
 				}
 				curBlockStart = i;
 				curBlockEnd = loc;
+			}
+
+			if (cur.meta.funcID == stlFuncs::blockend) {
+				curBlockStart = 0;
+				curBlockEnd = instructions.size() - 1;
 			}
 
 			if (cur.meta.funcID == stlFuncs::call)
