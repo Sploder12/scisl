@@ -10,7 +10,7 @@ namespace scisl
 {
 	inline std::string funcToStr(scislFunc func)
 	{
-		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
+		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); ++i)
 		{
 			if (func == stlFuncMeta[i].fnc)
 			{
@@ -37,7 +37,7 @@ namespace scisl
 		if (file.is_open())
 		{
 
-			for (unsigned int i = 0; i < instructions.size(); i++)
+			for (unsigned int i = 0; i < instructions.size(); ++i)
 			{
 				auto& cur = instructions[i];
 				std::string&& line = funcToStr(cur.func);

@@ -89,7 +89,7 @@ namespace scisl
 		return *this;
 	}
 
-	arg& arg::operator=(std::string& v)
+	arg& arg::operator=(const std::string& v)
 	{
 		switch (this->argType)
 		{
@@ -126,7 +126,7 @@ namespace scisl
 		{
 		case argType::interop:
 		{
-			auto& vtable = getVarTable();
+			const auto& vtable = getVarTable();
 			return *vtable.at(*(std::string*)this->val.val);
 		}
 		default:

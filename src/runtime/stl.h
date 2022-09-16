@@ -92,7 +92,7 @@ namespace scisl
 		{ "NOTHING" }
 	};
 
-	bool isSTLfunc(stlFuncs fnc);
+	constexpr bool isSTLfunc(stlFuncs fnc);
 	bool isFunc(scislFunc func, stlFuncs fnc);
 	stlFuncs strToFuncID(const std::string& str);
 

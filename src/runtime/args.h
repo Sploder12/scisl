@@ -33,7 +33,7 @@ namespace scisl
 		arg& operator=(arg& other);
 		arg& operator=(arg&& cmove) noexcept;
 
-		arg& operator=(std::string& v);
+		arg& operator=(const std::string& v);
 
 		value& getValue();
 

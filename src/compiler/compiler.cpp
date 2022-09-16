@@ -91,7 +91,7 @@ namespace scisl
 		if (tstr == "") return true;
 
 		char curType = 'a';
-		for (unsigned int i = 0; i < bi.instr.argCount; i++)
+		for (unsigned int i = 0; i < bi.instr.argCount; ++i)
 		{
 			if (i < tstr.size()) curType = tstr[i];
 
@@ -242,7 +242,7 @@ namespace scisl
 		opt.instr.arguments = new arg[argCount];
 		opt.instr.argCount = argCount;
 
-		for (unsigned char i = 0; i < argCount; i++)
+		for (unsigned char i = 0; i < argCount; ++i)
 		{
 			std::string& cur = things[i + 1];
 			arg* carg = &opt.instr.arguments[i];
@@ -315,7 +315,7 @@ namespace scisl
 	{
 		std::vector<std::pair<std::string, value*>> remainingVars;
 		std::unordered_map<std::string, unsigned int> labels;
-		for (unsigned int i = 0; i < instructions.size(); i++)
+		for (unsigned int i = 0; i < instructions.size(); ++i)
 		{
 			precompInstr& cur = instructions[i];
 
@@ -353,7 +353,7 @@ namespace scisl
 			}
 		}
 
-		for (unsigned int i = 0; i < instructions.size(); i++)
+		for (unsigned int i = 0; i < instructions.size(); ++i)
 		{
 			precompInstr& cur = instructions[i];
 			switch (cur.meta.funcID)
@@ -391,7 +391,7 @@ namespace scisl
 		std::unordered_map<std::string, type> vars;
 		unsigned int curBlockStart = 0;
 		unsigned int curBlockEnd = (unsigned int)(instructions.size());
-		for (unsigned int i = 0; i < instructions.size(); i++)
+		for (unsigned int i = 0; i < instructions.size(); ++i)
 		{
 			const precompInstr& cur = instructions[i];
 

@@ -212,7 +212,7 @@ namespace scisl
 			{
 				const std::string tmp = SCISL_CAST_STRING(this->val);
 				std::string tmpSum = "";
-				for (int i = 0; i < SCISL_CAST_INT(other.val); i++)
+				for (int i = 0; i < SCISL_CAST_INT(other.val); ++i)
 				{
 					tmpSum += tmp;
 				}

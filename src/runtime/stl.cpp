@@ -6,7 +6,7 @@
 #pragma warning(disable : 4244)
 namespace scisl
 {
-	bool isSTLfunc(stlFuncs fnc)
+	constexpr bool isSTLfunc(stlFuncs fnc)
 	{
 		return fnc != stlFuncs::stlFuncCount;
 	}
@@ -18,7 +18,7 @@ namespace scisl
 
 	stlFuncs strToFuncID(const std::string& str)
 	{
-		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
+		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); ++i)
 		{
 			if (str == stlFuncMeta[i].funcName)
 			{
@@ -26,7 +26,7 @@ namespace scisl
 			}
 		}
 
-		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); i++)
+		for (unsigned short i = 0; i < (unsigned short)(stlFuncs::stlFuncCount); ++i)
 		{
 			for (const char* const& s : funcAliases[i])
 			{
@@ -52,7 +52,7 @@ namespace scisl
 		value& cur = instr.arguments[0].getValue();
 		value sum = createTemporary(cur.type); //defaults as empty
 
-		for (unsigned char i = 1; i < instr.argCount; i++)
+		for (unsigned char i = 1; i < instr.argCount; ++i)
 		{
 			const value& to = instr.arguments[i].getValue();
 			sum += to;
@@ -66,7 +66,7 @@ namespace scisl
 	{
 		value& cur = instr.arguments[0].getValue();
 
-		for (unsigned char i = 1; i < instr.argCount; i++)
+		for (unsigned char i = 1; i < instr.argCount; ++i)
 		{
 			const value& to = instr.arguments[i].getValue();
 			cur += to;
@@ -103,7 +103,7 @@ namespace scisl
 		value prod = createTemporary(cur.type);
 		prod = instr.arguments[1].getValue().val;
 
-		for (unsigned char i = 2; i < instr.argCount; i++)
+		for (unsigned char i = 2; i < instr.argCount; ++i)
 		{
 			const value& to = instr.arguments[i].getValue();
 			prod *= to;
@@ -117,7 +117,7 @@ namespace scisl
 	{
 		value& cur = instr.arguments[0].getValue();
 
-		for (unsigned char i = 1; i < instr.argCount; i++)
+		for (unsigned char i = 1; i < instr.argCount; ++i)
 		{
 			const value& to = instr.arguments[i].getValue();
 			cur *= to;
@@ -149,7 +149,7 @@ namespace scisl
 	//veriadic args
 	void print(program& process, const instruction& instr)
 	{
-		for (unsigned char i = 0; i < instr.argCount; i++)
+		for (unsigned char i = 0; i < instr.argCount; ++i)
 		{
 			const value& cur = instr.arguments[i].getValue();
 			switch (cur.type)
@@ -228,7 +228,7 @@ namespace scisl
 	{
 		value& cur = instr.arguments[0].getValue();
 		const value& first = instr.arguments[1].getValue();
-		for (unsigned char i = 2; i < instr.argCount; i++)
+		for (unsigned char i = 2; i < instr.argCount; ++i)
 		{
 			const value& next = instr.arguments[i].getValue();
 			if (first != next)

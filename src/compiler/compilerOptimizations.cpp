@@ -11,12 +11,12 @@ namespace scisl
 	inline unsigned int findBlockEnd(const std::vector<precompInstr>& instructions, unsigned int start)
 	{
 		unsigned int dl = 1;
-		for (unsigned int i = start + 1; i < instructions.size(); i++)
+		for (unsigned int i = start + 1; i < instructions.size(); ++i)
 		{
 			const precompInstr& cur = instructions[i];
 			if (cur.meta.flags & SCISL_F_BLOCK)
 			{
-				dl++;
+				++dl;
 			}
 			else if (cur.meta.funcID == stlFuncs::blockend)
 			{
@@ -85,7 +85,7 @@ namespace scisl
 			}
 		}
 
-		for (unsigned int i = 0; i < instr.argCount; i++)
+		for (unsigned int i = 0; i < instr.argCount; ++i)
 		{
 			arg& cur = instr.arguments[i];
 			if (cur.argType == argType::variable)
@@ -370,7 +370,7 @@ namespace scisl
 		std::vector<precompInstr> remaining;
 		remaining.reserve(instructions.size());
 
-		for (unsigned int i = 0; i < instructions.size(); i++)
+		for (unsigned int i = 0; i < instructions.size(); ++i)
 		{
 			switch (instructions[i].meta.funcID)
 			{
@@ -499,7 +499,7 @@ namespace scisl
 		exploreBranch(instructions, reachedInstructions, 0);
 
 		remaining.reserve(reachedInstructions.size());
-		for (unsigned int i = 0; i < instructions.size(); i++)
+		for (unsigned int i = 0; i < instructions.size(); ++i)
 		{
 			const auto it = std::find(reachedInstructions.begin(), reachedInstructions.end(), i);
 			if (it != reachedInstructions.end())

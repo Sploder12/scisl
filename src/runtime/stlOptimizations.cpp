@@ -50,12 +50,12 @@ namespace scisl
 		value firstFloat;
 		firstFloat.type = type::floating;
 		std::vector<arg> realArgs;
-		for (unsigned int i = 0; i < startIDX; i++)
+		for (unsigned int i = 0; i < startIDX; ++i)
 		{
 			realArgs.emplace_back(std::move(instruct.instr.arguments[i]));
 		}
 
-		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
+		for (unsigned int i = startIDX; i < instruct.instr.argCount; ++i)
 		{
 			arg& cur = instruct.instr.arguments[i];
 			if (cur.argType == argType::constant)
@@ -110,7 +110,7 @@ namespace scisl
 		delete[] instruct.instr.arguments;
 		instruct.instr.argCount = (unsigned char)(realArgs.size());
 		instruct.instr.arguments = new arg[realArgs.size()];
-		for (unsigned int i = 0; i < realArgs.size(); i++)
+		for (unsigned int i = 0; i < realArgs.size(); ++i)
 		{
 			instruct.instr.arguments[i] = std::move(realArgs[i]);
 		}
@@ -122,12 +122,12 @@ namespace scisl
 	void removeIdentity(precompInstr& instruct, unsigned short startIDX, SCISL_INT_PRECISION identityVal)
 	{
 		std::vector<arg> realArgs;
-		for (unsigned int i = 0; i < startIDX; i++)
+		for (unsigned int i = 0; i < startIDX; ++i)
 		{
 			realArgs.emplace_back(std::move(instruct.instr.arguments[i]));
 		}
 
-		for (unsigned int i = startIDX; i < instruct.instr.argCount; i++)
+		for (unsigned int i = startIDX; i < instruct.instr.argCount; ++i)
 		{
 			arg& cur = instruct.instr.arguments[i];
 			if (cur.argType == argType::constant)
@@ -164,7 +164,7 @@ namespace scisl
 		delete[] instruct.instr.arguments;
 		instruct.instr.argCount = (unsigned char)(realArgs.size());
 		instruct.instr.arguments = new arg[realArgs.size()];
-		for (unsigned int i = 0; i < realArgs.size(); i++)
+		for (unsigned int i = 0; i < realArgs.size(); ++i)
 		{
 			instruct.instr.arguments[i] = std::move(realArgs[i]);
 		}
