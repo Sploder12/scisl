@@ -184,8 +184,8 @@ namespace scisl
 	{
 		if (settingConst(instruct)) return;
 
-		arg& first = instruct.instr.arguments[0];
-		arg& second = instruct.instr.arguments[1];
+		const arg& first = instruct.instr.arguments[0];
+		const arg& second = instruct.instr.arguments[1];
 		if (first.argType == argType::variable && second.argType == argType::variable)
 		{
 			if (SCISL_CAST_STRING(first.val.val) == SCISL_CAST_STRING(second.val.val))
@@ -390,10 +390,10 @@ namespace scisl
 
 	void cjmpPeep(precompInstr& instruct)
 	{
-		arg& cond = instruct.instr.arguments[1];
+		const arg& cond = instruct.instr.arguments[1];
 		if (cond.argType == argType::constant)
 		{
-			value& v = cond.val;
+			const value& v = cond.val;
 			switch (v.type)
 			{
 			case type::integer:
