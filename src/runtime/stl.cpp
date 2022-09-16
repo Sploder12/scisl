@@ -42,7 +42,7 @@ namespace scisl
 	void set(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& to = instr.arguments[1].getValue();
+		const value& to = instr.arguments[1].getValue();
 		cur = to.val;
 	}
 
@@ -54,7 +54,7 @@ namespace scisl
 
 		for (unsigned char i = 1; i < instr.argCount; i++)
 		{
-			value& to = instr.arguments[i].getValue();
+			const value& to = instr.arguments[i].getValue();
 			sum += to;
 		}
 
@@ -68,7 +68,7 @@ namespace scisl
 
 		for (unsigned char i = 1; i < instr.argCount; i++)
 		{
-			value& to = instr.arguments[i].getValue();
+			const value& to = instr.arguments[i].getValue();
 			cur += to;
 		}
 	}
@@ -77,8 +77,8 @@ namespace scisl
 	void sub(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		value diff = createTemporary(cur.type);
 		diff = first.val;
@@ -91,7 +91,7 @@ namespace scisl
 	void sube(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur -= first;
 	}
@@ -105,7 +105,7 @@ namespace scisl
 
 		for (unsigned char i = 2; i < instr.argCount; i++)
 		{
-			value& to = instr.arguments[i].getValue();
+			const value& to = instr.arguments[i].getValue();
 			prod *= to;
 		}
 
@@ -119,7 +119,7 @@ namespace scisl
 
 		for (unsigned char i = 1; i < instr.argCount; i++)
 		{
-			value& to = instr.arguments[i].getValue();
+			const value& to = instr.arguments[i].getValue();
 			cur *= to;
 		}
 	}
@@ -128,8 +128,8 @@ namespace scisl
 	void div(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		value quo = createTemporary(cur.type);
 		quo = first.val;
@@ -141,7 +141,7 @@ namespace scisl
 	void dive(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur /= first;
 	}
@@ -151,7 +151,7 @@ namespace scisl
 	{
 		for (unsigned char i = 0; i < instr.argCount; i++)
 		{
-			value& cur = instr.arguments[i].getValue();
+			const value& cur = instr.arguments[i].getValue();
 			switch (cur.type)
 			{
 			case type::string:
@@ -173,9 +173,9 @@ namespace scisl
 	void substr(program& process, const instruction& instr)
 	{
 		value& c = instr.arguments[0].getValue();
-		value& str = instr.arguments[1].getValue();
-		value& start = instr.arguments[2].getValue();
-		value& end = instr.arguments[2].getValue();
+		const value& str = instr.arguments[1].getValue();
+		const value& start = instr.arguments[2].getValue();
+		const value& end = instr.arguments[3].getValue();
 		//thank type checking
 		c = SCISL_CAST_STRING(str.val).substr(SCISL_CAST_INT(start.val), SCISL_CAST_INT(end.val) - SCISL_CAST_INT(start.val));
 	}
@@ -183,7 +183,7 @@ namespace scisl
 	void sstrlen(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& str = instr.arguments[1].getValue();
+		const value& str = instr.arguments[1].getValue();
 
 		cur = (SCISL_INT_PRECISION)(SCISL_CAST_STRING(str.val).size());
 	}
@@ -191,8 +191,8 @@ namespace scisl
 	void chrset(program& process, const instruction& instr)
 	{
 		value& str = instr.arguments[0].getValue();
-		value& c = instr.arguments[1].getValue();
-		value& idx = instr.arguments[2].getValue();
+		const value& c = instr.arguments[1].getValue();
+		const value& idx = instr.arguments[2].getValue();
 		//type checking guarentees this has the right types
 		SCISL_CAST_STRING(str.val)[SCISL_CAST_INT(idx.val)] = char(SCISL_CAST_INT(c.val));
 	}
@@ -200,8 +200,8 @@ namespace scisl
 	void chrat(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& str = instr.arguments[1].getValue();
-		value& idx = instr.arguments[2].getValue();
+		const value& str = instr.arguments[1].getValue();
+		const value& idx = instr.arguments[2].getValue();
 		//type checking guarentees this has the right types
 		cur = SCISL_CAST_STRING(str.val)[SCISL_CAST_INT(idx.val)];
 	}
@@ -209,8 +209,8 @@ namespace scisl
 	void less(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		cur = first < second;
 	}
@@ -218,8 +218,8 @@ namespace scisl
 	void great(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		cur = first > second;
 	}
@@ -227,10 +227,10 @@ namespace scisl
 	void equal(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 		for (unsigned char i = 2; i < instr.argCount; i++)
 		{
-			value& next = instr.arguments[i].getValue();
+			const value& next = instr.arguments[i].getValue();
 			if (first != next)
 			{
 				cur = false;
@@ -244,8 +244,8 @@ namespace scisl
 	void nequal(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		cur = first != second;
 	}
@@ -253,8 +253,8 @@ namespace scisl
 	void land(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		cur = first && second;
 	}
@@ -262,8 +262,8 @@ namespace scisl
 	void lor(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
-		value& second = instr.arguments[2].getValue();
+		const value& first = instr.arguments[1].getValue();
+		const value& second = instr.arguments[2].getValue();
 
 		cur = first || second;
 	}
@@ -271,7 +271,7 @@ namespace scisl
 	void band(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur &= first;
 	}
@@ -279,7 +279,7 @@ namespace scisl
 	void bor(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur |= first;
 	}
@@ -287,7 +287,7 @@ namespace scisl
 	void bxor(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur ^= first;
 	}
@@ -295,7 +295,7 @@ namespace scisl
 	void lshift(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur <<= first;
 	}
@@ -303,7 +303,7 @@ namespace scisl
 	void rshift(program& process, const instruction& instr)
 	{
 		value& cur = instr.arguments[0].getValue();
-		value& first = instr.arguments[1].getValue();
+		const value& first = instr.arguments[1].getValue();
 
 		cur >>= first;
 	}
@@ -316,7 +316,7 @@ namespace scisl
 
 	void cjmp(program& process, const instruction& instr)
 	{
-		value& cur = instr.arguments[1].getValue();
+		const value& cur = instr.arguments[1].getValue();
 		switch (cur.type)
 		{
 		case type::integer:
@@ -360,7 +360,7 @@ namespace scisl
 
 	void end(program& process, const instruction& instr)
 	{
-		value& v = instr.arguments[0].getValue();
+		const value& v = instr.arguments[0].getValue();
 		process.curInstr = (unsigned int)(process.instructions.size());
 		process.retVal = SCISL_CAST_INT(v.val);
 		process.callStack = {};
@@ -370,7 +370,7 @@ namespace scisl
 	{
 		if (process.callStack.empty())
 		{
-			value& v = instr.arguments[0].getValue();
+			const value& v = instr.arguments[0].getValue();
 			process.broke = true;
 			process.retVal = SCISL_CAST_INT(v.val);
 		}

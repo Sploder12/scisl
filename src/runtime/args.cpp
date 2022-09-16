@@ -134,7 +134,7 @@ namespace scisl
 		}
 	}
 
-	std::string arg::toString()
+	std::string arg::toString() const
 	{
 		std::string opt = "";
 

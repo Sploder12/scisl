@@ -84,7 +84,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator=(std::string val)
+	value& value::operator=(const std::string& val)
 	{
 		switch (this->type)
 		{
@@ -101,7 +101,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator+=(value& other)
+	value& value::operator+=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -159,7 +159,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator-=(value& other)
+	value& value::operator-=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -201,7 +201,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator*=(value& other)
+	value& value::operator*=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -261,7 +261,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator/=(value& other)
+	value& value::operator/=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -303,7 +303,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator%=(value& other)
+	value& value::operator%=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -326,7 +326,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator|=(value& other)
+	value& value::operator|=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -349,7 +349,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator&=(value& other)
+	value& value::operator&=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -372,7 +372,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator^=(value& other)
+	value& value::operator^=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -395,7 +395,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator>>=(value& other)
+	value& value::operator>>=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -418,7 +418,7 @@ namespace scisl
 		return *this;
 	}
 
-	value& value::operator<<=(value& other)
+	value& value::operator<<=(const value& other)
 	{
 		switch (this->type)
 		{
@@ -441,7 +441,7 @@ namespace scisl
 		return *this;
 	}
 
-	bool value::operator<(value& other)
+	bool value::operator<(const value& other) const
 	{
 		switch (this->type)
 		{
@@ -478,7 +478,7 @@ namespace scisl
 		}
 	}
 
-	bool value::operator>(value& other)
+	bool value::operator>(const value& other) const
 	{
 		switch (this->type)
 		{
@@ -513,7 +513,7 @@ namespace scisl
 		}
 	}
 
-	bool value::operator==(value& other)
+	bool value::operator==(const value& other) const
 	{
 		switch (this->type)
 		{
@@ -554,7 +554,7 @@ namespace scisl
 		}
 	}
 
-	bool value::operator==(SCISL_INT_PRECISION other)
+	bool value::operator==(SCISL_INT_PRECISION other) const
 	{
 		switch (this->type)
 		{
@@ -569,7 +569,7 @@ namespace scisl
 		}
 	}
 
-	bool value::operator&&(value& other)
+	bool value::operator&&(const value& other) const
 	{
 		switch (this->type)
 		{
@@ -604,7 +604,7 @@ namespace scisl
 		}
 	}
 
-	bool value::operator||(value& other)
+	bool value::operator||(const value& other) const
 	{
 		switch (this->type)
 		{

@@ -59,26 +59,26 @@ namespace scisl
 		value& operator=(void* val);
 		value& operator=(SCISL_INT_PRECISION val);
 		value& operator=(SCISL_FLOAT_PRECISION val);
-		value& operator=(std::string val);
+		value& operator=(const std::string& val);
 
-		value& operator+=(value& other);
-		value& operator-=(value& other);
-		value& operator*=(value& other);
-		value& operator/=(value& other);
-		value& operator%=(value& other);
-		value& operator|=(value& other);
-		value& operator&=(value& other);
-		value& operator^=(value& other);
-		value& operator>>=(value& other);
-		value& operator<<=(value& other);
+		value& operator+=(const value& other);
+		value& operator-=(const value& other);
+		value& operator*=(const value& other);
+		value& operator/=(const value& other);
+		value& operator%=(const value& other);
+		value& operator|=(const value& other);
+		value& operator&=(const value& other);
+		value& operator^=(const value& other);
+		value& operator>>=(const value& other);
+		value& operator<<=(const value& other);
 
-		bool operator<(value& other);
-		bool operator>(value& other);
-		bool operator==(value& other);
-		bool operator==(SCISL_INT_PRECISION other);
+		bool operator<(const value& other) const;
+		bool operator>(const value& other) const;
+		bool operator==(const value& other) const;
+		bool operator==(SCISL_INT_PRECISION other) const;
 
-		bool operator&&(value& other);
-		bool operator||(value& other);
+		bool operator&&(const value& other) const;
+		bool operator||(const value& other) const;
 
 		~value();
 	};

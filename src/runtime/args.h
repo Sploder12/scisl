@@ -37,7 +37,7 @@ namespace scisl
 
 		value& getValue();
 
-		std::string toString();
+		std::string toString() const;
 
 		~arg();
 	};
