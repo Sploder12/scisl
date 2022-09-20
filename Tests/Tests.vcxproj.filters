@@ -32,33 +32,6 @@
     <ClCompile Include="Tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\runtime\args.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\common.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\compiler\compiler.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\compiler\compilerOptimizations.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\instruction.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\program.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\stl.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\stlOptimizations.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\interoperability\tables.cpp">
-      <Filter>Source Files\include</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="DecompiledScisl\Factorial12.scisl">

@@ -5,95 +5,14 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Header Files\runtime">
-      <UniqueIdentifier>{8ae8816c-5314-4e81-8a62-6c10676ee04d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\runtime">
-      <UniqueIdentifier>{c8a2bd43-61d1-4ec9-bd61-6061643b7c17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\compiler">
-      <UniqueIdentifier>{b28784ec-a2a4-4d4b-84bc-cf72fdca9357}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\compiler">
-      <UniqueIdentifier>{24f0f64c-c1cd-4685-9c18-0f698675f8ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\interoperability">
-      <UniqueIdentifier>{e2bbe9d1-81f3-470f-8848-f48770086a92}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\interoperability">
-      <UniqueIdentifier>{679f93f9-ef53-4214-99a3-acc505ded8cb}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\common.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\example.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\compiler.cpp">
-      <Filter>Source Files\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\compilerOptimizations.cpp">
-      <Filter>Source Files\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\args.cpp">
-      <Filter>Source Files\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\program.cpp">
-      <Filter>Source Files\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\stl.cpp">
-      <Filter>Source Files\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="src\interoperability\tables.cpp">
-      <Filter>Source Files\interoperability</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\stlOptimizations.cpp">
-      <Filter>Source Files\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="src\runtime\instruction.cpp">
-      <Filter>Source Files\runtime</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\compiler.h">
-      <Filter>Header Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\compiler\compilerOptimizations.h">
-      <Filter>Header Files\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="src\runtime\args.h">
-      <Filter>Header Files\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="src\runtime\program.h">
-      <Filter>Header Files\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="src\runtime\stl.h">
-      <Filter>Header Files\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="src\interoperability\tables.h">
-      <Filter>Header Files\interoperability</Filter>
-    </ClInclude>
-    <ClInclude Include="src\runtime\stlOptimizations.h">
-      <Filter>Header Files\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="src\runtime\instruction.h">
-      <Filter>Header Files\runtime</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="src\DECOMP_example.scisl">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

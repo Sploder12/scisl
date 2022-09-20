@@ -19,30 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\common.cpp" />
-    <ClCompile Include="src\compiler\compiler.cpp" />
-    <ClCompile Include="src\compiler\compilerOptimizations.cpp" />
     <ClCompile Include="src\example.cpp" />
-    <ClCompile Include="src\interoperability\tables.cpp" />
-    <ClCompile Include="src\runtime\args.cpp" />
-    <ClCompile Include="src\runtime\instruction.cpp" />
-    <ClCompile Include="src\runtime\program.cpp" />
-    <ClCompile Include="src\runtime\stl.cpp" />
-    <ClCompile Include="src\runtime\stlOptimizations.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\compiler\compiler.h" />
-    <ClInclude Include="src\compiler\compilerOptimizations.h" />
-    <ClInclude Include="src\interoperability\tables.h" />
-    <ClInclude Include="src\runtime\args.h" />
-    <ClInclude Include="src\runtime\instruction.h" />
-    <ClInclude Include="src\runtime\program.h" />
-    <ClInclude Include="src\runtime\stl.h" />
-    <ClInclude Include="src\runtime\stlOptimizations.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\DECOMP_example.scisl" />
     <None Include="src\example.scisl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
