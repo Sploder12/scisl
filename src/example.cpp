@@ -1,7 +1,8 @@
-﻿#include "compiler/compiler.h"
-#include "interoperability/tables.h"
+﻿#include "preprocessor/preprocess.h"
+#include "preprocessor/macros.h"
 
 #include <iostream>
+#include <fstream>
 
 #include <chrono>
 #define TIME(funntions)\
@@ -14,16 +15,19 @@ int main()
 {
 	
 	int number = 5;
-	scisl::registerVar("num", number);
+	scisl::defineMacro("macro!", "10");
 
-	scisl::program* prog = scisl::compile("src/example.scisl");
+	std::ifstream file("src/example.scisl");
+	std::string in{};
+	std::string line;
+	while (std::getline(file, line)) {
+		in += line + '\n';
+	}
 
-	if (prog == nullptr) return -1;
-	prog->decompile("src/DECOMP_example.scisl");
+	auto preprocessed = scisl::preprocess(in.substr(0, in.size() - 1));
+
+	std::cout << preprocessed;
 	
-	number = prog->run();
-
-	delete prog;
 
 	return 0;
 }

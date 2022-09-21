@@ -16,10 +16,11 @@ namespace scisl {
 		return chr;
 	}
 
-	const std::array<std::string, 34> stlNames{
+	constexpr std::array<std::string_view, 34> stlNames{
 		"SET",
 		"ADD",
 		"ADDE",
+		"SUB",
 		"SUBE",
 		"MULT",
 		"MULTE",
@@ -99,7 +100,7 @@ namespace scisl {
 		alias_set{ "NOOP", "NOP", "NOTHING" }
 	};
 
-	std::string nameFromAlias(std::string alias) {
+	std::string_view nameFromAlias(std::string alias) {
 		std::transform(std::execution::unseq, alias.begin(), alias.end(), alias.begin(), toupper);
 
 		for (size_t i = 0; i < stlAliases.size(); ++i) {
@@ -111,12 +112,12 @@ namespace scisl {
 		return "";
 	}
 #else
-	std::string nameFromAlias(std::string alias) {
+	std::string_view nameFromAlias(std::string alias) {
 		std::transform(std::execution::unseq, alias.begin(), alias.end(), alias.begin(), toupper);
 
 		for (size_t i = 0; i < stlNames.size(); ++i) {
 			if (stlNames[i] == alias) {
-				return alias;
+				return stlNames[i];
 			}
 		}
 

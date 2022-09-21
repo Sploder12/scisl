@@ -10,10 +10,21 @@
     <ClCompile Include="src\example.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\preprocessor\preprocess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\preprocessor\macros.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\preprocessor\aliases.h" />
+    <ClInclude Include="src\preprocessor\macros.h" />
+    <ClInclude Include="src\preprocessor\preprocess.h" />
   </ItemGroup>
 </Project>

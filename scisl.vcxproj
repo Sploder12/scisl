@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -20,9 +20,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\example.cpp" />
+    <ClCompile Include="src\preprocessor\macros.cpp" />
+    <ClCompile Include="src\preprocessor\preprocess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\preprocessor\aliases.h" />
+    <ClInclude Include="src\preprocessor\macros.h" />
+    <ClInclude Include="src\preprocessor\preprocess.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

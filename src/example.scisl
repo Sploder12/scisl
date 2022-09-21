@@ -1,13 +1,17 @@
 SET test "Hello"
 ADDE test " " "World" "!"
 PRINT test
+
 SET num1 19.3768115942029
 SET num2 69
 MULTE $num num2 num1
-LABEL testLabel
-PRINT $num
-ADDE $num -1
+
+   ; this label does something!!!
+LABEL	testLabel
+	PRINT $num
+	ADDE $num #macro!
 CJMP testLabel $num
-PRINT "We made it"
+
+PRINT "We made it";prints a string
 NOOP
 EXIT $num
