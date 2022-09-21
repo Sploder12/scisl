@@ -17,6 +17,10 @@ int main()
 	int number = 5;
 	scisl::defineMacro("macro!", "10");
 
+	scisl::defineMacro("hello", "\"Hello\"");
+	scisl::defineMacro("world", "\"World\"");
+	scisl::defineMacro("helloworld", "#hello #world");
+
 	std::ifstream file("src/example.scisl");
 	std::string in{};
 	std::string line;

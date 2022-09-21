@@ -2,6 +2,8 @@ SET test "Hello"
 ADDE test " " "World" "!"
 PRINT test
 
+PRINT #helloworld
+
 SET num1 19.3768115942029
 SET num2 69
 MULTE $num num2 num1

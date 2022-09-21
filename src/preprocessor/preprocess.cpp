@@ -22,10 +22,46 @@ namespace scisl {
 	}
 
 
-	std::string preprocess(std::string_view program) {
+	#ifndef SCISL_MACRO_DEPTH
+	#define SCISL_MACRO_DEPTH 3
+	#endif
+
+	std::string resolveMacro(const std::string& name, unsigned char macrodepth) {
+		auto macro = getMacro(name);
+		if (macro != "") {
+			auto tmp = preprocess(macro, macrodepth + 1);
+			if (tmp != "" && tmp.back() == '\n' || isSpace(tmp.back())) {
+				return tmp.substr(0, tmp.size() - 1);
+			}
+			else {
+				return tmp;
+			}
+		}
+		return "";
+	}
+
+	std::string_view resolveFunc(const std::string& name) {
+		auto alias = nameFromAlias(name);
+		if (alias == "") {
+			return name;
+		}
+		else {
+			return alias;
+		}
+	}
+
+	std::string preprocess(std::string_view program, unsigned char macrodepth) {
+		if (program == "" || macrodepth > SCISL_MACRO_DEPTH) // prevent infinite loop from recursive macros
+			return "";
+
 		std::string out{};
 
 		State state = State::line_start;
+
+		if (macrodepth > 0 && program.front() == '"') {
+			state = State::inbetween;
+		}
+
 		std::string temp{};
 
 		for (char c : program) {
@@ -49,13 +85,8 @@ namespace scisl {
 
 			case State::funct_name:
 				if (isSpace(c) || c == '\n' || c == ';') {
-					auto alias = nameFromAlias(temp);
-					if (alias == "") {
-						out += temp;
-					}
-					else {
-						out += alias;
-					}
+					out += resolveFunc(temp);
+					temp = "";
 
 					if (c == '\n') {
 						if (out.back() != '\n') out += '\n';
@@ -76,10 +107,8 @@ namespace scisl {
 
 			case State::macro_name:
 				if (isSpace(c) || c == '\n' || c == ';') {
-					auto macro = getMacro(temp);
-					if (macro != "") {
-						out += macro;
-					}
+					out += resolveMacro(temp, macrodepth);
+					temp = "";
 
 					if (c == '\n') {
 						if (out.back() != '\n') out += '\n';
@@ -163,6 +192,14 @@ namespace scisl {
 			}
 		}
 
+		if (temp != "") {
+			if (state == State::macro_name) {
+				out += resolveMacro(temp, macrodepth);
+			}
+			else {
+				out += resolveFunc(temp);
+			}
+		}
 
 		return out;
 	}
