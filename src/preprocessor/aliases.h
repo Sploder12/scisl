@@ -64,7 +64,7 @@ namespace scisl {
 
 #ifndef SCISL_NO_ALIASES
 	const std::array<alias_set, 34> stlAliases = {
-		alias_set{ "SET", "VAR", "LET", " = " },
+		alias_set{ "SET", "VAR", "LET", "=" },
 		alias_set{ "ADD", "PLUS", "+" },
 		alias_set{ "ADDE", "PLUSE", "PLUSEQUALS", "ADDEQUALS", "+=", "PLUS_EQUALS" },
 		alias_set{ "SUB", "MINUS", "SUBTRACT", "-" },
@@ -92,7 +92,7 @@ namespace scisl {
 		alias_set{ "LABEL", "MARK" },
 		alias_set{ "JMP", "JUMP", "GOTO" },
 		alias_set{ "CJMP", "CJUMP", "CONDITIONALJMP", "CONDITIONALJUMP", "CGOTO", "CONDITIONALGOTO", "CONDITIONAL_JUMP" },
-		alias_set{ "DEF", "DEFINE", "FNC", "FUNC", "FUNCTION"},
+		alias_set{ "DEF", "DEFINE", "FNC", "FUNC", "FUNCTION", "{[]"},
 		alias_set{ "BLOCKEND", "BLOCK_END", "CLOSEBLOCK", "CLOSE_BLOCK", "ENDBLOCK", "END_BLOCK", "EB", "[]}" },
 		alias_set{ "CALL", "RUN" },
 		alias_set{ "EXIT", "FINISH", "END" },
