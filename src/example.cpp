@@ -1,6 +1,8 @@
 ﻿#include "preprocessor/preprocess.h"
 #include "preprocessor/macros.h"
 
+#include "compiler/parser.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -21,6 +23,8 @@ int main()
 	scisl::defineMacro("world", "\"World\"");
 	scisl::defineMacro("helloworld", "#hello #world");
 
+	scisl::defineMacro("maybeAnInstruction", "= num1 13.37");
+
 	std::ifstream file("src/example.scisl");
 	std::string in{};
 	std::string line;
@@ -29,6 +33,7 @@ int main()
 	}
 
 	auto preprocessed = scisl::preprocess(in.substr(0, in.size() - 1));
+	auto parsed = scisl::parse(preprocessed);
 
 	std::cout << preprocessed;
 	

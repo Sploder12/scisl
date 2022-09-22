@@ -100,29 +100,9 @@ namespace scisl {
 		alias_set{ "NOOP", "NOP", "NOTHING" }
 	};
 
-	std::string_view nameFromAlias(std::string alias) {
-		std::transform(std::execution::unseq, alias.begin(), alias.end(), alias.begin(), toupper);
-
-		for (size_t i = 0; i < stlAliases.size(); ++i) {
-			if (stlAliases[i].contains(alias)) {
-				return stlNames[i];
-			}
-		}
-
-		return "";
-	}
+	std::string_view nameFromAlias(std::string alias);
 #else
-	std::string_view nameFromAlias(std::string alias) {
-		std::transform(std::execution::unseq, alias.begin(), alias.end(), alias.begin(), toupper);
-
-		for (size_t i = 0; i < stlNames.size(); ++i) {
-			if (stlNames[i] == alias) {
-				return stlNames[i];
-			}
-		}
-
-		return "";
-	}
+	std::string_view nameFromAlias(std::string alias);
 #endif
 
 	

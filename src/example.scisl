@@ -2,7 +2,7 @@ SET test "Hello"
 ADDE test " " "World" "!"
 PRINT test
 
-PRINT #helloworld
+PRINT   #helloworld
 
 SET num1 19.3768115942029
 = num2 69
@@ -15,5 +15,6 @@ LABEL	testLabel
 CJMP testLabel $num
 
 PRINT "We made it";prints a string
+#maybeAnInstruction
 NOOP
 EXIT $num

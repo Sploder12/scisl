@@ -16,6 +16,15 @@
     <ClCompile Include="src\preprocessor\macros.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\stl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\preprocessor\aliases.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl">
@@ -26,5 +35,9 @@
     <ClInclude Include="src\preprocessor\aliases.h" />
     <ClInclude Include="src\preprocessor\macros.h" />
     <ClInclude Include="src\preprocessor\preprocess.h" />
+    <ClInclude Include="src\compiler\compile.h" />
+    <ClInclude Include="src\compiler\parser.h" />
+    <ClInclude Include="src\runtime\stl.h" />
+    <ClInclude Include="src\compiler\type.h" />
   </ItemGroup>
 </Project>

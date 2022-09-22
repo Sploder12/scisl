@@ -19,17 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\compiler\parser.cpp" />
     <ClCompile Include="src\example.cpp" />
+    <ClCompile Include="src\preprocessor\aliases.cpp" />
     <ClCompile Include="src\preprocessor\macros.cpp" />
     <ClCompile Include="src\preprocessor\preprocess.cpp" />
+    <ClCompile Include="src\runtime\stl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\compiler\compile.h" />
+    <ClInclude Include="src\compiler\parser.h" />
+    <ClInclude Include="src\compiler\type.h" />
     <ClInclude Include="src\preprocessor\aliases.h" />
     <ClInclude Include="src\preprocessor\macros.h" />
     <ClInclude Include="src\preprocessor\preprocess.h" />
+    <ClInclude Include="src\runtime\stl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
