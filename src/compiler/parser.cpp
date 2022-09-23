@@ -27,7 +27,7 @@ namespace scisl {
 			}
 		}
 
-		if (cur < in.size() - 1) {
+		if (cur < in.size()) {
 			out.emplace_back(in.data() + cur, in.size() - cur);
 		}
 
@@ -152,6 +152,68 @@ namespace scisl {
 		}
 	}
 
+	constexpr bool matchesTypeChr(char typeChr, ValType type) {
+		switch (typeChr)
+		{
+		case 'a':
+			return true;
+		case 'n':
+			return (type == ValType::integer || type == ValType::floating);
+		case 'i':
+			return type == ValType::integer;
+		case 'f':
+			return type == ValType::floating;
+		case 's':
+			return type == ValType::string;
+		default:
+			return false;
+		}
+	}
+
+	bool checkArgs(const Intermediate& program) {
+		for (auto& instr : program.instrs) {
+
+			const funcMeta& meta = getMeta(instr.func);
+
+			//arg count
+			if (meta.args >= 0 && meta.args != instr.args.size()) {
+				// err
+				return false;
+			}
+			else if (meta.args < 0 && (meta.args - 1) < instr.args.size()) {
+				// err
+				return false;
+			}
+
+			// check if args follow typeStr
+			bool typeStrDone = false;
+			char typeChr = 'a';
+
+			if (meta.typeStr == nullptr || meta.typeStr[0] == '\0') {
+				typeStrDone = true;
+			}
+
+			for (size_t i = 0; i < instr.args.size(); ++i) {
+				auto& cur = instr.args[i];
+
+				if (!typeStrDone) {
+					typeChr = meta.typeStr[i];
+					if (meta.typeStr[i + 1] == '\0') {
+						typeStrDone = true;
+					}
+				}
+
+				
+				if (!matchesTypeChr(typeChr, cur.valType)) {
+					// err bad arg type
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	Intermediate parse(std::string_view in) {
 		Intermediate out{};
 
@@ -167,6 +229,10 @@ namespace scisl {
 
 		// set valtypes
 		setTypes(out);
+
+		if (!checkArgs(out)) {
+			out = {};
+		}
 
 		return out;
 	}
