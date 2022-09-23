@@ -34,6 +34,16 @@ namespace scisl {
 		return out;
 	}
 
+	const funcMeta& getMeta(const IntermediateInstr& instr) {
+		if (instr.func != stlFunc::count) {
+			return stlFuncMeta[(size_t)instr.func];
+		}
+		else {
+			//@TODO replace with interop
+			return stlFuncMeta[(size_t)stlFunc::jmp];
+		}
+	}
+
 	IntermediateInstr parseLine(std::string_view line) {
 		IntermediateInstr out{};
 
@@ -61,6 +71,17 @@ namespace scisl {
 			out.args.emplace_back(tokens[i], ValType::err, argType);
 		}
 
+		if (out.args.size() > 0) {
+			const auto& meta = getMeta(out);
+
+			// setting of constant is replaced with noop
+			if (out.args[0].argType == ArgType::constant &&
+				(meta.flags & funcFlags::creates || meta.flags & funcFlags::modifies)) {
+
+				out.func = stlFunc::noop;
+			}
+		}
+
 		return out;
 	}
 
@@ -86,20 +107,10 @@ namespace scisl {
 		}
 	}
 
-	const funcMeta& getMeta(stlFunc func) {
-		if (func != stlFunc::count) {
-			return stlFuncMeta[(size_t)func];
-		}
-		else {
-			//@TODO replace with interop
-			return stlFuncMeta[(size_t)stlFunc::jmp];
-		}
-	}
-
 	void setTypes(Intermediate& program) {
 		for (auto& instr : program.instrs) {
 
-			const funcMeta& meta = getMeta(instr.func);
+			const funcMeta& meta = getMeta(instr);
 			
 
 			for (size_t i = 0; i < instr.args.size(); ++i) {
@@ -173,7 +184,7 @@ namespace scisl {
 	bool checkArgs(const Intermediate& program) {
 		for (auto& instr : program.instrs) {
 
-			const funcMeta& meta = getMeta(instr.func);
+			const funcMeta& meta = getMeta(instr);
 
 			//arg count
 			if (meta.args >= 0 && meta.args != instr.args.size()) {

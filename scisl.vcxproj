@@ -36,6 +36,7 @@
     <ClInclude Include="src\preprocessor\aliases.h" />
     <ClInclude Include="src\preprocessor\macros.h" />
     <ClInclude Include="src\preprocessor\preprocess.h" />
+    <ClInclude Include="src\runtime\program.h" />
     <ClInclude Include="src\runtime\stl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

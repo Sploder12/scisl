@@ -8,6 +8,7 @@
 #include <array>
 
 namespace scisl {
+
 	enum class stlFunc : unsigned short {
 		set,
 		add,

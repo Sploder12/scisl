@@ -39,5 +39,6 @@
     <ClInclude Include="src\compiler\parser.h" />
     <ClInclude Include="src\runtime\stl.h" />
     <ClInclude Include="src\compiler\type.h" />
+    <ClInclude Include="src\runtime\program.h" />
   </ItemGroup>
 </Project>
