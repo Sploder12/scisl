@@ -16,13 +16,12 @@
 #define SCISL_STR std::string
 
 namespace scisl {
+	struct Program;
 
 	template <typename T>
 	inline constexpr T* cast(void* data) {
 		return static_cast<T*>(data);
 	}
-
-	struct Program;
 
 	struct Val {
 		void* data;
@@ -47,11 +46,11 @@ namespace scisl {
 			case scisl::ValType::integer:
 				return *cast<SCISL_INT>(data);
 			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data); // let C++ handle float->int
+				return (SCISL_INT)*cast<SCISL_FLOAT>(data); // let C++ handle float->int
 			case scisl::ValType::string:
-				return std::stoi(*cast<SCISL_STR>(data));
+				return (SCISL_INT)std::stoi(*cast<SCISL_STR>(data));
 			default:
-				return (SCISL_INT)data; // really dangerous fallback
+				return 0; // really dangerous fallback
 			}
 		}
 
@@ -59,13 +58,13 @@ namespace scisl {
 			switch (valtype)
 			{
 			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data); // let C++ handle int->float
+				return (SCISL_FLOAT)*cast<SCISL_INT>(data); // let C++ handle int->float
 			case scisl::ValType::floating:
 				return *cast<SCISL_FLOAT>(data);
 			case scisl::ValType::string:
-				return std::stod(*cast<SCISL_STR>(data));
+				return (SCISL_FLOAT)std::stod(*cast<SCISL_STR>(data));
 			default:
-				return (SCISL_INT)data; // really dangerous fallback
+				return 0.0; // really dangerous fallback
 			}
 		}
 
@@ -86,6 +85,7 @@ namespace scisl {
 		// the backbone of all instructions
 		Val& operator=(void* data) {
 			this->data = data;
+			return *this;
 		}
 
 		Val& operator=(SCISL_INT val) {
@@ -95,7 +95,7 @@ namespace scisl {
 				*cast<SCISL_INT>(data) = val;
 				break;
 			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = val;
+				*cast<SCISL_FLOAT>(data) = (SCISL_FLOAT)val;
 				break;
 			case scisl::ValType::string:
 				*cast<SCISL_STR>(data) = std::to_string(val);
@@ -103,13 +103,14 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator=(SCISL_FLOAT val) {
 			switch (valtype)
 			{
 			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = val;
+				*cast<SCISL_INT>(data) = (SCISL_INT)val;
 				break;
 			case scisl::ValType::floating:
 				*cast<SCISL_FLOAT>(data) = val;
@@ -120,16 +121,17 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator=(const SCISL_STR& val) {
 			switch (valtype)
 			{
 			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = std::stoi(val);
+				*cast<SCISL_INT>(data) = (SCISL_INT)std::stoi(val);
 				break;
 			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = std::stod(val);
+				*cast<SCISL_FLOAT>(data) = (SCISL_FLOAT)std::stod(val);
 				break;
 			case scisl::ValType::string:
 				*cast<SCISL_STR>(data) = val;
@@ -137,6 +139,7 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator=(const Val& other) {
@@ -154,11 +157,13 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator=(Val&& moved) noexcept {
 			std::swap(data, moved.data);
 			std::swap(valtype, moved.valtype);
+			return *this;
 		}
 
 		Val& operator+=(const Val& other) {
@@ -176,6 +181,7 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator-=(const Val& other) {
@@ -190,6 +196,7 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator*=(const Val& other) {
@@ -213,6 +220,7 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator/=(const Val& other) {
@@ -227,36 +235,49 @@ namespace scisl {
 			default:
 				break;
 			}
+			return *this;
 		}
 
 		Val& operator%=(const Val& other) {
 			if(valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) %= other.asInt();
+
+			return *this;
 		}
 
 		Val& operator|=(const Val& other) {
 			if (valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) |= other.asInt();
+
+			return *this;
 		}
 
 		Val& operator&=(const Val& other) {
 			if (valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) &= other.asInt();
+
+			return *this;
 		}
 
 		Val& operator^=(const Val& other) {
 			if (valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) ^= other.asInt();
+
+			return *this;
 		}
 
 		Val& operator>>=(const Val& other) {
 			if (valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) >>= other.asInt();
+
+			return *this;
 		}
 
 		Val& operator<<=(const Val& other) {
 			if (valtype == scisl::ValType::integer)
 				*cast<SCISL_INT>(data) <<= other.asInt();
+
+			return *this;
 		}
 	
 		
@@ -270,7 +291,7 @@ namespace scisl {
 			case scisl::ValType::string:
 				return false;
 			default:
-				break;
+				return false;
 			}
 		}
 
@@ -284,7 +305,7 @@ namespace scisl {
 			case scisl::ValType::string:
 				return false;
 			default:
-				break;
+				return false;
 			}
 		}
 
@@ -298,7 +319,7 @@ namespace scisl {
 			case scisl::ValType::string:
 				return *cast<SCISL_STR>(data) == other.asStr();
 			default:
-				break;
+				return false;
 			}
 		}
 
@@ -312,7 +333,7 @@ namespace scisl {
 			case scisl::ValType::string:
 				return false;
 			default:
-				break;
+				return false;
 			}
 		}
 
@@ -326,10 +347,15 @@ namespace scisl {
 			case scisl::ValType::string:
 				return false;
 			default:
-				break;
+				return false;
 			}
 		}
 	};
+
+	template <typename T>
+	inline constexpr T* cast(const Val& val) {
+		return static_cast<T*>(val.data);
+	}
 
 	template <typename T>
 	constexpr ValType toValType() {
@@ -352,7 +378,7 @@ namespace scisl {
 	}
 
 	template <typename T>
-	Val createTemporary(const T& val, T* buffer) {
+	inline Val createTemporary(const T& val, T* buffer) {
 		constexpr ValType type = toValType<T>();
 		if constexpr (type == ValType::err) {
 			return {};
@@ -363,9 +389,29 @@ namespace scisl {
 			return out;
 		}
 	}
+
+	// default constructed Val
+	inline Val createTemporary(ValType type, void* buffer) {
+		Val out{ buffer, type };
+		switch (type)
+		{
+		case scisl::ValType::integer:
+			out = 0;
+			break;
+		case scisl::ValType::floating:
+			out = 0.0f;
+			break;
+		case scisl::ValType::string:
+			out = "";
+			break;
+		default:
+			break;
+		}
+		return out;
+	}
 	
 	struct Instruction {
-		std::function<void(Program&, Instruction&)> func;
+		std::function<void(Program&, std::vector<Val>&)> func;
 		std::vector<Val> args;
 	};
 

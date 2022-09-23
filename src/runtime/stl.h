@@ -3,8 +3,8 @@
 
 #include "../preprocessor/aliases.h"
 #include "../compiler/type.h"
+#include "../runtime/Program.h"
 
-#include <functional>
 #include <array>
 
 namespace scisl {
@@ -55,6 +55,48 @@ namespace scisl {
 		count
 	};
 
+	void set(Program& process, std::vector<Val>& args);
+	void add(Program& process, std::vector<Val>& instr);
+	void adde(Program& process, std::vector<Val>& instr);
+	void sub(Program& process, std::vector<Val>& instr);
+	void sube(Program& process, std::vector<Val>& instr);
+	void mult(Program& process, std::vector<Val>& instr);
+	void multe(Program& process, std::vector<Val>& instr);
+	void div(Program& process, std::vector<Val>& instr);
+	void dive(Program& process, std::vector<Val>& instr);
+	void print(Program& process, std::vector<Val>& instr);
+
+	void substr(Program& process, std::vector<Val>& instr);
+	void strlen(Program& process, std::vector<Val>& instr);
+	void chrset(Program& process, std::vector<Val>& instr);
+	void chrat(Program& process, std::vector<Val>& instr);
+
+	void less(Program& process, std::vector<Val>& instr);
+	void great(Program& process, std::vector<Val>& instr);
+	void equal(Program& process, std::vector<Val>& instr);
+	void nequal(Program& process, std::vector<Val>& instr);
+
+	void land(Program& process, std::vector<Val>& instr);
+	void lor(Program& process, std::vector<Val>& instr);
+
+	void band(Program& process, std::vector<Val>& instr);
+	void bor(Program& process, std::vector<Val>& instr);
+	void bxor(Program& process, std::vector<Val>& instr);
+	void lshift(Program& process, std::vector<Val>& instr);
+	void rshift(Program& process, std::vector<Val>& instr);
+
+	void jmp(Program& process, std::vector<Val>& instr);
+	void cjmp(Program& process, std::vector<Val>& instr);
+
+	void defb(Program& process, std::vector<Val>& instr);
+	void blockend(Program& process, std::vector<Val>& instr);
+	void call(Program& process, std::vector<Val>& instr);
+
+	void exit(Program& process, std::vector<Val>& instr);
+	void breakp(Program& process, std::vector<Val>& instr);
+
+	void noop(Program& process, std::vector<Val>& instr);
+
 	enum funcFlags : unsigned char {
 		is_const = 1,
 		initializes = 2,
@@ -72,7 +114,7 @@ namespace scisl {
 
 	struct funcMeta {
 		stlFunc func; // stfFunc::count if interop
-		// instruction pointer
+		void (*def)(Program&, std::vector<Val>&);
 		// peep pointer
 		int args; // negative indicates variadic, -1 is 0 or more args, 1 is 1 arg, 0 is no args
 		const char* typeStr; // types of the args, variadics use last for outer
@@ -82,47 +124,47 @@ namespace scisl {
 	};
 
 	constexpr std::array<funcMeta, (size_t)(stlFunc::count)> stlFuncMeta {
-		funcMeta{ stlFunc::set, 2, "aa", ValType::err, funcFlags::creates },
-		{ stlFunc::add, -3, "a", ValType::err, funcFlags::creates },
-		{ stlFunc::adde, -3, "a", ValType::err, funcFlags::modifies },
-		{ stlFunc::sub, -3, "an", ValType::err, funcFlags::creates },
-		{ stlFunc::sube, -3, "an", ValType::err, funcFlags::modifies },
-		{ stlFunc::mult, -3, "an", ValType::err, funcFlags::creates },
-		{ stlFunc::multe, -3, "an", ValType::err, funcFlags::modifies },
-		{ stlFunc::div, 3, "ann", ValType::err, funcFlags::creates },
-		{ stlFunc::dive, 2, "nn", ValType::err, funcFlags::modifies },
-		{ stlFunc::print, -1, "a", ValType::err, funcFlags::outputs },
+		funcMeta{ stlFunc::set, set, 2, "aa", ValType::err, funcFlags::creates },
+		{ stlFunc::add, add, -3, "a", ValType::err, funcFlags::creates },
+		{ stlFunc::adde, adde, -3, "a", ValType::err, funcFlags::modifies },
+		{ stlFunc::sub, sub, -3, "an", ValType::err, funcFlags::creates },
+		{ stlFunc::sube, sube, -3, "an", ValType::err, funcFlags::modifies },
+		{ stlFunc::mult, mult, -3, "an", ValType::err, funcFlags::creates },
+		{ stlFunc::multe, multe, -3, "an", ValType::err, funcFlags::modifies },
+		{ stlFunc::div, div, 3, "ann", ValType::err, funcFlags::creates },
+		{ stlFunc::dive, dive, 2, "nn", ValType::err, funcFlags::modifies },
+		{ stlFunc::print, print, -1, "a", ValType::err, funcFlags::outputs },
 
-		{ stlFunc::substr, 4, "ssii", ValType::string, funcFlags::creates },
-		{ stlFunc::strlen, 2, "ns", ValType::integer, funcFlags::creates },
-		{ stlFunc::chrset, 3, "sii", ValType::err, funcFlags::modifies },
-		{ stlFunc::chrat, 3, "nsi", ValType::integer, funcFlags::creates },
+		{ stlFunc::substr, substr, 4, "ssii", ValType::string, funcFlags::creates },
+		{ stlFunc::strlen, strlen, 2, "ns", ValType::integer, funcFlags::creates },
+		{ stlFunc::chrset, chrset, 3, "sii", ValType::err, funcFlags::modifies },
+		{ stlFunc::chrat, chrat, 3, "nsi", ValType::integer, funcFlags::creates },
 
-		{ stlFunc::less, 3, "nnn", ValType::integer, funcFlags::creates },
-		{ stlFunc::great, 3, "nnn", ValType::integer, funcFlags::creates },
-		{ stlFunc::equal, -4, "naa", ValType::integer, funcFlags::creates },
-		{ stlFunc::nequal, 3, "naa", ValType::integer, funcFlags::creates },
+		{ stlFunc::less, less, 3, "nnn", ValType::integer, funcFlags::creates },
+		{ stlFunc::great, great, 3, "nnn", ValType::integer, funcFlags::creates },
+		{ stlFunc::equal, equal, -4, "naa", ValType::integer, funcFlags::creates },
+		{ stlFunc::nequal, nequal, 3, "naa", ValType::integer, funcFlags::creates },
 
-		{ stlFunc::land, -3, "nn", ValType::integer, funcFlags::creates },
-		{ stlFunc::lor, -3, "nn", ValType::integer, funcFlags::creates },
+		{ stlFunc::land, land, -3, "nn", ValType::integer, funcFlags::creates },
+		{ stlFunc::lor, lor, -3, "nn", ValType::integer, funcFlags::creates },
 
-		{ stlFunc::band, 2, "ii", ValType::err, funcFlags::modifies },
-		{ stlFunc::bor, 2, "ii", ValType::err, funcFlags::modifies },
-		{ stlFunc::bxor, 2, "ii", ValType::err, funcFlags::modifies },
-		{ stlFunc::lshift, 2, "ii", ValType::err, funcFlags::modifies },
-		{ stlFunc::rshift, 2, "ii", ValType::err, funcFlags::modifies },
+		{ stlFunc::band, band, 2, "ii", ValType::err, funcFlags::modifies },
+		{ stlFunc::bor, bor, 2, "ii", ValType::err, funcFlags::modifies },
+		{ stlFunc::bxor, bxor, 2, "ii", ValType::err, funcFlags::modifies },
+		{ stlFunc::lshift, lshift, 2, "ii", ValType::err, funcFlags::modifies },
+		{ stlFunc::rshift, rshift, 2, "ii", ValType::err, funcFlags::modifies },
 
-		{ stlFunc::label, 1, "a", ValType::err, funcFlags::is_const },
-		{ stlFunc::jmp, 1, "a", ValType::err, funcFlags::is_const },
-		{ stlFunc::cjmp, 2, "an", ValType::err, funcFlags::is_const },
+		{ stlFunc::label, noop, 1, "a", ValType::err, funcFlags::is_const },
+		{ stlFunc::jmp, jmp, 1, "a", ValType::err, funcFlags::is_const },
+		{ stlFunc::cjmp, cjmp, 2, "an", ValType::err, funcFlags::is_const },
 
-		{ stlFunc::def, 1, "a", ValType::err, funcFlags::def },
-		{ stlFunc::blockend, -1, "", ValType::err, funcFlags::is_const },
-		{ stlFunc::call, 1, "a", ValType::err, funcFlags::is_const },
+		{ stlFunc::def, defb, 1, "a", ValType::err, funcFlags::def },
+		{ stlFunc::blockend, blockend, -1, "", ValType::err, funcFlags::is_const },
+		{ stlFunc::call, call, 1, "a", ValType::err, funcFlags::is_const },
 
-		{ stlFunc::exit, 1, "i", ValType::err, funcFlags::outputs },
-		{ stlFunc::breakp, 1, "i", ValType::err, funcFlags::outputs },
-		{ stlFunc::noop, -1, "", ValType::err, funcFlags::outputs }
+		{ stlFunc::exit, exit, 1, "i", ValType::err, funcFlags::outputs },
+		{ stlFunc::breakp, breakp, 1, "i", ValType::err, funcFlags::outputs },
+		{ stlFunc::noop, noop, -1, "", ValType::err, funcFlags::outputs }
 	};
 
 	constexpr bool metaIsValid(funcMeta meta) {
