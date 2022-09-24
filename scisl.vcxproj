@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\compiler\compile.cpp" />
     <ClCompile Include="src\compiler\parser.cpp" />
     <ClCompile Include="src\example.cpp" />
     <ClCompile Include="src\preprocessor\aliases.cpp" />

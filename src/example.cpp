@@ -2,6 +2,7 @@
 #include "preprocessor/macros.h"
 
 #include "compiler/parser.h"
+#include "compiler/compile.h"
 
 #include <iostream>
 #include <fstream>
@@ -34,8 +35,11 @@ int main()
 
 	auto preprocessed = scisl::preprocess(in.substr(0, in.size() - 1));
 	auto parsed = scisl::parse(preprocessed);
+	auto prog = scisl::compile(parsed);
 
-	std::cout << preprocessed;
+	std::cout << preprocessed << "\n\n";
+
+	prog.run();
 	
 
 	return 0;

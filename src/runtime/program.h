@@ -5,7 +5,6 @@
 #include <stack>
 #include <string>
 
-#include <functional>
 #include <algorithm>
 #include <execution>
 
@@ -32,6 +31,9 @@ namespace scisl {
 
 		Val(void* data, ValType valtype) noexcept :
 			data(data), valtype(valtype) {}
+
+		Val(const Val& o) :
+			data(o.data), valtype(o.valtype) {}
 
 		Val(Val&& other) noexcept:
 			data(other.data), valtype(other.valtype) {
@@ -411,20 +413,76 @@ namespace scisl {
 	}
 	
 	struct Instruction {
-		std::function<void(Program&, std::vector<Val>&)> func;
-		std::vector<Val> args;
+		void (*func)(Program&, std::vector<Val>&) = nullptr;
+		std::vector<Val> args{};
+
+		inline void run(Program& prog) {
+			func(prog, args);
+		}
 	};
 
 	struct Program {
 		std::stack<size_t, std::vector<size_t>> callstack{};
 
-		void* data; // all variables and constants are stored here
+		std::vector<SCISL_STR*> strs{}; // stored to cleanup can be done correctly
+		uint8_t* data; // all variables and constants are stored here
+		size_t dataSize;
 
 		std::vector<Instruction> instructions;
 		size_t rip = 0;
 
 		int returnVal = 0;
 		bool broke = false;
+		
+		Program() :
+			data(nullptr), dataSize(0), instructions({}) {}
+
+		Program(const Program&) = delete;
+		Program(Program&& other) noexcept :
+			callstack(std::move(other.callstack)),
+			strs(std::move(other.strs)),
+			data(other.data), dataSize(other.dataSize),
+			instructions(std::move(other.instructions)),
+			rip(other.rip), returnVal(other.returnVal), broke(other.broke) {
+
+			other.data = nullptr;
+			other.strs = {};
+		}
+
+		Program& operator=(const Program&) = delete;
+
+		Program& operator=(Program&& o) noexcept {
+			std::swap(callstack, o.callstack);
+			std::swap(strs, o.strs);
+			std::swap(data, o.data);
+			std::swap(dataSize, o.dataSize);
+			std::swap(instructions, o.instructions);
+			std::swap(rip, o.rip);
+			std::swap(returnVal, o.returnVal);
+			std::swap(broke, o.broke);
+		}
+
+		~Program() {
+			if (data == nullptr) return;
+
+			for (auto& str : strs) {
+				str->~basic_string();
+			}
+
+			delete[] data;
+		}
+
+		SCISL_INT run() {
+			size_t isize = instructions.size();
+			if (rip >= isize) rip = 0;
+			broke = false;
+
+			while (rip < isize && !broke) {
+				instructions[rip++].run(*this);
+			}
+
+			return returnVal;
+		}
 	};
 }
 

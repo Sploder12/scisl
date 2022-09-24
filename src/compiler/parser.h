@@ -49,6 +49,16 @@ namespace scisl {
 		std::unordered_map<std::string, IntermediateVar> vars;
 	};
 
+	static const funcMeta& getMeta(const IntermediateInstr& instr) {
+		if (instr.func != stlFunc::count) {
+			return stlFuncMeta[(size_t)instr.func];
+		}
+		else {
+			//@TODO replace with interop
+			return stlFuncMeta[(size_t)stlFunc::jmp];
+		}
+	}
+
 	Intermediate parse(std::string_view in);
 }
 

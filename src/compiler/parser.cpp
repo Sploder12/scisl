@@ -34,16 +34,6 @@ namespace scisl {
 		return out;
 	}
 
-	const funcMeta& getMeta(const IntermediateInstr& instr) {
-		if (instr.func != stlFunc::count) {
-			return stlFuncMeta[(size_t)instr.func];
-		}
-		else {
-			//@TODO replace with interop
-			return stlFuncMeta[(size_t)stlFunc::jmp];
-		}
-	}
-
 	IntermediateInstr parseLine(std::string_view line) {
 		IntermediateInstr out{};
 
@@ -76,7 +66,8 @@ namespace scisl {
 
 			// setting of constant is replaced with noop
 			if (out.args[0].argType == ArgType::constant &&
-				(meta.flags & funcFlags::creates || meta.flags & funcFlags::modifies)) {
+				((meta.flags & funcFlags::creates) == funcFlags::creates ||
+				(meta.flags & funcFlags::modifies) == funcFlags::modifies)) {
 
 				out.func = stlFunc::noop;
 			}
@@ -182,7 +173,8 @@ namespace scisl {
 	}
 
 	bool checkArgs(const Intermediate& program) {
-		for (auto& instr : program.instrs) {
+		return std::all_of(std::execution::par_unseq, program.instrs.begin(), program.instrs.end(), 
+			[](const IntermediateInstr& instr) {
 
 			const funcMeta& meta = getMeta(instr);
 
@@ -220,9 +212,9 @@ namespace scisl {
 					return false;
 				}
 			}
-		}
 
-		return true;
+			return true;
+		});
 	}
 
 	Intermediate parse(std::string_view in) {
@@ -234,7 +226,7 @@ namespace scisl {
 		for (auto line : lines) {
 			auto&& intermediate = parseLine(line);
 			if (intermediate.func != stlFunc::noop && intermediate.strName != "") {
-				out.instrs.push_back(intermediate); // initial collection of all operations
+				out.instrs.push_back(std::move(intermediate)); // initial collection of all operations
 			}
 		}
 

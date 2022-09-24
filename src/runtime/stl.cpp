@@ -1,6 +1,8 @@
 #include "stl.h"
 
 #include <iostream>
+#include <algorithm>
+#include <execution>
 
 namespace scisl {
 	stlFunc strToStlFunc(std::string_view str) {
@@ -45,16 +47,18 @@ namespace scisl {
 	void mult(Program& process, std::vector<Val>& args) {
 		Val& out = args[0];
 		out = args[1]; // initial set
-		for (size_t i = 2; i < args.size(); ++i) {
-			out *= args[i];
-		}
+		std::for_each(std::execution::unseq, args.begin() + 2, args.end(),
+			[&out](const Val& v) {
+			out *= v;
+		});
 	}
 
 	void multe(Program& process, std::vector<Val>& args) {
 		Val& out = args[0];
-		for (size_t i = 1; i < args.size(); ++i) {
-			out *= args[i];
-		}
+		std::for_each(std::execution::unseq, args.begin() + 1, args.end(),
+			[&out](const Val& v) {
+			out *= v;
+		});
 	}
 
 	void div(Program& process, std::vector<Val>& args) {
@@ -71,6 +75,7 @@ namespace scisl {
 		for (const auto& arg : args) {
 			std::cout << arg.asStr();
 		}
+		std::cout << '\n';
 	}
 
 
@@ -115,13 +120,11 @@ namespace scisl {
 	void equal(Program& process, std::vector<Val>& args) {
 
 		const Val& first = args[1];
-		for (size_t i = 2; i < args.size(); ++i) {
-			if (first != args[i]) {
-				args[0] = false;
-				return;
-			}
-		}
-		args[0] = true;
+
+		args[0] = std::all_of(std::execution::unseq, args.begin() + 2, args.end(), 
+		[&first](const Val& v) {
+			return first == v;
+		});
 	}
 
 	void nequal(Program& process, std::vector<Val>& args) {
