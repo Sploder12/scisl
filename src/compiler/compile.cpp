@@ -66,6 +66,48 @@ namespace scisl {
 		}
 	}
 
+	size_t getBlockEnd(const std::vector<IntermediateInstr>& instrs, size_t offset) {
+		size_t blocks = 1;
+		for (size_t i = offset + 1; i < instrs.size(); ++i) {
+			const auto& cur = instrs[i];
+			const auto& meta = getMeta(cur);
+			if (meta.flags & funcFlags::defines_block) {
+				++blocks;
+			}
+			else if (cur.func == stlFunc::blockend) {
+				if (--blocks == 0) return i;
+			}
+		}
+		return instrs.size();
+	}
+
+	void setJumps(Intermediate& program) {
+		std::unordered_map<std::string, size_t> labels;
+
+		// get label info
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			auto& cur = program.instrs[i];
+
+			if (cur.func == stlFunc::label || cur.func == stlFunc::def) {
+				labels.emplace(cur.args[0].value, i);
+
+				if (cur.func == stlFunc::def) {
+					cur.args[0].valType = ValType::integer;
+					cur.args[0].value = std::to_string(getBlockEnd(program.instrs, i));
+				}
+			}
+		}
+
+		// set jumps
+		for (auto& instr : program.instrs) {
+			if (instr.func == stlFunc::jmp || instr.func == stlFunc::cjmp || instr.func == stlFunc::call) {
+				auto& cur = instr.args[0];
+				cur.valType = ValType::integer;
+				cur.value = std::to_string(labels[cur.value]);
+			}
+		}
+	}
+
 	Program compile(Intermediate& program) {
 		Program out{};
 
@@ -73,6 +115,7 @@ namespace scisl {
 
 		// @TODO optimizations
 
+		setJumps(program);
 
 		out.dataSize = getRequiredData(program);
 		out.data = new uint8_t[out.dataSize]();
