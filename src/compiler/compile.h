@@ -7,6 +7,8 @@
 namespace scisl {
 
 	Program compile(Intermediate& program);
+
+	Program compile(const char* filename);
 }
 
 #endif

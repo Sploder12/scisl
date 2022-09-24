@@ -20,7 +20,7 @@ LABEL getNext
 		LOR d d m
 		CJMP nend d
 		ADDE ret " "
-		CHRSET ret t c
+		CHRSET ret c t
 		ADDE c 1
 	JMP gchr
 LABEL nend

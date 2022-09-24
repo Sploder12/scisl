@@ -142,7 +142,8 @@ namespace scisl {
 					}
 				case (ArgType::interop):
 					
-					//@TODO
+					auto& var = getVarTable()[cur.value];
+					cur.valType = var.valtype;
 
 					break;
 				}

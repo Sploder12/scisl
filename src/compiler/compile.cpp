@@ -1,5 +1,13 @@
 #include "compile.h"
 
+#include "../preprocessor/preprocess.h"
+#include "parser.h"
+
+#include "../interop/interop.h"
+
+#include <fstream>
+#include <sstream>
+
 namespace scisl {
 
 	constexpr size_t sizeOf(ValType type) {
@@ -93,6 +101,7 @@ namespace scisl {
 
 				if (cur.func == stlFunc::def) {
 					cur.args[0].valType = ValType::integer;
+					cur.args[0].argType = ArgType::constant;
 					cur.args[0].value = std::to_string(getBlockEnd(program.instrs, i));
 				}
 			}
@@ -103,6 +112,7 @@ namespace scisl {
 			if (instr.func == stlFunc::jmp || instr.func == stlFunc::cjmp || instr.func == stlFunc::call) {
 				auto& cur = instr.args[0];
 				cur.valType = ValType::integer;
+				cur.argType = ArgType::constant;
 				cur.value = std::to_string(labels[cur.value]);
 			}
 		}
@@ -172,7 +182,7 @@ namespace scisl {
 					v.data = vars[arg.value];
 					break;
 				case ArgType::interop:
-					// @TODO
+					v.data = getVarTable()[arg.value].data;
 					break;
 				default:
 					break;
@@ -186,5 +196,17 @@ namespace scisl {
 		
 
 		return out;
+	}
+
+	Program compile(const char* filename) {
+		std::ifstream file(filename);
+
+		std::stringstream buf;
+		buf << file.rdbuf();
+		const std::string code = buf.str();
+
+		const auto&& prepro = preprocess(code);
+		auto&& parsed = parse(prepro);
+		return compile(parsed);
 	}
 }

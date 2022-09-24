@@ -4,6 +4,8 @@
 #include "type.h"
 #include "../runtime/stl.h"
 
+#include "../interop/interop.h"
+
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -54,8 +56,7 @@ namespace scisl {
 			return stlFuncMeta[(size_t)instr.func];
 		}
 		else {
-			//@TODO replace with interop
-			return stlFuncMeta[(size_t)stlFunc::jmp];
+			return getFuncTable()[instr.strName];
 		}
 	}
 

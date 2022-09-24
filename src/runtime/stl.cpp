@@ -5,6 +5,10 @@
 #include <execution>
 
 namespace scisl {
+	constexpr size_t nSize() {
+		return (sizeof(SCISL_INT) > sizeof(SCISL_FLOAT)) ? sizeof(SCISL_INT) : sizeof(SCISL_FLOAT);
+	}
+
 	stlFunc strToStlFunc(std::string_view str) {
 		for (size_t i = 0; i < stlNames.size(); ++i) {
 			if (str == stlNames[i]) {
@@ -20,11 +24,14 @@ namespace scisl {
 	}
 
 	void add(Program& process, std::vector<Val>& args) {
-		Val& out = args[0];
-		out = args[1]; // initial set
+		uint8_t buf[sizeof(SCISL_STR)];
+		auto&& temp = createTemporary(args[0].valtype, buf);
+
+		temp = args[1]; // initial set
 		for (size_t i = 2; i < args.size(); ++i) {
-			out += args[i];
+			temp += args[i];
 		}
+		args[0] = temp;
 	}
 
 	void adde(Program& process, std::vector<Val>& args) {
@@ -35,9 +42,13 @@ namespace scisl {
 	}
 
 	void sub(Program& process, std::vector<Val>& args) {
-		Val& out = args[0];
-		out = args[1];
-		out -= args[2];
+		uint8_t buf[nSize()];
+		auto&& temp = createTemporary(args[0].valtype, buf);
+
+		temp = args[1];
+		temp -= args[2];
+
+		args[0] = temp;
 	}
 
 	void sube(Program& process, std::vector<Val>& args) {
@@ -45,12 +56,16 @@ namespace scisl {
 	}
 
 	void mult(Program& process, std::vector<Val>& args) {
-		Val& out = args[0];
-		out = args[1]; // initial set
+		uint8_t buf[sizeof(SCISL_STR)];
+		auto&& temp = createTemporary(args[0].valtype, buf);
+
+		temp = args[1]; // initial set
+
 		std::for_each(std::execution::unseq, args.begin() + 2, args.end(),
-			[&out](const Val& v) {
-			out *= v;
+			[&temp](const Val& v) {
+			temp *= v;
 		});
+		args[0] = temp;
 	}
 
 	void multe(Program& process, std::vector<Val>& args) {
@@ -62,9 +77,12 @@ namespace scisl {
 	}
 
 	void div(Program& process, std::vector<Val>& args) {
-		Val& out = args[0];
-		out = args[1];
-		out /= args[2];
+		uint8_t buf[nSize()];
+		auto&& temp = createTemporary(args[0].valtype, buf);
+
+		temp = args[1];
+		temp /= args[2];
+		args[0] = temp;
 	}
 
 	void dive(Program& process, std::vector<Val>& args) {

@@ -10,10 +10,6 @@
 
 #include "../compiler/type.h"
 
-#define SCISL_INT int
-#define SCISL_FLOAT float
-#define SCISL_STR std::string
-
 namespace scisl {
 	struct Program;
 

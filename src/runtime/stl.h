@@ -98,6 +98,7 @@ namespace scisl {
 	void noop(Program& process, std::vector<Val>& instr);
 
 	enum funcFlags : unsigned char {
+		none = 0,
 		is_const = 1,
 		initializes = 2,
 		no_jump = 4,

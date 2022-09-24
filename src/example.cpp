@@ -4,6 +4,8 @@
 #include "compiler/parser.h"
 #include "compiler/compile.h"
 
+#include "interop/interop.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -18,7 +20,10 @@ int main()
 {
 	
 	int number = 5;
-	scisl::defineMacro("macro!", "10");
+
+	scisl::registerVar("num", &number);
+
+	scisl::defineMacro("macro!", "-1");
 
 	scisl::defineMacro("hello", "\"Hello\"");
 	scisl::defineMacro("world", "\"World\"");

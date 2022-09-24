@@ -12,7 +12,7 @@ mark top
 	cjump bottom d
 	- idx len i
 	charat c ipt idx
-	charset opt c i
+	charset opt i c
 	-= i 1
 	jump top
 label bottom
