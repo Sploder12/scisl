@@ -126,11 +126,11 @@ namespace scisl {
 
 	constexpr std::array<funcMeta, (size_t)(stlFunc::count)> stlFuncMeta {
 		funcMeta{ stlFunc::set, set, 2, "aa", ValType::err, funcFlags::creates },
-		{ stlFunc::add, add, -3, "a", ValType::err, funcFlags::creates },
+		{ stlFunc::add, add, -4, "a", ValType::err, funcFlags::creates },
 		{ stlFunc::adde, adde, -3, "a", ValType::err, funcFlags::modifies },
-		{ stlFunc::sub, sub, -3, "an", ValType::err, funcFlags::creates },
-		{ stlFunc::sube, sube, -3, "an", ValType::err, funcFlags::modifies },
-		{ stlFunc::mult, mult, -3, "an", ValType::err, funcFlags::creates },
+		{ stlFunc::sub, sub, 3, "an", ValType::err, funcFlags::creates },
+		{ stlFunc::sube, sube, 2, "an", ValType::err, funcFlags::modifies },
+		{ stlFunc::mult, mult, -4, "an", ValType::err, funcFlags::creates },
 		{ stlFunc::multe, multe, -3, "an", ValType::err, funcFlags::modifies },
 		{ stlFunc::div, div, 3, "ann", ValType::err, funcFlags::creates },
 		{ stlFunc::dive, dive, 2, "nn", ValType::err, funcFlags::modifies },

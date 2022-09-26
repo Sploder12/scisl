@@ -31,6 +31,9 @@
     <ClCompile Include="src\interop\interop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\optimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.scisl">
@@ -47,5 +50,6 @@
     <ClInclude Include="src\compiler\type.h" />
     <ClInclude Include="src\runtime\program.h" />
     <ClInclude Include="src\interop\interop.h" />
+    <ClInclude Include="src\compiler\optimizer.h" />
   </ItemGroup>
 </Project>

@@ -32,6 +32,7 @@ namespace scisl {
 			temp += args[i];
 		}
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void adde(Program& process, std::vector<Val>& args) {
@@ -49,6 +50,7 @@ namespace scisl {
 		temp -= args[2];
 
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void sube(Program& process, std::vector<Val>& args) {
@@ -66,6 +68,7 @@ namespace scisl {
 			temp *= v;
 		});
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void multe(Program& process, std::vector<Val>& args) {
@@ -83,6 +86,8 @@ namespace scisl {
 		temp = args[1];
 		temp /= args[2];
 		args[0] = temp;
+
+		deleteTemporary(temp);
 	}
 
 	void dive(Program& process, std::vector<Val>& args) {

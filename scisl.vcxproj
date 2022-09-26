@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\compiler\compile.cpp" />
+    <ClCompile Include="src\compiler\optimizer.cpp" />
     <ClCompile Include="src\compiler\parser.cpp" />
     <ClCompile Include="src\example.cpp" />
     <ClCompile Include="src\interop\interop.cpp" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\compiler\compile.h" />
+    <ClInclude Include="src\compiler\optimizer.h" />
     <ClInclude Include="src\compiler\parser.h" />
     <ClInclude Include="src\compiler\type.h" />
     <ClInclude Include="src\interop\interop.h" />

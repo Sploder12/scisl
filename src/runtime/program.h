@@ -393,19 +393,31 @@ namespace scisl {
 		Val out{ buffer, type };
 		switch (type)
 		{
-		case scisl::ValType::integer:
+		case ValType::integer:
 			out = 0;
 			break;
-		case scisl::ValType::floating:
+		case ValType::floating:
 			out = 0.0f;
 			break;
-		case scisl::ValType::string:
+		case ValType::string:
 			out = "";
 			break;
 		default:
 			break;
 		}
 		return out;
+	}
+
+	inline void deleteTemporary(Val& val) {
+		switch (val.valtype) {
+		case ValType::string:
+			((SCISL_STR*)(val.data))->~basic_string();
+			break;
+		default:
+			break;
+		}
+		val.data = nullptr;
+		val.valtype = ValType::err;
 	}
 	
 	struct Instruction {

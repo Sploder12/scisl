@@ -4,6 +4,8 @@
 #include "compiler/parser.h"
 #include "compiler/compile.h"
 
+#include "compiler/optimizer.h"
+
 #include "interop/interop.h"
 
 #include <iostream>
@@ -40,12 +42,10 @@ int main()
 
 	auto preprocessed = scisl::preprocess(in.substr(0, in.size() - 1));
 	auto parsed = scisl::parse(preprocessed);
+	optimize(parsed);
 	auto prog = scisl::compile(parsed);
 
 	std::cout << preprocessed << "\n\n";
 
-	prog.run();
-	
-
-	return 0;
+	return prog.run();
 }

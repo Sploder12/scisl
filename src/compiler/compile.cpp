@@ -1,7 +1,10 @@
 #include "compile.h"
 
 #include "../preprocessor/preprocess.h"
+
 #include "parser.h"
+
+#include "optimizer.h"
 
 #include "../interop/interop.h"
 
@@ -74,21 +77,6 @@ namespace scisl {
 		}
 	}
 
-	size_t getBlockEnd(const std::vector<IntermediateInstr>& instrs, size_t offset) {
-		size_t blocks = 1;
-		for (size_t i = offset + 1; i < instrs.size(); ++i) {
-			const auto& cur = instrs[i];
-			const auto& meta = getMeta(cur);
-			if (meta.flags & funcFlags::defines_block) {
-				++blocks;
-			}
-			else if (cur.func == stlFunc::blockend) {
-				if (--blocks == 0) return i;
-			}
-		}
-		return instrs.size();
-	}
-
 	void setJumps(Intermediate& program) {
 		std::unordered_map<std::string, size_t> labels;
 
@@ -120,10 +108,7 @@ namespace scisl {
 
 	Program compile(Intermediate& program) {
 		Program out{};
-
-
-
-		// @TODO optimizations
+		out.instructions.reserve(program.instrs.size());
 
 		setJumps(program);
 
@@ -148,6 +133,7 @@ namespace scisl {
 		for (const auto& instr : program.instrs) {
 			const auto& meta = getMeta(instr);
 			Instruction cInstr;
+			cInstr.args.reserve(instr.args.size());
 			cInstr.func = meta.def;
 			
 			for (const auto& arg : instr.args) {
@@ -207,6 +193,7 @@ namespace scisl {
 
 		const auto&& prepro = preprocess(code);
 		auto&& parsed = parse(prepro);
+		optimize(parsed);
 		return compile(parsed);
 	}
 }
