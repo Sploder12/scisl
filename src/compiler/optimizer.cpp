@@ -57,6 +57,8 @@ namespace scisl {
 		case ValType::integer:
 		case ValType::floating:
 			removeIdentity(instr, 1, 0);
+
+			//@TODO to adde
 			break;
 		case ValType::string: // strings do not follow commutative property
 
@@ -93,6 +95,35 @@ namespace scisl {
 
 	void subpeep(IntermediateInstr& instr) {
 
+		if (instr.args[1].value == instr.args[2].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "0";
+			instr.args[1].argType = ArgType::constant;
+			instr.args[1].valType = ValType::integer;
+			instr.args.pop_back();
+			setpeep(instr);
+			return;
+		}
+
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::sube;
+			instr.args[1] = instr.args[2];
+			instr.args.pop_back();
+			subepeep(instr);
+			return;
+		}
+
+		removeIdentity(instr, 1, 0);
+
+		if (instr.args.size() == 2) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "0";
+			instr.args[1].argType = ArgType::constant;
+			instr.args[1].valType = ValType::integer;
+			instr.args.pop_back();
+			setpeep(instr);
+		}
+		
 	}
 
 	void multepeep(IntermediateInstr& instr) {
@@ -108,6 +139,15 @@ namespace scisl {
 	}
 
 	void divepeep(IntermediateInstr& instr) {
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "1";
+			instr.args[1].argType = ArgType::constant;
+			instr.args[1].valType = ValType::integer;
+			setpeep(instr);
+			return;
+		}
+
 		removeIdentity(instr, 1, 1);
 
 		if (instr.args.size() == 1) {
@@ -116,11 +156,36 @@ namespace scisl {
 	}
 
 	void divpeep(IntermediateInstr& instr) {
+		if (instr.args[1].value == instr.args[2].value) { // yes, 0/0 = 1
+			instr.func = stlFunc::set;
+			instr.args[1].value = "1";
+			instr.args[1].argType = ArgType::constant;
+			instr.args[1].valType = ValType::integer;
+			instr.args.pop_back();
+			setpeep(instr);
+			return;
+		}
 
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::dive;
+			instr.args[1] = instr.args[2];
+			divepeep(instr);
+			return;
+		}
+
+		removeIdentity(instr, 2, 1);
+
+		if (instr.args.size() == 2) {
+			instr.func = stlFunc::set;
+			setpeep(instr);
+			return;
+		}
 	}
 
 	void printpeep(IntermediateInstr& instr) {
-
+		if (instr.args.size() == 0) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 
@@ -142,11 +207,27 @@ namespace scisl {
 
 
 	void lesspeep(IntermediateInstr& instr) {
-
+		if (instr.args[1].value == instr.args[2].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "0";
+			instr.args[1].valType = ValType::integer;
+			instr.args[1].argType = ArgType::constant;
+			instr.args.pop_back();
+			setpeep(instr);
+			return;
+		}
 	}
 
 	void greatpeep(IntermediateInstr& instr) {
-
+		if (instr.args[1].value == instr.args[2].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "0";
+			instr.args[1].valType = ValType::integer;
+			instr.args[1].argType = ArgType::constant;
+			instr.args.pop_back();
+			setpeep(instr);
+			return;
+		}
 	}
 
 	void equalpeep(IntermediateInstr& instr) {
@@ -154,7 +235,15 @@ namespace scisl {
 	}
 
 	void nequalpeep(IntermediateInstr& instr) {
-
+		if (instr.args[1].value == instr.args[2].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].value = "0";
+			instr.args[1].valType = ValType::integer;
+			instr.args[1].argType = ArgType::constant;
+			instr.args.pop_back();
+			setpeep(instr);
+			return;
+		}
 	}
 
 
@@ -168,43 +257,83 @@ namespace scisl {
 
 
 	void bandpeep(IntermediateInstr& instr) {
-
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::noop;
+			return;
+		}
 	}
 	
 	void borpeep(IntermediateInstr& instr) {
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::noop;
+			return;
+		}
 
+		removeIdentity(instr, 1, 0);
+
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 	
 	void bxorpeep(IntermediateInstr& instr) {
+		if (instr.args[0].value == instr.args[1].value) {
+			instr.func = stlFunc::set;
+			instr.args[1].valType = ValType::integer;
+			instr.args[1].argType = ArgType::constant;
+			instr.args[1].value = "0";
+			setpeep(instr);
+			return;
+		}
 
+		removeIdentity(instr, 1, 0);
+
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 	
 	void lshiftpeep(IntermediateInstr& instr) {
+		removeIdentity(instr, 1, 0);
 
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 	
 	void rshiftpeep(IntermediateInstr& instr) {
+		removeIdentity(instr, 1, 0);
 
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 	void cjmppeep(IntermediateInstr& instr) {
-
-	}
-
-	void blockendpeep(IntermediateInstr& instr) {
-
-	}
-
-	void callpeep(IntermediateInstr& instr) {
-
-	}
-
-	void exitpeep(IntermediateInstr& instr) {
-
-	}
-
-	void breakppeep(IntermediateInstr& instr) {
-
+		if (instr.args[1].argType == ArgType::constant) {
+			switch (instr.args[1].valType)
+			{
+			case ValType::integer:
+				if (std::stol(instr.args[1].value) > 0) {
+					instr.func = stlFunc::jmp;
+					instr.args.pop_back();
+				} else {
+					instr.func = stlFunc::noop;
+				}
+				break;
+			case ValType::floating:
+				if (std::stod(instr.args[1].value) > 0) {
+					instr.func = stlFunc::jmp;
+					instr.args.pop_back();
+				}
+				else {
+					instr.func = stlFunc::noop;
+				}
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
 

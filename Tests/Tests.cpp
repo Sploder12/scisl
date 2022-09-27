@@ -6,6 +6,7 @@
 
 #include "../src/compiler/compile.h"
 #include "../src/compiler/compile.cpp"
+#include "../src/compiler/optimizer.cpp"
 
 #include "../src/interop/interop.h"
 #include "../src/interop/interop.cpp"
