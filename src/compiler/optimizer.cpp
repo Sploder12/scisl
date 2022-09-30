@@ -262,14 +262,13 @@ namespace scisl {
 		std::unordered_set<std::string_view> used;
 		std::vector<IntermediateArg> newArgs;
 		newArgs.reserve(instr.args.size());
+		newArgs.emplace_back(std::move(instr.args[0]));
 
 		for (size_t i = 1; i < instr.args.size(); ++i) {
 			auto& cur = instr.args[i];
 
-			if (used.find(cur.value) != used.end()) {
+			if (used.find(cur.value) == used.end()) {
 				newArgs.emplace_back(std::move(cur));
-			}
-			else {
 				used.insert(cur.value);
 			}
 		}
@@ -321,14 +320,13 @@ namespace scisl {
 		std::unordered_set<std::string_view> used;
 		std::vector<IntermediateArg> newArgs;
 		newArgs.reserve(instr.args.size());
+		newArgs.emplace_back(std::move(instr.args[0]));
 
 		for (size_t i = 1; i < instr.args.size(); ++i) {
 			auto& cur = instr.args[i];
 
-			if (used.find(cur.value) != used.end()) {
+			if (used.find(cur.value) == used.end()) {
 				newArgs.emplace_back(std::move(cur));
-			}
-			else {
 				used.insert(cur.value);
 			}
 		}
@@ -369,14 +367,13 @@ namespace scisl {
 		std::unordered_set<std::string_view> used;
 		std::vector<IntermediateArg> newArgs;
 		newArgs.reserve(instr.args.size());
+		newArgs.emplace_back(std::move(instr.args[0]));
 
 		for (size_t i = 1; i < instr.args.size(); ++i) {
 			auto& cur = instr.args[i];
 
-			if (used.find(cur.value) != used.end()) {
+			if (used.find(cur.value) == used.end()) {
 				newArgs.emplace_back(std::move(cur));
-			}
-			else {
 				used.insert(cur.value);
 			}
 		}
