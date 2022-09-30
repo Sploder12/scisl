@@ -27,6 +27,7 @@
     <ClCompile Include="src\preprocessor\aliases.cpp" />
     <ClCompile Include="src\preprocessor\macros.cpp" />
     <ClCompile Include="src\preprocessor\preprocess.cpp" />
+    <ClCompile Include="src\runtime\program.cpp" />
     <ClCompile Include="src\runtime\stl.cpp" />
   </ItemGroup>
   <ItemGroup>

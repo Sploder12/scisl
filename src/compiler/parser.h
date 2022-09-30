@@ -19,6 +19,47 @@ namespace scisl {
 
 		IntermediateArg(std::string_view str, ValType vtype, ArgType atype) :
 			value(str), valType(vtype), argType(atype) {}
+
+		SCISL_INT toInt() const {
+			switch (valType)
+			{
+			case scisl::ValType::integer:
+				return (SCISL_INT)std::stol(value);
+			case scisl::ValType::floating:
+				return (SCISL_INT)std::stod(value);
+			case scisl::ValType::string:
+				return (SCISL_INT)std::stol(value.substr(1, value.size()-2));
+			default:
+				return 0;
+			}
+		}
+
+		SCISL_FLOAT toFloat() const {
+			switch (valType)
+			{
+			case scisl::ValType::integer:
+				return (SCISL_FLOAT)std::stol(value);
+			case scisl::ValType::floating:
+				return (SCISL_FLOAT)std::stod(value);
+			case scisl::ValType::string:
+				return (SCISL_FLOAT)std::stod(value.substr(1, value.size() - 2));
+			default:
+				return 0.0;
+			}
+		}
+
+		SCISL_STR toString() const {
+			switch (valType)
+			{
+			case scisl::ValType::integer:
+			case scisl::ValType::floating:
+				return value;
+			case scisl::ValType::string:
+				return value.substr(1, value.size() - 2);
+			default:
+				return "";
+			}
+		}
 	};
 
 	struct IntermediateInstr {

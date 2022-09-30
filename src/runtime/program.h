@@ -491,6 +491,8 @@ namespace scisl {
 
 			return returnVal;
 		}
+
+		void decompile(const char* filename);
 	};
 }
 

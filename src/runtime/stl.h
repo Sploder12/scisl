@@ -146,8 +146,8 @@ namespace scisl {
 		{ stlFunc::equal, equal, -4, "naa", ValType::integer, funcFlags::creates },
 		{ stlFunc::nequal, nequal, 3, "naa", ValType::integer, funcFlags::creates },
 
-		{ stlFunc::land, land, -3, "nn", ValType::integer, funcFlags::creates },
-		{ stlFunc::lor, lor, -3, "nn", ValType::integer, funcFlags::creates },
+		{ stlFunc::land, land, -4, "nn", ValType::integer, funcFlags::creates },
+		{ stlFunc::lor, lor, -4, "nn", ValType::integer, funcFlags::creates },
 
 		{ stlFunc::band, band, 2, "ii", ValType::err, funcFlags::modifies },
 		{ stlFunc::bor, bor, 2, "ii", ValType::err, funcFlags::modifies },

@@ -1,6 +1,7 @@
 #include "optimizer.h"
 
 namespace scisl {
+
 	void setpeep(IntermediateInstr& instr) {
 		if (instr.args[0].value == instr.args[1].value) {
 			instr.func = stlFunc::noop;
@@ -135,7 +136,11 @@ namespace scisl {
 	}
 
 	void multpeep(IntermediateInstr& instr) {
+		removeIdentity(instr, 1, 1);
 
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 	void divepeep(IntermediateInstr& instr) {
@@ -189,23 +194,6 @@ namespace scisl {
 	}
 
 
-	void substrpeep(IntermediateInstr& instr) {
-
-	}
-
-	void strlenpeep(IntermediateInstr& instr) {
-
-	}
-
-	void chrsetpeep(IntermediateInstr& instr) {
-
-	}
-
-	void chratpeep(IntermediateInstr& instr) {
-
-	}
-
-
 	void lesspeep(IntermediateInstr& instr) {
 		if (instr.args[1].value == instr.args[2].value) {
 			instr.func = stlFunc::set;
@@ -232,6 +220,64 @@ namespace scisl {
 
 	void equalpeep(IntermediateInstr& instr) {
 
+		std::string constant = ""; // there can only be 1 constant
+		size_t size = instr.args.size();
+		for (size_t i = 1; i < size; ++i) {
+			auto& cur = instr.args[i];
+
+			if (cur.argType == ArgType::constant) {
+				if (constant == "") constant = cur.toString();
+				else {
+					std::string o = cur.toString();
+					switch (cur.valType)
+					{
+					case ValType::integer:
+					case ValType::floating:
+						o = std::to_string(std::stod(cur.value));
+						break;
+					default:
+						break;
+					}
+
+					if (o != constant) {
+						instr.func = stlFunc::set;
+						instr.args[1].value = "0";
+						instr.args[1].valType = ValType::integer;
+						instr.args[1].argType = ArgType::constant;
+						instr.args = { instr.args[0], instr.args[1] };
+						setpeep(instr);
+						return;
+					}
+					else {
+						std::shift_left(instr.args.begin() + i, instr.args.end(), 1);
+						--size;
+						--i;
+					}
+				}
+			}
+		}
+
+		// order must be preserved since short-ciruit eval
+		// remove duplicates
+		std::unordered_set<std::string_view> used;
+		std::vector<IntermediateArg> newArgs;
+		newArgs.reserve(instr.args.size());
+
+		for (size_t i = 1; i < instr.args.size(); ++i) {
+			auto& cur = instr.args[i];
+
+			if (used.find(cur.value) != used.end()) {
+				newArgs.emplace_back(std::move(cur));
+			}
+			else {
+				used.insert(cur.value);
+			}
+		}
+		instr.args = newArgs;
+
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 	void nequalpeep(IntermediateInstr& instr) {
@@ -249,10 +295,96 @@ namespace scisl {
 
 	void landpeep(IntermediateInstr& instr) {
 
+		size_t size = instr.args.size();
+		for (size_t i = 1; i < size; ++i) {
+			const auto& cur = instr.args[i];
+			if (cur.argType == ArgType::constant) {
+				if (cur.toFloat() <= 0.0) {
+					instr.func = stlFunc::set;
+					instr.args[1].value = "0";
+					instr.args[1].valType = ValType::integer;
+					instr.args[1].argType = ArgType::constant;
+					instr.args = { instr.args[0], instr.args[1] };
+					setpeep(instr);
+					return;
+				}
+				else {
+					std::shift_left(instr.args.begin() + i, instr.args.end(), 1);
+					--size;
+					--i;
+				}
+			}
+		}
+
+		// order must be preserved since short-ciruit eval
+		// remove duplicates
+		std::unordered_set<std::string_view> used;
+		std::vector<IntermediateArg> newArgs;
+		newArgs.reserve(instr.args.size());
+
+		for (size_t i = 1; i < instr.args.size(); ++i) {
+			auto& cur = instr.args[i];
+
+			if (used.find(cur.value) != used.end()) {
+				newArgs.emplace_back(std::move(cur));
+			}
+			else {
+				used.insert(cur.value);
+			}
+		}
+		instr.args = newArgs;
+
+		
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 	void lorpeep(IntermediateInstr& instr) {
 
+		size_t size = instr.args.size();
+		for (size_t i = 1; i < size; ++i) {
+			const auto& cur = instr.args[i];
+			if (cur.argType == ArgType::constant) {
+				if (cur.toFloat() > 0.0) {
+					instr.func = stlFunc::set;
+					instr.args[1].value = "1";
+					instr.args[1].valType = ValType::integer;
+					instr.args[1].argType = ArgType::constant;
+					instr.args = { instr.args[0], instr.args[1] };
+					setpeep(instr);
+					return;
+				}
+				else {
+					std::shift_left(instr.args.begin() + i, instr.args.end(), 1);
+					--size;
+					--i;
+				}
+			}
+		}
+
+
+		// order must be preserved since short-ciruit eval
+		// remove duplicates
+		std::unordered_set<std::string_view> used;
+		std::vector<IntermediateArg> newArgs;
+		newArgs.reserve(instr.args.size());
+
+		for (size_t i = 1; i < instr.args.size(); ++i) {
+			auto& cur = instr.args[i];
+
+			if (used.find(cur.value) != used.end()) {
+				newArgs.emplace_back(std::move(cur));
+			}
+			else {
+				used.insert(cur.value);
+			}
+		}
+		instr.args = newArgs;
+
+		if (instr.args.size() == 1) {
+			instr.func = stlFunc::noop;
+		}
 	}
 
 
@@ -349,10 +481,10 @@ namespace scisl {
 		divepeep,
 		printpeep,
 
-		substrpeep,
-		strlenpeep,
-		chrsetpeep,
-		chratpeep,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
 
 		lesspeep,
 		greatpeep,
