@@ -90,7 +90,11 @@ namespace scisl {
 				if (cur.func == stlFunc::def) {
 					cur.args[0].valType = ValType::integer;
 					cur.args[0].argType = ArgType::constant;
-					cur.args[0].value = std::to_string(getBlockEnd(program.instrs, i));
+					size_t end = getBlockEnd(program.instrs, i);
+					while (end + 1 < program.instrs.size() && program.instrs[end + 1].func == stlFunc::def) {
+						end = getBlockEnd(program.instrs, end + 1);
+					}
+					cur.args[0].value = std::to_string(end);
 				}
 			}
 		}

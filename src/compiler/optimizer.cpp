@@ -537,6 +537,43 @@ namespace scisl {
 		});
 	}
 
+	void unrollFunctions(Intermediate& program) {
+		std::vector<IntermediateInstr> remaining;
+		remaining.reserve(program.instrs.size());
+
+		std::stack<size_t> blocks;
+
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			if (program.instrs[i].func == stlFunc::def) {
+				blocks.emplace(i);
+				i = getBlockEnd(program.instrs, i);
+			}
+			else {
+				remaining.emplace_back(std::move(program.instrs[i]));
+			}
+		}
+
+		while (!blocks.empty()) {
+			size_t start = blocks.top();
+			blocks.pop();
+			size_t end = getBlockEnd(program.instrs, start);
+
+			remaining.emplace_back(std::move(program.instrs[start]));
+			
+			for (size_t i = start + 1; i <= end; ++i) {
+				if (program.instrs[i].func == stlFunc::def) {
+					blocks.emplace(i);
+					i = getBlockEnd(program.instrs, i);
+				}
+				else {
+					remaining.emplace_back(std::move(program.instrs[i]));
+				}
+			}
+		}
+
+		program.instrs = std::move(remaining);
+	}
+
 	void foldConstants(Intermediate& program) {
 		
 	}
@@ -544,6 +581,7 @@ namespace scisl {
 	void optimize(Intermediate& program) {
 		applyPeep(program);
 		removeNoop(program);
+		unrollFunctions(program);
 
 
 	}

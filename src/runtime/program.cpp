@@ -16,16 +16,17 @@ namespace scisl {
 
 		for (const auto& instr : instructions) {
 			
-			bool stl = false;
+			stlFunc func = stlFunc::count;
 			for (const auto& meta : stlFuncMeta) {
 				if (instr.func == meta.def) {
 					file << stlNames[(size_t)meta.func];
-					stl = true;
+					func = meta.func;
+
 					break;
 				}
 			}
 
-			if (!stl) {
+			if (func == stlFunc::count) {
 				for (const auto& meta : fTable) {
 					if (instr.func == meta.second.def) {
 						file << meta.first;
@@ -49,7 +50,12 @@ namespace scisl {
 
 				// there is no way to know if something is a variable or constant
 				if (!interop) {
-					file << "v" << std::to_string((size_t)arg.data);
+					if (func != stlFunc::label) {
+						file << "v" << std::to_string((size_t)arg.data);
+					}
+					else {
+						file << std::to_string((size_t)arg.data);
+					}
 				}
 
 			}

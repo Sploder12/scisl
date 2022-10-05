@@ -14,7 +14,14 @@ LABEL	testLabel
 	ADDE $num #macro!
 CJMP testLabel $num
 
+def print
 PRINT "We made it";prints a string
+	def nothing
+		;does nothing
+	endblock
+endblock
+
+call print
 #maybeAnInstruction
 NOOP
 EXIT $num
