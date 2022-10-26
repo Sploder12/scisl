@@ -16,7 +16,7 @@ namespace scisl {
 		floating,
 		string,
 
-		err
+		err = -1
 	};
 
 	enum class ArgType {

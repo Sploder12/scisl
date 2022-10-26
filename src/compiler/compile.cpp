@@ -168,10 +168,10 @@ namespace scisl {
 						else {
 							v.data = (SCISL_STR*)dataNew(buf, arg.valType);
 							buf += sizeof(SCISL_STR);
-							out.strs.push_back(std::get<SCISL_STR*>(v.data));
+							out.strs.push_back((SCISL_STR*)v);
 							v = arg.value.substr(1, arg.value.size() - 2);
 
-							strConsts.emplace(arg.value, std::get<SCISL_STR*>(v.data));
+							strConsts.emplace(arg.value, (SCISL_STR*)v);
 						}
 					}
 					else {
@@ -187,10 +187,10 @@ namespace scisl {
 
 					break;
 				case ArgType::variable:
-					v.data = vars[arg.value].data;
+					v.data = vars[arg.value];
 					break;
 				case ArgType::interop:
-					v.data = getVarTable()[arg.value].data;
+					v.data = getVarTable()[arg.value];
 					break;
 				default:
 					break;

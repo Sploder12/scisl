@@ -18,37 +18,22 @@ namespace scisl {
 
 		operator ScislType() const { return data; }
 
+		template <typename T>
+		explicit operator T () const {
+			return std::get<T>(data);
+		}
+
 		constexpr Val() = default;
 
-		constexpr Val(const Val& other) {
-			data = other.data;
-		}
+		constexpr Val(const Val& other) :
+			data(other.data) {}
 
-		constexpr Val(SCISL_INT* ptr):
-			data() {
-			data = ptr;
-		}
-		constexpr Val(SCISL_FLOAT* ptr) :
-			data() {
-			data = ptr;
-		}
-		constexpr Val(SCISL_STR* ptr) :
-			data() {
-			data = ptr;
-		}
+		template <typename T>
+		constexpr Val(T ptr) :
+			data(ptr) {}
 
 		constexpr ValType type() const {
-			return std::visit([](auto&& inter) {
-				using T = std::decay_t<decltype(inter)>;
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					return ValType::integer;
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					return ValType::floating;
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					return ValType::string;
-				else
-					return ValType::err;
-			}, data);
+			return (ValType)data.index();
 		}
 
 		template <typename T>
@@ -108,13 +93,13 @@ namespace scisl {
 		constexpr Val& operator=(SCISL_INT val) {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& v = std::get<T>(this->data);
+				auto& v = *(T)(*this);
 				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					*v = val;
+					v = val;
 				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					*v = (SCISL_FLOAT)val;
+					v = (SCISL_FLOAT)val;
 				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					*v = std::to_string(val);
+					v = std::to_string(val);
 				else
 					static_assert(false);
 			}, data);
@@ -125,13 +110,13 @@ namespace scisl {
 		constexpr Val& operator=(SCISL_FLOAT val) {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& v = std::get<T>(this->data);
+				auto& v = *(T)(*this);
 				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					*v = (SCISL_INT)val;
+					v = (SCISL_INT)val;
 				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					*v = val;
+					v = val;
 				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					*v = std::to_string(val);
+					v = std::to_string(val);
 				else
 					static_assert(false);
 			}, data);
@@ -142,13 +127,13 @@ namespace scisl {
 		constexpr Val& operator=(const SCISL_STR& val) {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& v = std::get<T>(this->data);
+				auto& v = *(T)(*this);
 				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					*v = (SCISL_INT)std::stoi(val);
+					v = (SCISL_INT)std::stoi(val);
 				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					*v = (SCISL_FLOAT)std::stod(val);
+					v = (SCISL_FLOAT)std::stod(val);
 				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					*v = val;
+					v = val;
 				else
 					static_assert(false);
 			}, data);
@@ -159,7 +144,7 @@ namespace scisl {
 		constexpr Val& operator=(const Val& other) {
 			std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				val = other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 
@@ -174,7 +159,7 @@ namespace scisl {
 		constexpr Val& operator+=(const Val& other) {
 			std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				val += other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 
@@ -185,7 +170,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>) {
-					auto& val = *std::get<ScislPtr>(this->data);
+					auto& val = *(ScislPtr)(*this);
 					val -= other.as<std::remove_pointer_t<ScislPtr>>();
 				}
 			}, data);
@@ -196,7 +181,7 @@ namespace scisl {
 		constexpr Val& operator*=(const Val& other) {
 			std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				if constexpr (std::is_same_v<ScislPtr, SCISL_STR*>) {
 					SCISL_STR tmp = "";
 					SCISL_INT times = other.as<SCISL_INT>();
@@ -217,7 +202,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>) {
-					auto& val = *std::get<ScislPtr>(this->data);
+					auto& val = *(ScislPtr)(*this);
 					val /= other.as<std::remove_pointer_t<ScislPtr>>();
 				}
 			}, data);
@@ -229,7 +214,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val %= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -241,7 +226,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val |= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -253,7 +238,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val &= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -265,7 +250,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val ^= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -277,7 +262,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val >>= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -289,7 +274,7 @@ namespace scisl {
 			std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *std::get<T>(this->data);
+					auto& val = *(T)(*this);
 					val <<= other.as<SCISL_INT>();
 				}
 			}, data);
@@ -301,7 +286,7 @@ namespace scisl {
 		constexpr bool operator<(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
 					return val < other.as<std::remove_pointer_t<ScislPtr>>();
 				else
@@ -312,7 +297,7 @@ namespace scisl {
 		constexpr bool operator>(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
 					return val > other.as<std::remove_pointer_t<ScislPtr>>();
 				else
@@ -323,7 +308,7 @@ namespace scisl {
 		constexpr bool operator==(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				return val == other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 		}
@@ -331,7 +316,7 @@ namespace scisl {
 		constexpr bool operator&&(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
 					return val && other.as<std::remove_pointer_t<ScislPtr>>();
 				else
@@ -342,7 +327,7 @@ namespace scisl {
 		constexpr bool operator||(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *std::get<ScislPtr>(this->data);
+				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
 					return val || other.as<std::remove_pointer_t<ScislPtr>>();
 				else
@@ -354,11 +339,7 @@ namespace scisl {
 	// default constructed Val
 	template <class T>
 	constexpr Val createTemporary(void* buf) {
-	
-		Val out{ (T*)buf };
-		std::construct_at((T*)buf);
-
-		return out;
+		return { std::construct_at((T*)buf) };
 
 	}
 

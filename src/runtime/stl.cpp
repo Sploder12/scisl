@@ -104,7 +104,7 @@ namespace scisl {
 	void substr(Program& process, std::vector<Val>& args) {
 		Val& out = args[0];
 
-		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
+		const SCISL_STR& str = *(SCISL_STR*)args[1];
 		size_t start = args[2].as<SCISL_INT>();
 		size_t end = args[3].as<SCISL_INT>();
 
@@ -112,11 +112,11 @@ namespace scisl {
 	}
 
 	void strlen(Program& process, std::vector<Val>& args) {
-		args[0] = (SCISL_INT)std::get<SCISL_STR*>(args[1].data)->size();
+		args[0] = (SCISL_INT)((SCISL_STR*)args[1])->size();
 	}
 
 	void chrset(Program& process, std::vector<Val>& args) {
-		SCISL_STR& str = *std::get<SCISL_STR*>(args[0].data);
+		SCISL_STR& str = *(SCISL_STR*)args[0];
 		size_t idx = args[1].as<SCISL_INT>();
 		SCISL_INT chr = args[2].as<SCISL_INT>();
 
@@ -124,7 +124,7 @@ namespace scisl {
 	}
 
 	void chrat(Program& process, std::vector<Val>& args) {
-		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
+		const SCISL_STR& str = *(SCISL_STR*)args[1];
 		size_t idx = args[2].as<SCISL_INT>();
 
 		args[0] = str[idx];
