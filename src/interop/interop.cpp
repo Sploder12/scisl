@@ -5,15 +5,15 @@ namespace scisl {
 	std::unordered_map<std::string, funcMeta> funcTable;
 
 	void registerVar(std::string_view id, SCISL_INT* var) {
-		varTable['$' + (std::string)id] = Val{ var, ValType::integer };
+		varTable['$' + (std::string)id] = Val{ var };
 	}
 
 	void registerVar(std::string_view id, SCISL_FLOAT* var) {
-		varTable['$' + (std::string)id] = Val{ var, ValType::floating };
+		varTable['$' + (std::string)id] = Val{ var };
 	}
 
 	void registerVar(std::string_view id, SCISL_STR* var) {
-		varTable['$' + (std::string)id] = Val{ var, ValType::string };
+		varTable['$' + (std::string)id] = Val{ var };
 	}
 
 	//DO NOT USE THIS AFTER COMPILATION

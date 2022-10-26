@@ -143,7 +143,18 @@ namespace scisl {
 				case (ArgType::interop):
 					
 					auto& var = getVarTable()[cur.value];
-					cur.valType = var.valtype;
+
+					std::visit([&](auto&& inter) {
+						using T = std::decay_t<decltype(inter)>;
+						if constexpr (std::is_same_v<T, SCISL_INT*>)
+							cur.valType = ValType::integer;
+						else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+							cur.valType = ValType::floating;
+						else if constexpr (std::is_same_v<T, SCISL_STR*>)
+							cur.valType = ValType::string;
+						else
+							cur.valType = ValType::err;
+					}, var.data);
 
 					break;
 				}

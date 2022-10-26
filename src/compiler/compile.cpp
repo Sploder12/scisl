@@ -120,7 +120,7 @@ namespace scisl {
 		out.data = new uint8_t[out.dataSize]();
 		uint8_t* buf = out.data;
 
-		std::unordered_map<std::string, void*> vars;
+		std::unordered_map<std::string, Val> vars;
 		std::unordered_map<std::string, SCISL_STR*> strConsts;
 
 		for (const auto& [id, var] : program.vars) {
@@ -128,9 +128,20 @@ namespace scisl {
 			void* addr = dataNew(buf, var.valType);
 			buf += sizeOf(var.valType);
 			
-			vars.emplace(id, addr);
-			if (var.valType == ValType::string) {
+			switch (var.valType)
+			{
+			case ValType::integer:
+				vars.emplace(id, (SCISL_INT*)addr);
+				break;
+			case ValType::floating:
+				vars.emplace(id, (SCISL_FLOAT*)addr);
+				break;
+			case ValType::string:
+				vars.emplace(id, (SCISL_STR*)addr);
 				out.strs.push_back((SCISL_STR*)addr);
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -141,8 +152,10 @@ namespace scisl {
 			cInstr.func = meta.def;
 			
 			for (const auto& arg : instr.args) {
+
+
+
 				Val v{};
-				v.valtype = arg.valType;
 
 				switch (arg.argType)
 				{
@@ -153,23 +166,28 @@ namespace scisl {
 							v.data = it->second;
 						}
 						else {
-							v.data = dataNew(buf, arg.valType);
+							v.data = (SCISL_STR*)dataNew(buf, arg.valType);
 							buf += sizeof(SCISL_STR);
-							out.strs.push_back((SCISL_STR*)v.data);
+							out.strs.push_back(std::get<SCISL_STR*>(v.data));
 							v = arg.value.substr(1, arg.value.size() - 2);
 
-							strConsts.emplace(arg.value, (SCISL_STR*)v.data);
+							strConsts.emplace(arg.value, std::get<SCISL_STR*>(v.data));
 						}
 					}
 					else {
-						v.data = dataNew(buf, arg.valType);
+						if (arg.valType == ValType::integer) {
+							v.data = (SCISL_INT*)dataNew(buf, arg.valType);
+						}
+						else {
+							v.data = (SCISL_FLOAT*)dataNew(buf, arg.valType);
+						}
 						buf += sizeOf(arg.valType);
 						v = arg.value;
 					}
 
 					break;
 				case ArgType::variable:
-					v.data = vars[arg.value];
+					v.data = vars[arg.value].data;
 					break;
 				case ArgType::interop:
 					v.data = getVarTable()[arg.value].data;

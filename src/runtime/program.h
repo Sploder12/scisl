@@ -13,346 +13,401 @@
 namespace scisl {
 	struct Program;
 
-	template <typename T>
-	inline constexpr T* cast(void* data) {
-		return static_cast<T*>(data);
-	}
-
 	struct Val {
-		void* data;
-		ValType valtype;
+		ScislType data;
 
-		Val() noexcept :
-			data(nullptr), valtype(ValType::err) {}
+		constexpr Val() = default;
 
-		Val(void* data, ValType valtype) noexcept :
-			data(data), valtype(valtype) {}
-
-		Val(const Val& o) :
-			data(o.data), valtype(o.valtype) {}
-
-		Val(Val&& other) noexcept:
-			data(other.data), valtype(other.valtype) {
-			other.data = nullptr;
-			other.valtype = ValType::err;
+		constexpr Val(const Val& other) {
+			data = other.data;
 		}
 
-
-		inline SCISL_INT asInt() const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data);
-			case scisl::ValType::floating:
-				return (SCISL_INT)*cast<SCISL_FLOAT>(data); // let C++ handle float->int
-			case scisl::ValType::string:
-				return (SCISL_INT)std::stoi(*cast<SCISL_STR>(data));
-			default:
-				return 0; // really dangerous fallback
-			}
+		constexpr Val(SCISL_INT* ptr):
+			data() {
+				data = ptr;
 		}
 
-		inline SCISL_FLOAT asFloat() const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return (SCISL_FLOAT)*cast<SCISL_INT>(data); // let C++ handle int->float
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data);
-			case scisl::ValType::string:
-				return (SCISL_FLOAT)std::stod(*cast<SCISL_STR>(data));
-			default:
-				return 0.0; // really dangerous fallback
-			}
+		constexpr Val(SCISL_FLOAT* ptr) :
+			data() {
+			data = ptr;
 		}
 
-		inline SCISL_STR asStr() const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return std::to_string(*cast<SCISL_INT>(data));
-			case scisl::ValType::floating:
-				return std::to_string(*cast<SCISL_FLOAT>(data));
-			case scisl::ValType::string:
-				return *cast<SCISL_STR>(data);
-			default:
-				return "";
-			}
+		constexpr Val(SCISL_STR* ptr) :
+			data() {
+			data = ptr;
+		}
+
+		SCISL_INT asInt() const {
+			return std::visit([](auto&& val) {
+				using T = std::decay_t<decltype(val)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					return *val;
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					return (SCISL_INT)*val;
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					return (SCISL_INT)std::stoi(*val);
+				else 
+					static_assert(false, "Cast to ScislInt from Err not possible.");
+			}, data);
+		}
+
+		SCISL_FLOAT asFloat() const {
+			return std::visit([](auto&& val) {
+				using T = std::decay_t<decltype(val)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					return (SCISL_FLOAT)*val;
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					return *val;
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					return (SCISL_FLOAT)std::stod(*val);
+				else
+					static_assert(false, "Cast to ScislFloat from Err not possible.");
+			}, data);
+		}
+
+		SCISL_STR asStr() const {
+			return std::visit([](auto&& val) {
+				using T = std::decay_t<decltype(val)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					return std::to_string(*val);
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					return std::to_string(*val);
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					return *val;
+				else
+					static_assert(false, "Cast to ScislStr from Err not possible.");
+			}, data);
 		}
 
 		// the backbone of all instructions
-		Val& operator=(void* data) {
+		constexpr Val& operator=(const ScislType& data) {
 			this->data = data;
 			return *this;
 		}
 
 		Val& operator=(SCISL_INT val) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = val;
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = (SCISL_FLOAT)val;
-				break;
-			case scisl::ValType::string:
-				*cast<SCISL_STR>(data) = std::to_string(val);
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& v = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*v = val;
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*v = (SCISL_FLOAT)val;
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					*v = std::to_string(val);
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator=(SCISL_FLOAT val) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = (SCISL_INT)val;
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = val;
-				break;
-			case scisl::ValType::string:
-				*cast<SCISL_STR>(data) = std::to_string(val);
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& v = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*v = (SCISL_INT)val;
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*v = val;
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					*v = std::to_string(val);
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator=(const SCISL_STR& val) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = (SCISL_INT)std::stoi(val);
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = (SCISL_FLOAT)std::stod(val);
-				break;
-			case scisl::ValType::string:
-				*cast<SCISL_STR>(data) = val;
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& v = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*v = (SCISL_INT)std::stoi(val);
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*v = (SCISL_FLOAT)std::stod(val);
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					*v = val;
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator=(const Val& other) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) = other.asInt();
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) = other.asFloat();
-				break;
-			case scisl::ValType::string:
-				*cast<SCISL_STR>(data) = other.asStr();
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*val = other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*val = other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					*val = other.asStr();
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
-		Val& operator=(Val&& moved) noexcept {
+		constexpr Val& operator=(Val&& moved) noexcept {
 			std::swap(data, moved.data);
-			std::swap(valtype, moved.valtype);
 			return *this;
 		}
 
 		Val& operator+=(const Val& other) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) += other.asInt();
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) += other.asFloat();
-				break;
-			case scisl::ValType::string:
-				*cast<SCISL_STR>(data) += other.asStr();
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*val += other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*val += other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					*val += other.asStr();
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator-=(const Val& other) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) -= other.asInt();
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) -= other.asFloat();
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*val -= other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*val -= other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator*=(const Val& other) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) *= other.asInt();
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) *= other.asFloat();
-				break;
-			case scisl::ValType::string: {
-				std::string tmp = "";
-				SCISL_INT times = other.asInt();
-				for (size_t i = 0; i < times; ++i) {
-					tmp += *cast<SCISL_STR>(data);
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*val *= other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*val *= other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR*>) {
+					SCISL_STR tmp = "";
+					SCISL_INT times = other.asInt();
+					tmp.reserve(times * val->size());
+
+					for (size_t i = 0; i < times; ++i) {
+						tmp += *val;
+					}
+					*val = std::move(tmp);
 				}
-				*cast<SCISL_STR>(data) = tmp;
-				break;
-			}
-			default:
-				break;
-			}
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator/=(const Val& other) {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				*cast<SCISL_INT>(data) /= other.asInt();
-				break;
-			case scisl::ValType::floating:
-				*cast<SCISL_FLOAT>(data) /= other.asFloat();
-				break;
-			default:
-				break;
-			}
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					*val /= other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					*val /= other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
+
 			return *this;
 		}
 
 		Val& operator%=(const Val& other) {
-			if(valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) %= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val %= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 
 		Val& operator|=(const Val& other) {
-			if (valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) |= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val |= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 
 		Val& operator&=(const Val& other) {
-			if (valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) &= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val &= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 
 		Val& operator^=(const Val& other) {
-			if (valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) ^= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val ^= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 
 		Val& operator>>=(const Val& other) {
-			if (valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) >>= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val >>= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 
 		Val& operator<<=(const Val& other) {
-			if (valtype == scisl::ValType::integer)
-				*cast<SCISL_INT>(data) <<= other.asInt();
+			std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>) {
+					auto& val = std::get<T>(this->data);
+					*val <<= other.asInt();
+				}
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*> || std::is_same_v<T, SCISL_STR*>) {}
+				else
+					static_assert(false);
+			}, data);
 
 			return *this;
 		}
 	
-		
+
 		bool operator<(const Val& other) const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data) < other.asInt();
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data) < other.asFloat();
-			case scisl::ValType::string:
-				return false;
-			default:
-				return false;
-			}
+			return std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					return *val < other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					return *val < other.asFloat();
+				else
+					return false;
+			}, data);
 		}
 
 		bool operator>(const Val& other) const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data) > other.asInt();
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data) > other.asFloat();
-			case scisl::ValType::string:
-				return false;
-			default:
-				return false;
-			}
+			return std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT>)
+					return val > other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+					return val > other.asFloat();
+				else
+					return false;
+			}, data);
 		}
 
 		bool operator==(const Val& other) const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data) == other.asInt();
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data) == other.asFloat();
-			case scisl::ValType::string:
-				return *cast<SCISL_STR>(data) == other.asStr();
-			default:
-				return false;
-			}
+			return std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT>)
+					return val == other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+					return val == other.asFloat();
+				else if constexpr (std::is_same_v<T, SCISL_STR>)
+					return val == other.asStr();
+				else
+					return false;
+			}, data);
 		}
 
 		bool operator&&(const Val& other) const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data) && other.asInt();
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data) && other.asFloat();
-			case scisl::ValType::string:
-				return false;
-			default:
-				return false;
-			}
+			return std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT>)
+					return val && other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+					return val && other.asFloat();
+				else
+					return false;
+			}, data);
 		}
 
 		bool operator||(const Val& other) const {
-			switch (valtype)
-			{
-			case scisl::ValType::integer:
-				return *cast<SCISL_INT>(data) || other.asInt();
-			case scisl::ValType::floating:
-				return *cast<SCISL_FLOAT>(data) || other.asFloat();
-			case scisl::ValType::string:
-				return false;
-			default:
-				return false;
-			}
+			return std::visit([&](auto&& dat) {
+				using T = std::decay_t<decltype(dat)>;
+				auto& val = std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT>)
+					return val || other.asInt();
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+					return val || other.asFloat();
+				else
+					return false;
+			}, data);
 		}
 	};
 
-	template <typename T>
-	inline constexpr T* cast(const Val& val) {
-		return static_cast<T*>(val.data);
+	// default constructed Val
+	template <class T>
+	constexpr inline Val createTemporary(void* buf) {
+	
+		Val out{ (T*)buf };
+
+		auto& dat = std::get<T*>(out.data);
+
+		if constexpr (std::is_same_v<T, SCISL_INT>)
+			*dat = (SCISL_INT)0;
+		else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+			*dat = (SCISL_FLOAT)0.0;
+		else if constexpr (std::is_same_v<T, SCISL_STR>)
+			*dat = (SCISL_STR)"";
+
+		return out;
+
 	}
 
 	template <typename T>
@@ -376,49 +431,32 @@ namespace scisl {
 	}
 
 	template <typename T>
-	inline Val createTemporary(const T& val, T* buffer) {
+	inline Val createTemporary(const T& val, void* buf) {
 		constexpr ValType type = toValType<T>();
 		if constexpr (type == ValType::err) {
 			return {};
 		}
 		else {
-			Val out{ buffer, toValType<T>() };
+			Val out{ createTemporary(type, buf) };
 			out = val;
 			return out;
 		}
 	}
 
-	// default constructed Val
-	inline Val createTemporary(ValType type, void* buffer) {
-		Val out{ buffer, type };
-		switch (type)
-		{
+	static Val createTemporary(ValType type, void* buf) {
+		switch (type) {
 		case ValType::integer:
-			out = 0;
-			break;
+			return createTemporary<SCISL_INT>(buf);
 		case ValType::floating:
-			out = 0.0f;
-			break;
+			return createTemporary<SCISL_FLOAT>(buf);
 		case ValType::string:
-			out = "";
-			break;
+			return createTemporary<SCISL_STR>(buf);
 		default:
-			break;
+			return {};
 		}
-		return out;
 	}
 
-	inline void deleteTemporary(Val& val) {
-		switch (val.valtype) {
-		case ValType::string:
-			((SCISL_STR*)(val.data))->~basic_string();
-			break;
-		default:
-			break;
-		}
-		val.data = nullptr;
-		val.valtype = ValType::err;
-	}
+
 	
 	struct Instruction {
 		void (*func)(Program&, std::vector<Val>&) = nullptr;
@@ -491,8 +529,6 @@ namespace scisl {
 
 			return returnVal;
 		}
-
-		void decompile(const char* filename);
 	};
 }
 

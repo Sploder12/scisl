@@ -47,7 +47,5 @@ int main()
 
 	std::cout << preprocessed << "\n\n";
 
-	prog.decompile("DECOMPexample.scisl");
-
 	return prog.run();
 }

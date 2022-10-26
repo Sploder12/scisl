@@ -24,15 +24,13 @@ namespace scisl {
 	}
 
 	void add(Program& process, std::vector<Val>& args) {
-		uint8_t buf[sizeof(SCISL_STR)];
-		auto&& temp = createTemporary(args[0].valtype, buf);
+		Val temp = args[0];
 
 		temp = args[1]; // initial set
 		for (size_t i = 2; i < args.size(); ++i) {
 			temp += args[i];
 		}
 		args[0] = temp;
-		deleteTemporary(temp);
 	}
 
 	void adde(Program& process, std::vector<Val>& args) {
@@ -43,14 +41,12 @@ namespace scisl {
 	}
 
 	void sub(Program& process, std::vector<Val>& args) {
-		uint8_t buf[nSize()];
-		auto&& temp = createTemporary(args[0].valtype, buf);
+		Val temp = args[0];
 
 		temp = args[1];
 		temp -= args[2];
 
 		args[0] = temp;
-		deleteTemporary(temp);
 	}
 
 	void sube(Program& process, std::vector<Val>& args) {
@@ -58,8 +54,7 @@ namespace scisl {
 	}
 
 	void mult(Program& process, std::vector<Val>& args) {
-		uint8_t buf[sizeof(SCISL_STR)];
-		auto&& temp = createTemporary(args[0].valtype, buf);
+		Val temp = args[0];
 
 		temp = args[1]; // initial set
 
@@ -68,7 +63,6 @@ namespace scisl {
 			temp *= v;
 		});
 		args[0] = temp;
-		deleteTemporary(temp);
 	}
 
 	void multe(Program& process, std::vector<Val>& args) {
@@ -80,14 +74,11 @@ namespace scisl {
 	}
 
 	void div(Program& process, std::vector<Val>& args) {
-		uint8_t buf[nSize()];
-		auto&& temp = createTemporary(args[0].valtype, buf);
+		Val temp = args[0];
 
 		temp = args[1];
 		temp /= args[2];
 		args[0] = temp;
-
-		deleteTemporary(temp);
 	}
 
 	void dive(Program& process, std::vector<Val>& args) {
@@ -105,28 +96,28 @@ namespace scisl {
 	void substr(Program& process, std::vector<Val>& args) {
 		Val& out = args[0];
 
-		const SCISL_STR& str = *cast<SCISL_STR>(args[1]);
-		size_t start = *cast<SCISL_INT>(args[2]);
-		size_t end = *cast<SCISL_INT>(args[3]);
+		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
+		size_t start = args[2].asInt();
+		size_t end = args[3].asInt();
 
 		out = str.substr(start, end - start);
 	}
 
 	void strlen(Program& process, std::vector<Val>& args) {
-		args[0] = (SCISL_INT)cast<SCISL_STR>(args[1])->size();
+		args[0] = (SCISL_INT)args[1].asStr().size();
 	}
 
 	void chrset(Program& process, std::vector<Val>& args) {
-		SCISL_STR& str = *cast<SCISL_STR>(args[0]);
-		size_t idx = *cast<SCISL_INT>(args[1]);
-		SCISL_INT chr = *cast<SCISL_INT>(args[2]);
+		SCISL_STR& str = *std::get<SCISL_STR*>(args[0].data);
+		size_t idx = args[1].asInt();
+		SCISL_INT chr = args[2].asInt();
 
 		str[idx] = chr;
 	}
 
 	void chrat(Program& process, std::vector<Val>& args) {
-		const SCISL_STR& str = *cast<SCISL_STR>(args[1]);
-		size_t idx = *cast<SCISL_INT>(args[2]);
+		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
+		size_t idx = args[2].asInt();
 
 		args[0] = str[idx];
 	}
@@ -199,17 +190,17 @@ namespace scisl {
 
 
 	void jmp(Program& process, std::vector<Val>& args) {
-		process.rip = (size_t)*cast<SCISL_INT>(args[0]);
+		process.rip = (size_t)args[0].asInt();
 	}
 
 	void cjmp(Program& process, std::vector<Val>& args) {
 		if (args[1].asFloat() > 0) {
-			process.rip = (size_t)*cast<SCISL_INT>(args[0]);
+			process.rip = (size_t)args[0].asInt();
 		}
 	}
 
 	void defb(Program& process, std::vector<Val>& args) {
-		process.rip = (size_t)*cast<SCISL_INT>(args[0]); //behaves as a jmp
+		process.rip = (size_t)args[0].asInt(); //behaves as a jmp
 	}
 
 	void blockend(Program& process, std::vector<Val>& args) {
@@ -221,11 +212,11 @@ namespace scisl {
 
 	void call(Program& process, std::vector<Val>& args) {
 		process.callstack.emplace(process.rip);
-		process.rip = (size_t)*cast<SCISL_INT>(args[0]) + 1; 
+		process.rip = (size_t)args[0].asInt() + 1;
 	}
 
 	void exit(Program& process, std::vector<Val>& args) {
-		process.returnVal = *cast<SCISL_INT>(args[0]);
+		process.returnVal = args[0].asInt();
 		process.rip = process.instructions.size();
 		process.callstack = {};
 	}
@@ -233,7 +224,7 @@ namespace scisl {
 	void breakp(Program& process, std::vector<Val>& args) {
 		if (process.callstack.empty()) {
 			process.broke = true;
-			process.returnVal = *cast<SCISL_INT>(args[0]);
+			process.returnVal = args[0].asInt();
 		}
 		else { // inside block
 			process.rip = process.callstack.top();
