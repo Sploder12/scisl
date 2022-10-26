@@ -37,50 +37,9 @@ namespace scisl {
 		}
 
 		template <typename T>
-		constexpr T as() const;
-
-		template <>
-		constexpr SCISL_INT as() const {
+		constexpr T as() const {
 			return std::visit([](auto&& val) {
-				using T = std::decay_t<decltype(val)>;
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					return *val;
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					return (SCISL_INT)*val;
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					return (SCISL_INT)std::stoi(*val);
-				else
-					static_assert(false, "Cast to ScislInt from Err not possible.");
-			}, data);
-		}
-
-		template <>
-		constexpr SCISL_FLOAT as() const {
-			return std::visit([](auto&& val) {
-				using T = std::decay_t<decltype(val)>;
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					return (SCISL_FLOAT)*val;
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					return *val;
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					return (SCISL_FLOAT)std::stod(*val);
-				else
-					static_assert(false, "Cast to ScislFloat from Err not possible.");
-			}, data);
-		}
-
-		template <>
-		constexpr SCISL_STR as() const {
-			return std::visit([](auto&& val) {
-				using T = std::decay_t<decltype(val)>;
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					return std::to_string(*val);
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					return std::to_string(*val);
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					return *val;
-				else
-					static_assert(false, "Cast to ScislStr from Err not possible.");
+				return ScislCast<T>(*val);
 			}, data);
 		}
 
@@ -90,52 +49,13 @@ namespace scisl {
 			return *this;
 		}
 
-		constexpr Val& operator=(SCISL_INT val) {
+
+		template <typename T>
+		constexpr Val& operator=(const T& val) {
 			std::visit([&](auto&& dat) {
-				using T = std::decay_t<decltype(dat)>;
-				auto& v = *(T)(*this);
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					v = val;
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					v = (SCISL_FLOAT)val;
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					v = std::to_string(val);
-				else
-					static_assert(false);
-			}, data);
-
-			return *this;
-		}
-
-		constexpr Val& operator=(SCISL_FLOAT val) {
-			std::visit([&](auto&& dat) {
-				using T = std::decay_t<decltype(dat)>;
-				auto& v = *(T)(*this);
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					v = (SCISL_INT)val;
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					v = val;
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					v = std::to_string(val);
-				else
-					static_assert(false);
-			}, data);
-
-			return *this;
-		}
-
-		constexpr Val& operator=(const SCISL_STR& val) {
-			std::visit([&](auto&& dat) {
-				using T = std::decay_t<decltype(dat)>;
-				auto& v = *(T)(*this);
-				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					v = (SCISL_INT)std::stoi(val);
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					v = (SCISL_FLOAT)std::stod(val);
-				else if constexpr (std::is_same_v<T, SCISL_STR*>)
-					v = val;
-				else
-					static_assert(false);
+				using ScislPtr = std::decay_t<decltype(dat)>;
+				auto& v = *(ScislPtr)(*this);
+				v = ScislCast<std::remove_pointer_t<ScislPtr>>(val);
 			}, data);
 
 			return *this;
