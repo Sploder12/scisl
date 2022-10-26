@@ -95,7 +95,7 @@ namespace scisl {
 
 	void print(Program& process, std::vector<Val>& args) {
 		for (const auto& arg : args) {
-			std::cout << arg.asStr();
+			std::cout << arg.as<SCISL_STR>();
 		}
 		std::cout << '\n';
 	}
@@ -105,8 +105,8 @@ namespace scisl {
 		Val& out = args[0];
 
 		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
-		size_t start = args[2].asInt();
-		size_t end = args[3].asInt();
+		size_t start = args[2].as<SCISL_INT>();
+		size_t end = args[3].as<SCISL_INT>();
 
 		out = str.substr(start, end - start);
 	}
@@ -117,15 +117,15 @@ namespace scisl {
 
 	void chrset(Program& process, std::vector<Val>& args) {
 		SCISL_STR& str = *std::get<SCISL_STR*>(args[0].data);
-		size_t idx = args[1].asInt();
-		SCISL_INT chr = args[2].asInt();
+		size_t idx = args[1].as<SCISL_INT>();
+		SCISL_INT chr = args[2].as<SCISL_INT>();
 
 		str[idx] = chr;
 	}
 
 	void chrat(Program& process, std::vector<Val>& args) {
 		const SCISL_STR& str = *std::get<SCISL_STR*>(args[1].data);
-		size_t idx = args[2].asInt();
+		size_t idx = args[2].as<SCISL_INT>();
 
 		args[0] = str[idx];
 	}
@@ -198,17 +198,17 @@ namespace scisl {
 
 
 	void jmp(Program& process, std::vector<Val>& args) {
-		process.rip = (size_t)args[0].asInt();
+		process.rip = (size_t)args[0].as<SCISL_INT>();
 	}
 
 	void cjmp(Program& process, std::vector<Val>& args) {
-		if (args[1].asFloat() > 0) {
-			process.rip = (size_t)args[0].asInt();
+		if (args[1].as<SCISL_FLOAT>() > 0) {
+			process.rip = (size_t)args[0].as<SCISL_INT>();
 		}
 	}
 
 	void defb(Program& process, std::vector<Val>& args) {
-		process.rip = (size_t)args[0].asInt(); //behaves as a jmp
+		process.rip = (size_t)args[0].as<SCISL_INT>(); //behaves as a jmp
 	}
 
 	void blockend(Program& process, std::vector<Val>& args) {
@@ -220,11 +220,11 @@ namespace scisl {
 
 	void call(Program& process, std::vector<Val>& args) {
 		process.callstack.emplace(process.rip);
-		process.rip = (size_t)args[0].asInt() + 1;
+		process.rip = (size_t)args[0].as<SCISL_INT>() + 1;
 	}
 
 	void exit(Program& process, std::vector<Val>& args) {
-		process.returnVal = args[0].asInt();
+		process.returnVal = args[0].as<SCISL_INT>();
 		process.rip = process.instructions.size();
 		process.callstack = {};
 	}
@@ -232,7 +232,7 @@ namespace scisl {
 	void breakp(Program& process, std::vector<Val>& args) {
 		if (process.callstack.empty()) {
 			process.broke = true;
-			process.returnVal = args[0].asInt();
+			process.returnVal = args[0].as<SCISL_INT>();
 		}
 		else { // inside block
 			process.rip = process.callstack.top();
