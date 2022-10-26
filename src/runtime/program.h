@@ -37,6 +37,20 @@ namespace scisl {
 			data = ptr;
 		}
 
+		constexpr ValType type() const {
+			return std::visit([](auto&& inter) {
+				using T = std::decay_t<decltype(inter)>;
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
+					return ValType::integer;
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
+					return ValType::floating;
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
+					return ValType::string;
+				else
+					return ValType::err;
+			}, data);
+		}
+
 		template <typename T>
 		constexpr T as() const;
 
@@ -348,39 +362,6 @@ namespace scisl {
 
 	}
 
-	template <typename T>
-	constexpr ValType toValType() {
-		return ValType::err;
-	}
-	
-	template <>
-	constexpr ValType toValType<SCISL_INT>() {
-		return ValType::integer;
-	}
-
-	template <>
-	constexpr ValType toValType<SCISL_FLOAT>() {
-		return ValType::floating;
-	}
-
-	template <>
-	constexpr ValType toValType<SCISL_STR>() {
-		return ValType::string;
-	}
-
-	template <typename T>
-	constexpr Val createTemporary(const T& val, void* buf) {
-		constexpr ValType type = toValType<T>();
-		if constexpr (type == ValType::err) {
-			return {};
-		}
-		else {
-			Val out{ createTemporary(type, buf) };
-			out = val;
-			return out;
-		}
-	}
-
 	constexpr Val createTemporary(ValType type, void* buf) {
 		switch (type) {
 		case ValType::integer:
@@ -394,16 +375,11 @@ namespace scisl {
 		}
 	}
 
-	template <>
 	constexpr Val createTemporary(const Val& val, void* buf) {
-		return std::visit([&](auto&& v) {
-			using T = std::remove_pointer_t<std::decay_t<decltype(v)>>;
+		Val out{ createTemporary(val.type(), buf) };
+		out = val;
 
-			Val out{ createTemporary(toValType<T>(), buf) };
-			out = val;
-
-			return out;
-		}, val.data);
+		return out;
 	}
 
 	constexpr void deleteTemporary(Val& temp) {
@@ -425,7 +401,7 @@ namespace scisl {
 	struct Program {
 		std::stack<size_t, std::vector<size_t>> callstack{};
 
-		std::vector<SCISL_STR*> strs{}; // stored to cleanup can be done correctly
+		std::vector<SCISL_STR*> strs{}; // stored so cleanup can be done correctly
 		uint8_t* data; // all variables and constants are stored here
 		size_t dataSize;
 
