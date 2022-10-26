@@ -326,11 +326,11 @@ namespace scisl {
 		bool operator<(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& val = std::get<T>(this->data);
+				auto& val = *std::get<T>(this->data);
 				if constexpr (std::is_same_v<T, SCISL_INT*>)
-					return *val < other.asInt();
+					return val < other.asInt();
 				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
-					return *val < other.asFloat();
+					return val < other.asFloat();
 				else
 					return false;
 			}, data);
@@ -339,10 +339,10 @@ namespace scisl {
 		bool operator>(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& val = std::get<T>(this->data);
-				if constexpr (std::is_same_v<T, SCISL_INT>)
+				auto& val = *std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
 					return val > other.asInt();
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
 					return val > other.asFloat();
 				else
 					return false;
@@ -352,12 +352,12 @@ namespace scisl {
 		bool operator==(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& val = std::get<T>(this->data);
-				if constexpr (std::is_same_v<T, SCISL_INT>)
+				auto& val = *std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
 					return val == other.asInt();
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
 					return val == other.asFloat();
-				else if constexpr (std::is_same_v<T, SCISL_STR>)
+				else if constexpr (std::is_same_v<T, SCISL_STR*>)
 					return val == other.asStr();
 				else
 					return false;
@@ -367,10 +367,10 @@ namespace scisl {
 		bool operator&&(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& val = std::get<T>(this->data);
-				if constexpr (std::is_same_v<T, SCISL_INT>)
+				auto& val = *std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
 					return val && other.asInt();
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
 					return val && other.asFloat();
 				else
 					return false;
@@ -380,10 +380,10 @@ namespace scisl {
 		bool operator||(const Val& other) const {
 			return std::visit([&](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
-				auto& val = std::get<T>(this->data);
-				if constexpr (std::is_same_v<T, SCISL_INT>)
+				auto& val = *std::get<T>(this->data);
+				if constexpr (std::is_same_v<T, SCISL_INT*>)
 					return val || other.asInt();
-				else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+				else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
 					return val || other.asFloat();
 				else
 					return false;
@@ -399,11 +399,11 @@ namespace scisl {
 
 		auto& dat = std::get<T*>(out.data);
 
-		if constexpr (std::is_same_v<T, SCISL_INT>)
+		if constexpr (std::is_same_v<T, SCISL_INT*>)
 			*dat = (SCISL_INT)0;
-		else if constexpr (std::is_same_v<T, SCISL_FLOAT>)
+		else if constexpr (std::is_same_v<T, SCISL_FLOAT*>)
 			*dat = (SCISL_FLOAT)0.0;
-		else if constexpr (std::is_same_v<T, SCISL_STR>)
+		else if constexpr (std::is_same_v<T, SCISL_STR*>)
 			*dat = (SCISL_STR)"";
 
 		return out;
@@ -454,6 +454,27 @@ namespace scisl {
 		default:
 			return {};
 		}
+	}
+
+	template <>
+	inline Val createTemporary(const Val& val, void* buf) {
+		return std::visit([&](auto&& v) {
+			using T = std::remove_pointer_t<std::decay_t<decltype(v)>>;
+
+			Val out{ createTemporary(toValType<T>(), buf) };
+			out = val;
+
+			return out;
+		}, val.data);
+	}
+
+	static void deleteTemporary(Val& temp) {
+		std::visit([&](auto&& d) {
+			using T = std::decay_t<decltype(d)>;
+
+			if constexpr (std::is_same_v<T, SCISL_STR*>)
+				d->~basic_string();
+		}, temp.data);
 	}
 
 

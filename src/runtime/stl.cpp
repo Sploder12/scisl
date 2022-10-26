@@ -24,13 +24,15 @@ namespace scisl {
 	}
 
 	void add(Program& process, std::vector<Val>& args) {
-		Val temp = args[0];
+		uint8_t buf[sizeof(SCISL_STR)];
+		Val temp = createTemporary(args[0], buf);
 
 		temp = args[1]; // initial set
 		for (size_t i = 2; i < args.size(); ++i) {
 			temp += args[i];
 		}
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void adde(Program& process, std::vector<Val>& args) {
@@ -41,12 +43,14 @@ namespace scisl {
 	}
 
 	void sub(Program& process, std::vector<Val>& args) {
-		Val temp = args[0];
+		uint8_t buf[nSize()];
+		Val temp = createTemporary(args[0], buf);
 
 		temp = args[1];
 		temp -= args[2];
 
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void sube(Program& process, std::vector<Val>& args) {
@@ -54,7 +58,8 @@ namespace scisl {
 	}
 
 	void mult(Program& process, std::vector<Val>& args) {
-		Val temp = args[0];
+		uint8_t buf[sizeof(SCISL_STR)];
+		Val temp = createTemporary(args[0], buf);
 
 		temp = args[1]; // initial set
 
@@ -63,6 +68,7 @@ namespace scisl {
 			temp *= v;
 		});
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void multe(Program& process, std::vector<Val>& args) {
@@ -74,11 +80,13 @@ namespace scisl {
 	}
 
 	void div(Program& process, std::vector<Val>& args) {
-		Val temp = args[0];
+		uint8_t buf[nSize()];
+		Val temp = createTemporary(args[0], buf);
 
 		temp = args[1];
 		temp /= args[2];
 		args[0] = temp;
+		deleteTemporary(temp);
 	}
 
 	void dive(Program& process, std::vector<Val>& args) {
@@ -104,7 +112,7 @@ namespace scisl {
 	}
 
 	void strlen(Program& process, std::vector<Val>& args) {
-		args[0] = (SCISL_INT)args[1].asStr().size();
+		args[0] = (SCISL_INT)std::get<SCISL_STR*>(args[1].data)->size();
 	}
 
 	void chrset(Program& process, std::vector<Val>& args) {
