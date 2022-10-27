@@ -52,20 +52,18 @@ namespace scisl {
 
 		template <typename T>
 		constexpr Val& operator=(const T& val) {
-			std::visit([&](auto&& dat) {
+			std::visit([&val](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& v = *(ScislPtr)(*this);
-				v = ScislCast<std::remove_pointer_t<ScislPtr>>(val);
+				*dat = ScislCast<std::remove_pointer_t<ScislPtr>>(val);
 			}, data);
 
 			return *this;
 		}
 
 		constexpr Val& operator=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
-				val = other.as<std::remove_pointer_t<ScislPtr>>();
+				*dat = other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 
 			return *this;
@@ -77,21 +75,19 @@ namespace scisl {
 		}
 
 		constexpr Val& operator+=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
-				val += other.as<std::remove_pointer_t<ScislPtr>>();
+				*dat += other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 
 			return *this;
 		}
 
 		constexpr Val& operator-=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>) {
-					auto& val = *(ScislPtr)(*this);
-					val -= other.as<std::remove_pointer_t<ScislPtr>>();
+					*dat -= other.as<std::remove_pointer_t<ScislPtr>>();
 				}
 			}, data);
 
@@ -99,31 +95,29 @@ namespace scisl {
 		}
 
 		constexpr Val& operator*=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
 				if constexpr (std::is_same_v<ScislPtr, SCISL_STR*>) {
 					SCISL_STR tmp = "";
 					SCISL_INT times = other.as<SCISL_INT>();
-					tmp.reserve(times * val.size());
+					tmp.reserve(times * dat->size());
 
 					for (size_t i = 0; i < times; ++i) {
-						tmp += val;
+						tmp += *dat;
 					}
-					val = std::move(tmp);
+					*dat = std::move(tmp);
 				}
-				else val *= other.as<std::remove_pointer_t<ScislPtr>>();
+				else *dat *= other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 
 			return *this;
 		}
 
 		constexpr Val& operator/=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>) {
-					auto& val = *(ScislPtr)(*this);
-					val /= other.as<std::remove_pointer_t<ScislPtr>>();
+					*dat /= other.as<std::remove_pointer_t<ScislPtr>>();
 				}
 			}, data);
 
@@ -131,11 +125,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator%=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val %= other.as<SCISL_INT>();
+					*dat %= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -143,11 +136,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator|=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val |= other.as<SCISL_INT>();
+					*dat |= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -155,11 +147,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator&=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val &= other.as<SCISL_INT>();
+					*dat &= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -167,11 +158,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator^=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val ^= other.as<SCISL_INT>();
+					*dat ^= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -179,11 +169,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator>>=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val >>= other.as<SCISL_INT>();
+					*dat >>= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -191,11 +180,10 @@ namespace scisl {
 		}
 
 		constexpr Val& operator<<=(const Val& other) {
-			std::visit([&](auto&& dat) {
+			std::visit([&other](auto&& dat) {
 				using T = std::decay_t<decltype(dat)>;
 				if constexpr (std::is_same_v<T, SCISL_INT*>) {
-					auto& val = *(T)(*this);
-					val <<= other.as<SCISL_INT>();
+					*dat <<= other.as<SCISL_INT>();
 				}
 			}, data);
 
@@ -204,52 +192,47 @@ namespace scisl {
 	
 
 		constexpr bool operator<(const Val& other) const {
-			return std::visit([&](auto&& dat) {
+			return std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
-					return val < other.as<std::remove_pointer_t<ScislPtr>>();
+					return *dat < other.as<std::remove_pointer_t<ScislPtr>>();
 				else
 					return false;
 			}, data);
 		}
 
 		constexpr bool operator>(const Val& other) const {
-			return std::visit([&](auto&& dat) {
+			return std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
-					return val > other.as<std::remove_pointer_t<ScislPtr>>();
+					return *dat > other.as<std::remove_pointer_t<ScislPtr>>();
 				else
 					return false;
 			}, data);
 		}
 
 		constexpr bool operator==(const Val& other) const {
-			return std::visit([&](auto&& dat) {
+			return std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
-				return val == other.as<std::remove_pointer_t<ScislPtr>>();
+				return *dat == other.as<std::remove_pointer_t<ScislPtr>>();
 			}, data);
 		}
 
 		constexpr bool operator&&(const Val& other) const {
-			return std::visit([&](auto&& dat) {
+			return std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
-					return val && other.as<std::remove_pointer_t<ScislPtr>>();
+					return *dat && other.as<std::remove_pointer_t<ScislPtr>>();
 				else
 					return false;
 			}, data);
 		}
 
 		constexpr bool operator||(const Val& other) const {
-			return std::visit([&](auto&& dat) {
+			return std::visit([&other](auto&& dat) {
 				using ScislPtr = std::decay_t<decltype(dat)>;
-				auto& val = *(ScislPtr)(*this);
 				if constexpr (!std::is_same_v<ScislPtr, SCISL_STR*>)
-					return val || other.as<std::remove_pointer_t<ScislPtr>>();
+					return *dat || other.as<std::remove_pointer_t<ScislPtr>>();
 				else
 					return false;
 			}, data);
@@ -260,7 +243,6 @@ namespace scisl {
 	template <class T>
 	constexpr Val createTemporary(void* buf) {
 		return { std::construct_at((T*)buf) };
-
 	}
 
 	constexpr Val createTemporary(ValType type, void* buf) {
