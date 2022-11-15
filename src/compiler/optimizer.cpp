@@ -540,38 +540,35 @@ namespace scisl {
 	void unrollFunctions(Intermediate& program) {
 		std::vector<IntermediateInstr> remaining;
 		remaining.reserve(program.instrs.size());
-		
-		std::stack<size_t> funcloc;
 
-		for (size_t i = 0; i < program.instrs.size(); ++i) { //find all funcs
-			if (program.instrs[i].func == stlFunc::def) funcloc.push(i);
+		std::stack<size_t> blocks;
+
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			if (program.instrs[i].func == stlFunc::def) {
+				blocks.emplace(i);
+				i = getBlockEnd(program.instrs, i);
+			}
+			else {
+				remaining.emplace_back(std::move(program.instrs[i]));
+			}
 		}
 
-		if (funcloc.size() == 0) return; // fast path (no funcs)
-
-		std::vector<IntermediateInstr> funcs;
-		funcs.reserve(program.instrs.size());
-
-		while (!funcloc.empty()) {
-			size_t start = funcloc.top();
-			funcloc.pop();
+		while (!blocks.empty()) {
+			size_t start = blocks.top();
+			blocks.pop();
 			size_t end = getBlockEnd(program.instrs, start);
 
-			for (size_t i = start; i <= end; ++i) {
-				funcs.push_back(std::move(program.instrs[i]));
-				program.instrs[i].func = stlFunc::noop; //mark used
-			}
-		}
+			remaining.emplace_back(std::move(program.instrs[start]));
 
-		//add all non-marked instrs
-		for (auto& instr : program.instrs) {
-			if (instr.func != stlFunc::noop) { // side effect of removing noops
-				remaining.push_back(std::move(instr));
+			for (size_t i = start + 1; i <= end; ++i) {
+				if (program.instrs[i].func == stlFunc::def) {
+					blocks.emplace(i);
+					i = getBlockEnd(program.instrs, i);
+				}
+				else {
+					remaining.emplace_back(std::move(program.instrs[i]));
+				}
 			}
-		}
-
-		for (auto& instr : funcs) { // put funcs at the end
-			remaining.push_back(std::move(instr));
 		}
 
 		program.instrs = std::move(remaining);
@@ -636,6 +633,59 @@ namespace scisl {
 		program.instrs = std::move(inlinedProg);
 	}
 
+	// inlines functions that are only called once,
+	// this permits larger functions and functions that contain labels
+	void inlineOnceFuncs(Intermediate& program) {
+		std::vector<IntermediateInstr> inlinedProg;
+		inlinedProg.reserve(program.instrs.size());
+
+		std::unordered_map<std::string, size_t> funcCounts;
+		std::unordered_map<std::string, std::pair<size_t, size_t>> funcs;
+
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			const auto& cur = program.instrs[i];
+			if (cur.func == stlFunc::call) {
+
+				if (funcCounts.contains(cur.args[0].value)) {
+					funcCounts[cur.args[0].value] += 1;
+				}
+				else {
+					funcCounts[cur.args[0].value] = 1;
+				}
+			}
+			else if (cur.func == stlFunc::def) {
+				size_t end = getBlockEnd(program.instrs, i);
+				funcs[cur.args[0].value] = {i, end};
+			}
+		}
+
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			auto& cur = program.instrs[i];
+			if (cur.func == stlFunc::call) {
+				if (funcCounts[cur.args[0].value] == 1) {
+
+					auto [start, end] = funcs[cur.args[0].value];
+					for (size_t j = start + 1; j < end; ++j) {
+						inlinedProg.push_back(program.instrs[j]);
+					}
+				}
+			}
+			else if (cur.func == stlFunc::def) {
+				if (!funcCounts.contains(cur.args[0].value) || funcCounts[cur.args[0].value] <= 1) {
+					i = funcs[cur.args[0].value].second + 1;
+				}
+				else {
+					inlinedProg.push_back(std::move(cur));
+				}
+			}
+			else {
+				inlinedProg.push_back(std::move(cur));
+			}
+		}
+
+		program.instrs = std::move(inlinedProg);
+	}
+
 
 	void foldConstants(Intermediate& program) {
 		
@@ -646,6 +696,7 @@ namespace scisl {
 		removeNoop(program);
 		unrollFunctions(program);
 		inlineFuncs(program);
+		inlineOnceFuncs(program);
 
 	}
 }
