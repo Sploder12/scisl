@@ -623,7 +623,7 @@ namespace scisl {
 		for (size_t i = firstFunc; i < program.instrs.size(); ++i) {
 			auto& cur = program.instrs[i];
 			if (program.instrs[i].func == stlFunc::def && readyFuncs.contains(cur.args[0].value)) {
-				i = readyFuncs[cur.args[0].value].second + 1;
+				i = readyFuncs[cur.args[0].value].second;
 			}
 			else {
 				inlinedProg.push_back(std::move(cur));
@@ -672,7 +672,7 @@ namespace scisl {
 			}
 			else if (cur.func == stlFunc::def) {
 				if (!funcCounts.contains(cur.args[0].value) || funcCounts[cur.args[0].value] <= 1) {
-					i = funcs[cur.args[0].value].second + 1;
+					i = funcs[cur.args[0].value].second;
 				}
 				else {
 					inlinedProg.push_back(std::move(cur));
