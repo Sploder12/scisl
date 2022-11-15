@@ -540,39 +540,93 @@ namespace scisl {
 	void unrollFunctions(Intermediate& program) {
 		std::vector<IntermediateInstr> remaining;
 		remaining.reserve(program.instrs.size());
+		
+		std::stack<size_t> funcloc;
 
-		std::stack<size_t> blocks;
+		for (size_t i = 0; i < program.instrs.size(); ++i) { //find all funcs
+			if (program.instrs[i].func == stlFunc::def) funcloc.push(i);
+		}
 
-		for (size_t i = 0; i < program.instrs.size(); ++i) {
-			if (program.instrs[i].func == stlFunc::def) {
-				blocks.emplace(i);
-				i = getBlockEnd(program.instrs, i);
-			}
-			else {
-				remaining.emplace_back(std::move(program.instrs[i]));
+		if (funcloc.size() == 0) return; // fast path (no funcs)
+
+		std::vector<IntermediateInstr> funcs;
+		funcs.reserve(program.instrs.size());
+
+		while (!funcloc.empty()) {
+			size_t start = funcloc.top();
+			funcloc.pop();
+			size_t end = getBlockEnd(program.instrs, start);
+
+			for (size_t i = start; i <= end; ++i) {
+				funcs.push_back(std::move(program.instrs[i]));
+				program.instrs[i].func = stlFunc::noop; //mark used
 			}
 		}
 
-		while (!blocks.empty()) {
-			size_t start = blocks.top();
-			blocks.pop();
-			size_t end = getBlockEnd(program.instrs, start);
-
-			remaining.emplace_back(std::move(program.instrs[start]));
-			
-			for (size_t i = start + 1; i <= end; ++i) {
-				if (program.instrs[i].func == stlFunc::def) {
-					blocks.emplace(i);
-					i = getBlockEnd(program.instrs, i);
-				}
-				else {
-					remaining.emplace_back(std::move(program.instrs[i]));
-				}
+		//add all non-marked instrs
+		for (auto& instr : program.instrs) {
+			if (instr.func != stlFunc::noop) { // side effect of removing noops
+				remaining.push_back(std::move(instr));
 			}
+		}
+
+		for (auto& instr : funcs) { // put funcs at the end
+			remaining.push_back(std::move(instr));
 		}
 
 		program.instrs = std::move(remaining);
 	}
+
+	constexpr size_t inlineThreshold = 5;
+	void inlineFuncs(Intermediate& program) {
+		std::vector<IntermediateInstr> inlinedProg;
+		inlinedProg.reserve(program.instrs.size());
+		
+		// all funcs to be inlined
+		std::unordered_map<std::string, std::pair<size_t, size_t>> readyFuncs;
+
+		// determine what to inline
+		size_t firstFunc = 0;
+		for (size_t i = 0; i < program.instrs.size(); ++i) {
+			if (program.instrs[i].func == stlFunc::def) {
+				if (firstFunc == 0) firstFunc = i;
+
+				size_t end = getBlockEnd(program.instrs, i);
+
+				if (end - i <= inlineThreshold) {
+					readyFuncs[program.instrs[i].args[0].value] = { i, end };
+				}
+			}
+		}
+
+		// the function unrolling guarentees functions are at the end
+		for (size_t i = 0; i < firstFunc; ++i) {
+			auto& cur = program.instrs[i];
+			if (cur.func == stlFunc::call && readyFuncs.contains(cur.args[0].value)) {
+				auto [start, end] = readyFuncs[cur.args[0].value];
+				for (size_t j = start + 1; j < end; ++j) {
+					inlinedProg.push_back(cur); //copy important!
+				}
+			}
+			else {
+				inlinedProg.push_back(std::move(cur)); // we can move here safely
+			}
+		}
+
+		//restore functions that weren't inlined
+		for (size_t i = firstFunc; i < program.instrs.size(); ++i) {
+			auto& cur = program.instrs[i];
+			if (program.instrs[i].func == stlFunc::def && readyFuncs.contains(cur.args[0].value)) {
+				i = readyFuncs[cur.args[0].value].second + 1;
+			}
+			else {
+				inlinedProg.push_back(std::move(cur));
+			}
+		}
+
+		program.instrs = std::move(inlinedProg);
+	}
+
 
 	void foldConstants(Intermediate& program) {
 		
@@ -582,7 +636,7 @@ namespace scisl {
 		applyPeep(program);
 		removeNoop(program);
 		unrollFunctions(program);
-
+		inlineFuncs(program);
 
 	}
 }

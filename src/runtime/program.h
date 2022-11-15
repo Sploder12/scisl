@@ -5,8 +5,7 @@
 #include <stack>
 #include <string>
 
-#include <algorithm>
-#include <execution>
+#include <memory>
 
 #include "../compiler/type.h"
 
