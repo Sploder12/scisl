@@ -594,7 +594,16 @@ namespace scisl {
 				size_t end = getBlockEnd(program.instrs, i);
 
 				if (end - i <= inlineThreshold) {
-					readyFuncs[program.instrs[i].args[0].value] = { i, end };
+					bool hasLabel = false;
+					for (size_t j = i + 1; j < end; ++j) {
+						if (program.instrs[j].func == stlFunc::label) {
+							hasLabel = true;
+							break;
+						}
+					}
+
+					// duplicating labels is very bad
+					if (!hasLabel) readyFuncs[program.instrs[i].args[0].value] = { i, end };
 				}
 			}
 		}
@@ -605,7 +614,7 @@ namespace scisl {
 			if (cur.func == stlFunc::call && readyFuncs.contains(cur.args[0].value)) {
 				auto [start, end] = readyFuncs[cur.args[0].value];
 				for (size_t j = start + 1; j < end; ++j) {
-					inlinedProg.push_back(cur); //copy important!
+					inlinedProg.push_back(program.instrs[j]); //copy important!
 				}
 			}
 			else {
